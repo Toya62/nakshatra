@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Nakshatra CLI - Calculate Vedic birth charts from command line.
+Nakshatra CLI - Calculate Vedic birth charts, Vimshottari Dashas, Vargas, Ashtakavarga, and Shadbala from the command line.
 """
 
 from __future__ import annotations
@@ -21,13 +21,13 @@ from nakshatra.core import (
 def main():
     parser = argparse.ArgumentParser(
         prog="nakshatra",
-        description="Nakshatra - Vedic Astrology AI Engine CLI",
+        description="Nakshatra - Vedic Astrology AI Engine CLI (Swiss Ephemeris)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   nakshatra --dob 1990-05-15 --time 14:30 --lat 40.7128 --lon -74.0060 --tz America/New_York
-  nakshatra --dob 1990-05-15 --time 14:30 --place "New York, NY"
-  nakshatra --dob 1990-05-15 --time 14:30:00 --lat 12.9716 --lon 77.5946 --tz Asia/Kolkata --ayanamsa raman
+  nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --ayanamsa jhora_lahiri
+  nakshatra --dob 1990-05-15 --time 14:30:00 --lat 12.9716 --lon 77.5946 --tz Asia/Kolkata --ayanamsa raman -p
         """
     )
     

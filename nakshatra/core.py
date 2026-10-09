@@ -1,7 +1,16 @@
 """
 Nakshatra - Vedic Astrology AI Engine
-Core calculation module powered by Swiss Ephemeris / mayaastrolib.
-Default ayanamsa: Lahiri (Chitra Paksha).
+Core calculation module powered by Swiss Ephemeris (pyswisseph) via mayaastrolib.
+
+Calculations:
+- Sidereal planetary positions, true velocities, retrograde motion, and dignities
+- Ayanamsas: Lahiri, JHora Traditional Lahiri, Raman, Krishnamurti, Fagan-Bradley
+- House systems: Whole Sign, Placidus, Koch, Regiomontanus, Campanus, Equal, Porphyry
+- Vimshottari Dasha: Mahadasha, Antardasha, and Pratyantardasha with exact timestamps
+- Divisional charts: Shodashavarga (D1 through D60)
+- Ashtakavarga: Sarvashtakavarga (337 bindus) and Bhinnashtakavarga for 7 planets
+- Shadbala: Sthana, Dig, Kala, Cheshta, Naisargika, and Drik balas with rupas
+- Upagrahas: Dhuma, Vyatipata, Parivesha, Indrachapa, and Upaketu
 """
 
 from __future__ import annotations

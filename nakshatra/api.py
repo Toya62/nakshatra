@@ -1,6 +1,6 @@
 """
 Nakshatra - Vedic Astrology AI Engine
-FastAPI application exposing chart calculation as JSON API.
+FastAPI application exposing chart calculation, Vimshottari Dashas, Shodashavarga, Ashtakavarga, and Shadbala as JSON API.
 """
 
 from __future__ import annotations

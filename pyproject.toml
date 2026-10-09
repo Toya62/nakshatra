@@ -1,7 +1,7 @@
 [project]
 name = "nakshatra"
 version = "0.1.0"
-description = "Vedic Astrology AI Engine - JSON API for birth charts with Lahiri ayanamsa"
+description = "Vedic Astrology AI Engine - Swiss Ephemeris birth charts, Vimshottari dashas, Shodashavarga, Ashtakavarga, and Shadbala"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
@@ -9,7 +9,6 @@ authors = [
     {name = "Toya", email = "toya@example.com"}
 ]
 dependencies = [
-    "openephem>=0.1.0",
     "mayaastrolib>=0.1.0",
     "pyswisseph>=2.10.3",
     "fastapi>=0.109.0",

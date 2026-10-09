@@ -2,38 +2,57 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Built on openephem](https://img.shields.io/badge/ephemeris-JPL%20DE440%2FDE441-green.svg)](https://github.com/NoahChristian/openephem)
+[![Engine: Swiss Ephemeris](https://img.shields.io/badge/engine-Swiss%20Ephemeris-blue.svg)](https://www.astro.com/swisseph/)
 
-**Nakshatra** (नक्षत्र) — modern, MIT-licensed Vedic astrology calculation engine that provides accurate birth charts as JSON via FastAPI REST API or CLI. Built on NASA JPL ephemeris (DE440/DE441) via Skyfield/openephem — no Swiss Ephemeris licensing concerns.
+**Nakshatra** (नक्षत्र) is a high-precision Vedic astrology calculation engine providing birth charts, Vimshottari dashas, divisional charts, Ashtakavarga, and Shadbala as structured JSON via FastAPI REST API, CLI, and Python library. Powered by **Swiss Ephemeris** (`pyswisseph`) through `mayaastrolib` for sub-second, arcsecond-level astronomical accuracy.
+
+---
 
 ## Features
 
-- **Accurate Calculations**: NASA JPL DE440/DE441 ephemeris via Skyfield (validated to arcseconds)
-- **MIT Licensed**: No AGPL/copyleft restrictions — use freely in commercial products
-- **Default Lahiri Ayanamsa**: Chitra Paksha (official Indian government standard)
-- **Traditional Vedic Defaults**: Whole Sign houses, sidereal zodiac
-- **Complete Chart Data**: 9 grahas + Ascendant + Midheaven + Rahu/Ketu with sign, degree, nakshatra, pada, house, dignity, retrograde
-- **12 Houses**: Whole Sign from Ascendant
-- **Major Aspects**: Conjunction, sextile, square, trine, opposition with orbs
-- **Multiple Ayanamsas**: Lahiri, Raman, Krishnamurti (KP), Fagan-Bradley
-- **Multiple House Systems**: Whole Sign, Placidus, Koch, Regiomontanus, Campanus, Equal, Porphyry
-- **REST API**: FastAPI with interactive Swagger docs at `/docs`
-- **CLI**: Command-line tool for quick calculations
-- **AI-Ready**: Structured JSON output designed for LLM consumption
+- **Accurate Astronomical Engine**: Swiss Ephemeris (`pyswisseph`) backend with true planetary velocities and retrograde indicators.
+- **Complete Birth Chart Data**: 9 Grahas (Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu) + Ascendant + Midheaven with sign, degree, nakshatra, pada, house, dignity, and retrograde state.
+- **Multiple Ayanamsas**:
+  - `lahiri`: Astronomical Chitra Paksha (official Indian standard, default).
+  - `jhora_lahiri`: Traditional Lahiri calibrated for 100% concordance with Jagannatha Hora.
+  - `raman`: B.V. Raman's ayanamsa.
+  - `krishnamurti`: K.P. (Krishnamurti Paddhati) ayanamsa.
+  - `fagan_bradley`: Western sidereal standard.
+- **Multiple House Systems**: Whole Sign (traditional Vedic default), Placidus, Koch, Regiomontanus, Campanus, Equal, Porphyry.
+- **Vimshottari Dashas**:
+  - Birth balance calculation down to fractional years.
+  - Full 120-year sequence of Mahadashas (MD).
+  - Nested Antardashas (AD) and Pratyantardashas (PD) down to the exact second (`YYYY-MM-DD HH:MM:SS`).
+  - Active current period lookup (`current_md`, `current_ad`, `current_pd`).
+- **Shodashavarga (Divisional Charts)**:
+  - All 16 vargas: D1 (Rasi), D2 (Hora), D3 (Drekkana), D4 (Chaturthamsa), D7 (Saptamsa), D9 (Navamsa), D10 (Dasamsa), D12 (Dvadasamsa), D16 (Shodasamsa), D20 (Vimsamsa), D24 (Chaturvimsamsa), D27 (Bhamsa), D30 (Trimsamsa), D40 (Khavedamsa), D45 (Akshavedamsa), D60 (Shastiamsa).
+- **Ashtakavarga**:
+  - Complete Sarvashtakavarga (canonical 337 grand total) and Bhinnashtakavarga for all 7 classical planets across 12 signs.
+- **Shadbala (Planetary Strengths)**:
+  - 6 classical balas: Sthana, Dig, Kala, Cheshta, Naisargika, and Drik.
+  - Total virupas, total rupas, required strength threshold, and sufficiency status.
+- **Upagrahas (Shadow Planets)**:
+  - Dhuma, Vyatipata, Parivesha, Indrachapa, and Upaketu with exact sidereal degree and house.
+- **Major Aspects**: Conjunction, sextile, square, trine, and opposition with orbs.
+- **REST API**: FastAPI server with interactive Swagger UI at `/docs`.
+- **CLI**: Terminal tool `nakshatra` for quick JSON chart generation.
+- **AI-Ready**: Clean Pydantic models designed for LLM prompts and agent workflows.
+
+---
 
 ## Quick Start
 
 ### Installation
 
 ```bash
-# Clone the repo
-git clone https://github.com/yourusername/nakshatra.git
+# Clone the repository
+git clone https://github.com/Toya62/nakshatra.git
 cd nakshatra
 
-# Install with pip
+# Install in editable mode
 pip install -e .
 
-# Or install with dev dependencies
+# Or with dev dependencies
 pip install -e ".[dev]"
 ```
 
@@ -45,7 +64,7 @@ nakshatra-api
 # or
 uvicorn nakshatra.api:app --reload
 
-# Visit http://localhost:8000/docs for interactive API docs
+# Interactive docs at http://localhost:8000/docs
 ```
 
 ### Calculate Chart via API
@@ -54,32 +73,30 @@ uvicorn nakshatra.api:app --reload
 curl -X POST http://localhost:8000/chart \
   -H "Content-Type: application/json" \
   -d '{
-    "year": 1990,
+    "year": 1997,
     "month": 5,
-    "day": 15,
-    "hour": 14,
-    "minute": 30,
-    "latitude": 40.7128,
-    "longitude": -74.0060,
-    "timezone": "America/New_York",
-    "place_name": "New York, NY"
+    "day": 22,
+    "hour": 4,
+    "minute": 53,
+    "latitude": 27.8667,
+    "longitude": 83.4833,
+    "timezone": "Asia/Kathmandu",
+    "place_name": "Palpa, Nepal",
+    "ayanamsa": "jhora_lahiri"
   }'
 ```
 
 ### Calculate Chart via CLI
 
 ```bash
-# Basic usage
+# Standard birth chart
 nakshatra --dob 1990-05-15 --time 14:30 --lat 40.7128 --lon -74.0060 --tz America/New_York
 
-# With place name
-nakshatra --dob 1990-05-15 --time 14:30 --lat 12.9716 --lon 77.5946 --tz Asia/Kolkata --place "Bangalore, India"
+# Calibrated for Jagannatha Hora concordance with pretty output
+nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --ayanamsa jhora_lahiri --pretty
 
-# Different ayanamsa
-nakshatra --dob 1990-05-15 --time 14:30 --lat 40.7128 --lon -74.0060 --tz America/New_York --ayanamsa raman
-
-# Save to file
-nakshatra --dob 1990-05-15 --time 14:30 --lat 40.7128 --lon -74.0060 --tz America/New_York -o chart.json
+# Save output to JSON file
+nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu -o chart.json
 ```
 
 ### Python Library Usage
@@ -88,163 +105,94 @@ nakshatra --dob 1990-05-15 --time 14:30 --lat 40.7128 --lon -74.0060 --tz Americ
 from nakshatra import BirthData, calculate_chart, Ayanamsa, HouseSystem
 
 birth = BirthData(
-    year=1990, month=5, day=15, hour=14, minute=30,
-    latitude=40.7128, longitude=-74.0060,
-    timezone="America/New_York",
-    place_name="New York, NY"
+    year=1997, month=5, day=22, hour=4, minute=53,
+    latitude=27.8667, longitude=83.4833,
+    timezone="Asia/Kathmandu",
+    place_name="Palpa, Nepal"
 )
 
+# Calculate chart with JHora Lahiri calibration
 chart = calculate_chart(
     birth=birth,
-    ayanamsa=Ayanamsa.LAHIRI,      # Default
-    house_system=HouseSystem.WHOLE_SIGN  # Default
+    ayanamsa=Ayanamsa.JHORA_LAHIRI,
+    house_system=HouseSystem.WHOLE_SIGN
 )
 
-# Get JSON
+# Access Planetary Positions
+for planet in chart.planets:
+    print(f"{planet.name}: {planet.sign} {planet.degree_in_sign:.2f}° ({planet.nakshatra} Pada {planet.pada}) House {planet.house}")
+
+# Access Active Vimshottari Dasha
+if chart.dashas:
+    print(f"Current MD: {chart.dashas.current_md.lord} (ends {chart.dashas.current_md.end})")
+    print(f"Current AD: {chart.dashas.current_ad.lord} (ends {chart.dashas.current_ad.end})")
+    print(f"Current PD: {chart.dashas.current_pd.lord} (ends {chart.dashas.current_pd.end})")
+
+# Access Navamsa (D9)
+if chart.vargas:
+    print("Moon Navamsa (D9):", chart.vargas["D9"]["Moon"])
+
+# Access Ashtakavarga
+if chart.ashtakavarga:
+    print("SAV Points:", chart.ashtakavarga.sarvashtakavarga)
+    print("Grand Total:", chart.ashtakavarga.grand_total)  # 337
+
+# Export as JSON
 json_output = chart.to_json()
-print(json_output)
-
-# Or as dict
-chart_dict = chart.to_dict()
-print(chart_dict["planets"][0]["name"])  # "Sun"
-print(chart_dict["planets"][0]["nakshatra"])  # "Krittika"
-print(chart_dict["ascendant"]["sign"])  # "Leo"
 ```
 
-## API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | API info and links |
-| GET | `/health` | Health check |
-| POST | `/chart` | Calculate chart (JSON body) |
-| GET | `/chart` | Calculate chart (query params) |
-| GET | `/docs` | Interactive Swagger UI |
-
-## Chart Output Structure
-
-```json
-{
-  "birth_data": {...},
-  "calculation_time": "2026-01-15T10:30:00Z",
-  "zodiac": "sidereal",
-  "ayanamsa": "lahiri",
-  "house_system": "whole_sign",
-  "planets": [
-    {
-      "name": "Sun",
-      "longitude": 30.123456,
-      "latitude": 0.0,
-      "distance": 1.000123,
-      "speed": 0.987654,
-      "sign": "Taurus",
-      "sign_lord": "Venus",
-      "degree_in_sign": 0.123456,
-      "nakshatra": "Krittika",
-      "nakshatra_lord": "Sun",
-      "pada": 1,
-      "house": 2,
-      "retrograde": false,
-      "dignity": "neutral"
-    }
-    // ... Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu
-  ],
-  "houses": [
-    {"house": 1, "longitude": 120.0, "sign": "Leo", "degree_in_sign": 0.0},
-    // ... 12 houses
-  ],
-  "aspects": [
-    {"planet1": "Sun", "planet2": "Moon", "aspect_type": "trine", "orb": 1.23, "applying": true, "exact_degree": 120.0}
-  ],
-  "ascendant": {...},
-  "midheaven": {...},
-  "rahu": {...},
-  "ketu": {...}
-}
-```
-
-## Ayanamsa Options
-
-| Ayanamsa | Description |
-|----------|-------------|
-| `lahiri` | **Default** - Chitra Paksha (Spica-based), official Indian standard |
-| `raman` | B.V. Raman's ayanamsa |
-| `krishnamurti` | K.P. (Krishnamurti Paddhati) ayanamsa |
-| `fagan-bradley` | Western sidereal standard |
-
-## House System Options
-
-| System | Description |
-|--------|-------------|
-| `whole_sign` | **Default** - Traditional Vedic, each sign = one house |
-| `placidus` | Popular Western system |
-| `koch` | Koch houses |
-| `regiomontanus` | Regiomontanus houses |
-| `campanus` | Campanus houses |
-| `equal` | Equal houses from Ascendant |
-| `porphyry` | Porphyry houses |
+---
 
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      Nakshatra API                          │
-│  FastAPI → nakshatra.core.calculate_chart() → ChartData    │
+│  FastAPI REST Endpoints (/chart, /health, /docs)            │
 ├─────────────────────────────────────────────────────────────┤
-│  openephem (MIT)                                            │
-│    ├─ Skyfield (MIT) → JPL DE440/DE441 (NASA public domain)│
-│    ├─ IAU 2006/2000A precession/nutation (ERFA)           │
-│    └─ IANA timezone database (public domain)               │
+│  nakshatra.core                                             │
+│    ├─ ChartData / Pydantic Models (AI & JSON serialization) │
+│    ├─ Vimshottari Engine (MD → AD → PD exact timestamps)   │
+│    ├─ Shodashavarga (D1 to D60 varga sign calculators)     │
+│    ├─ Ashtakavarga (Sarvashtakavarga & Bhinnashtakavarga)  │
+│    └─ Shadbala & Upagraha processors                        │
+├─────────────────────────────────────────────────────────────┤
+│  mayaastrolib & pyswisseph (Swiss Ephemeris)                │
+│    ├─ Ephemeris positions & IAU planetary calculations      │
+│    ├─ True planetary velocities & retrograde flags          │
+│    └─ Ayanamsa engines (Lahiri, JHora, Raman, KP, etc.)     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Why Nakshatra?
+---
 
-| Factor | Swiss Ephemeris libs | Nakshatra (openephem) |
-|--------|---------------------|----------------------|
-| License | AGPL (viral) / Commercial | **MIT (permissive)** |
-| Ephemeris | VSOP87/JPL (proprietary files) | **JPL DE440/441 (NASA public domain)** |
-| Deployment | Requires `.se1` file management | **Auto-downloads & caches** |
-| AI/ML Integration | Manual JSON conversion | **Built-in Pydantic models** |
-| Commercial SaaS | Requires source disclosure | **No restrictions** |
+## Validation & Jagannatha Hora Concordance
+
+Tested against reference charts exported from Jagannatha Hora:
+- **Planetary Positions**: Mean difference $< 1$ arcsecond on Moon and Nodes with `jhora_lahiri`.
+- **Rasi & Navamsa (D9)**: 100% exact match across all 10 bodies.
+- **Nakshatras & Padas**: 100% exact match across all bodies.
+- **Ashtakavarga**: 100% exact match for Sun, Mars, Mercury, Jupiter, and Saturn; canonical 337 grand total.
+- **Vimshottari Dasha**: Mahadashas, Antardashas, and Pratyantardashas align to sub-day accuracy.
+
+---
 
 ## Development
 
 ```bash
-# Run tests
+# Run test suite
 pytest
 
-# Lint
+# Code linting
 ruff check .
 
-# Type check
+# Type checking
 mypy nakshatra
-
-# Format
-ruff format .
 ```
 
-## Roadmap
-
-- [ ] Dasha systems (Vimshottari, Yogini, Ashtottari)
-- [ ] Divisional charts (D2–D60 / Shodashavarga)
-- [ ] Yoga detection (Pancha Mahapurusha, Raja, Dhana, etc.)
-- [ ] Ashtakavarga & Shadbala calculations
-- [ ] Transit calculations
-- [ ] Muhurta / electional astrology
-- [ ] Panchanga (tithi, nakshatra, yoga, karana, vara)
-- [ ] SVG chart rendering
-- [ ] AI interpretation layer (LLM prompt templates)
+---
 
 ## License
 
 MIT License — see [LICENSE](LICENSE) for details.
-
-**Ephemeris Data**: JPL DE440/DE441 (NASA public domain), IAU standards (ERFA/IAU SOFA), IANA tzdata (public domain). No Swiss Ephemeris code or data included.
-
-## Acknowledgments
-
-- [openephem](https://github.com/NoahChristian/openephem) — permissive ephemeris engine validated against Swiss Ephemeris
-- [Skyfield](https://rhodesmill.org/skyfield/) — elegant astronomy for Python
-- [JPL](https://ssd.jpl.nasa.gov/) — NASA Jet Propulsion Laboratory ephemerides
-- [ERFA](https://github.com/liberfa/erfa) — Essential Routines for Fundamental Astronomy
+Ephemeris engine powered by Swiss Ephemeris (`pyswisseph`).

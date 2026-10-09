@@ -1,11 +1,16 @@
 """
 Nakshatra - Vedic Astrology AI Engine
 
-A modern, MIT-licensed Vedic astrology calculation engine
-built on NASA JPL ephemeris via Skyfield/openephem.
+High-precision Vedic astrology calculation engine powered by Swiss Ephemeris
+via mayaastrolib and pyswisseph.
 
-Default ayanamsa: Lahiri (Chitra Paksha) - official Indian government standard
-Default house system: Whole Sign (traditional Vedic)
+Features:
+- Sidereal birth charts with Lahiri, JHora Lahiri, Raman, KP, and Fagan-Bradley ayanamsas
+- Vimshottari Dashas with exact MD, AD, and PD timestamps down to the second
+- Shodashavarga (D1 through D60 divisional charts)
+- Complete Ashtakavarga (Sarvashtakavarga and Bhinnashtakavarga)
+- Shadbala planetary strength calculations (rupas and virupas)
+- Upagrahas (shadow planets: Dhuma, Vyatipata, Parivesha, Indrachapa, Upaketu)
 """
 
 from nakshatra.core import (
@@ -18,6 +23,11 @@ from nakshatra.core import (
     PlanetPosition,
     HouseCusp,
     Aspect,
+    DashaPeriod,
+    VimshottariDasha,
+    ShadbalaPlanet,
+    AshtakavargaData,
+    UpagrahaPosition,
 )
 
 __version__ = "0.1.0"
@@ -34,4 +44,9 @@ __all__ = [
     "PlanetPosition",
     "HouseCusp",
     "Aspect",
+    "DashaPeriod",
+    "VimshottariDasha",
+    "ShadbalaPlanet",
+    "AshtakavargaData",
+    "UpagrahaPosition",
 ]
