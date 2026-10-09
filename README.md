@@ -89,14 +89,21 @@ curl -X POST http://localhost:8000/chart \
 ### Calculate Chart via CLI
 
 ```bash
-# Standard birth chart
-nakshatra --dob 1990-05-15 --time 14:30 --lat 40.7128 --lon -74.0060 --tz America/New_York
+# Output as formatted ASCII table (default)
+nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --ayanamsa jhora_lahiri
 
-# Calibrated for Jagannatha Hora concordance with pretty output
-nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --ayanamsa jhora_lahiri --pretty
+# Output as South Indian ASCII box chart diagram
+nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --format diagram
 
-# Save output to JSON file
-nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu -o chart.json
+# Output as Markdown report or CSV
+nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --format markdown
+nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --format csv
+
+# Output as pretty JSON
+nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --format json -p
+
+# Save output to file
+nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu -o chart.txt
 ```
 
 ### Python Library Usage
@@ -118,27 +125,13 @@ chart = calculate_chart(
     house_system=HouseSystem.WHOLE_SIGN
 )
 
-# Access Planetary Positions
-for planet in chart.planets:
-    print(f"{planet.name}: {planet.sign} {planet.degree_in_sign:.2f}° ({planet.nakshatra} Pada {planet.pada}) House {planet.house}")
-
-# Access Active Vimshottari Dasha
-if chart.dashas:
-    print(f"Current MD: {chart.dashas.current_md.lord} (ends {chart.dashas.current_md.end})")
-    print(f"Current AD: {chart.dashas.current_ad.lord} (ends {chart.dashas.current_ad.end})")
-    print(f"Current PD: {chart.dashas.current_pd.lord} (ends {chart.dashas.current_pd.end})")
-
-# Access Navamsa (D9)
-if chart.vargas:
-    print("Moon Navamsa (D9):", chart.vargas["D9"]["Moon"])
-
-# Access Ashtakavarga
-if chart.ashtakavarga:
-    print("SAV Points:", chart.ashtakavarga.sarvashtakavarga)
-    print("Grand Total:", chart.ashtakavarga.grand_total)  # 337
-
-# Export as JSON
-json_output = chart.to_json()
+# Export in multiple formats
+table_str = chart.to_table()      # Human-readable ASCII tables
+diagram_str = chart.to_diagram()  # South Indian ASCII chart box
+md_str = chart.to_markdown()      # GitHub-flavored Markdown
+csv_str = chart.to_csv()          # Planetary CSV
+json_str = chart.to_json()        # Formatted JSON
+dict_data = chart.to_dict()       # Python dictionary
 ```
 
 ---

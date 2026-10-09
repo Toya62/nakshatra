@@ -364,6 +364,41 @@ class TestVedicExtensions:
         assert chart.rahu.house == 6
         assert chart.ketu.house == 12
 
+    def test_output_formatters(self):
+        """Test ASCII table, markdown, CSV, and diagram output methods."""
+        birth = BirthData(
+            year=1997, month=5, day=22, hour=4, minute=53, second=0,
+            latitude=27.8667, longitude=83.4833,
+            timezone="Asia/Kathmandu",
+        )
+        chart = calculate_chart(birth, ayanamsa=Ayanamsa.JHORA_LAHIRI)
+
+        # Table format
+        tbl = chart.to_table()
+        assert "NAKSHATRA VEDIC BIRTH CHART" in tbl
+        assert "PLANETARY POSITIONS" in tbl
+        assert "Sun" in tbl
+        assert "Rahu" in tbl
+        assert "VIMSHOTTARI DASHA" in tbl
+
+        # Markdown format
+        md = chart.to_markdown()
+        assert "# Nakshatra Vedic Birth Chart" in md
+        assert "| Planet | Sign | Degree |" in md
+        assert "**Rahu**" in md
+
+        # CSV format
+        csv_str = chart.to_csv()
+        assert "Body,Sign,Degree_In_Sign" in csv_str
+        assert "Ascendant,Aries" in csv_str
+        assert "Rahu,Virgo" in csv_str
+
+        # Diagram format
+        diagram = chart.to_diagram()
+        assert "NAKSHATRA VEDIC D1" in diagram
+        assert "Asc" in diagram
+        assert "Mo" in diagram
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

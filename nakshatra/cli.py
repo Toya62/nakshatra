@@ -72,13 +72,19 @@ Examples:
         help=f"House system (default: {HouseSystem.WHOLE_SIGN.value})"
     )
     parser.add_argument(
-        "--output", "-o",
-        help="Output file (default: stdout)"
+        "--format", "-f",
+        choices=["table", "json", "markdown", "csv", "diagram"],
+        default="table",
+        help="Output format: table (default), json, markdown, csv, diagram"
     )
     parser.add_argument(
         "--pretty", "-p",
         action="store_true",
-        help="Pretty print JSON output"
+        help="Pretty print JSON output (forces --format json)"
+    )
+    parser.add_argument(
+        "--output", "-o",
+        help="Output file (default: stdout)"
     )
     parser.add_argument(
         "--version", "-v",
@@ -135,9 +141,21 @@ Examples:
         print(f"Error calculating chart: {e}", file=sys.stderr)
         sys.exit(1)
     
-    # Output JSON
-    output = chart.to_json() if args.pretty else chart.model_dump_json()
-    
+    # Format output
+    fmt = "json" if args.pretty else args.format
+    if fmt == "table":
+        output = chart.to_table()
+    elif fmt == "markdown":
+        output = chart.to_markdown()
+    elif fmt == "csv":
+        output = chart.to_csv()
+    elif fmt == "diagram":
+        output = chart.to_diagram()
+    elif fmt == "json":
+        output = chart.to_json() if args.pretty else chart.model_dump_json()
+    else:
+        output = chart.to_table()
+
     if args.output:
         with open(args.output, "w") as f:
             f.write(output)

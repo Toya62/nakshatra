@@ -215,6 +215,27 @@ class ChartData(BaseModel):
         """Export as dictionary."""
         return self.model_dump()
 
+    def to_table(self) -> str:
+        """Format chart into formatted ASCII tables."""
+        from nakshatra.formatters import format_table
+        return format_table(self)
+
+    def to_markdown(self) -> str:
+        """Format chart into GitHub-flavored Markdown."""
+        from nakshatra.formatters import format_markdown
+        return format_markdown(self)
+
+    def to_csv(self) -> str:
+        """Format chart planetary positions into CSV."""
+        from nakshatra.formatters import format_csv
+        return format_csv(self)
+
+    def to_diagram(self) -> str:
+        """Format chart into ASCII South Indian visual diagram."""
+        from nakshatra.formatters import format_chart_diagram
+        return format_chart_diagram(self)
+
+
 
 # Nakshatra data (27 nakshatras with lords)
 NAKSHATRAS = [
@@ -345,21 +366,25 @@ def _convert_dasha_period(period: vdasha.DashaPeriod, include_subs: bool = True)
                 )
                 for pd in pds
             ]
+            dur = round((ad.end.jd - ad.start.jd) / 365.25, 3) if hasattr(ad.start, 'jd') and hasattr(ad.end, 'jd') else None
             subs_models.append(
                 DashaPeriod(
                     lord=ad.lord,
                     start=_format_datetime(ad.start),
                     end=_format_datetime(ad.end),
                     level=2,
+                    duration_years=dur,
                     subs=pd_models,
                 )
             )
 
+    dur = round((period.end.jd - period.start.jd) / 365.25, 3) if hasattr(period.start, 'jd') and hasattr(period.end, 'jd') else None
     return DashaPeriod(
         lord=period.lord,
         start=_format_datetime(period.start),
         end=_format_datetime(period.end),
         level=period.level,
+        duration_years=dur,
         subs=subs_models,
     )
 
