@@ -35,7 +35,7 @@ class ChartRequest(BaseModel):
     timezone: str = Field(..., description="IANA timezone (e.g., 'America/New_York', 'Asia/Kolkata')")
     place_name: Optional[str] = Field(None, description="Place name for reference")
     
-    ayanamsa: Ayanamsa = Field(Ayanamsa.LAHIRI, description="Ayanamsa system (default: Lahiri)")
+    ayanamsa: Ayanamsa = Field(Ayanamsa.JHORA_LAHIRI, description="Ayanamsa system (default: jhora_lahiri)")
     house_system: HouseSystem = Field(HouseSystem.WHOLE_SIGN, description="House system (default: Whole Sign)")
     
     @field_validator("timezone")
@@ -151,7 +151,7 @@ async def create_chart_get(
     longitude: float = Query(..., ge=-180, le=180),
     timezone: str = Query(...),
     place_name: Optional[str] = Query(None),
-    ayanamsa: Ayanamsa = Query(Ayanamsa.LAHIRI),
+    ayanamsa: Ayanamsa = Query(Ayanamsa.JHORA_LAHIRI),
     house_system: HouseSystem = Query(HouseSystem.WHOLE_SIGN),
 ):
     """GET endpoint for chart calculation (convenience for testing)."""

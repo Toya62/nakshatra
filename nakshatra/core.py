@@ -268,6 +268,24 @@ class ChartData(BaseModel):
             "planets": planets_data,
         }
 
+    def get_transits(
+        self,
+        transit_date: Optional[datetime] = None,
+        transit_latitude: Optional[float] = None,
+        transit_longitude: Optional[float] = None,
+    ):
+        """
+        Calculate Vedic transits (Gochar) relative to natal chart.
+        Returns TransitReport with Sade Sati, Double Transits, and Ashtakavarga weighting.
+        """
+        from nakshatra.transits import calculate_transits
+        return calculate_transits(
+            natal_chart=self,
+            transit_date=transit_date,
+            transit_latitude=transit_latitude,
+            transit_longitude=transit_longitude,
+        )
+
     def save(self, filepath: str, format: Optional[str] = None) -> str:
         """
         Save chart data directly to file.
@@ -455,7 +473,7 @@ def _convert_dasha_period(period: vdasha.DashaPeriod, include_subs: bool = True)
 
 def calculate_chart(
     birth: BirthData,
-    ayanamsa: Ayanamsa = Ayanamsa.LAHIRI,
+    ayanamsa: Ayanamsa = Ayanamsa.JHORA_LAHIRI,
     house_system: HouseSystem = HouseSystem.WHOLE_SIGN,
     target_date: Optional[datetime] = None,
     include_dashas: bool = True,

@@ -80,7 +80,7 @@ class TestChartCalculation:
         
         # Verify structure
         assert chart.zodiac.value == "sidereal"
-        assert chart.ayanamsa == Ayanamsa.LAHIRI
+        assert chart.ayanamsa == Ayanamsa.JHORA_LAHIRI
         assert chart.house_system == HouseSystem.WHOLE_SIGN
         
         # Verify planets (9 grahas)
@@ -141,7 +141,7 @@ class TestChartCalculation:
         assert "planets" in data
         assert "houses" in data
         assert "aspects" in data
-        assert data["ayanamsa"] == "lahiri"
+        assert data["ayanamsa"] == "jhora_lahiri"
         assert data["house_system"] == "WholeSign"
     
     def test_different_ayanamsas(self):
@@ -441,6 +441,32 @@ class TestVedicExtensions:
         assert "NAKSHATRA VEDIC D10" in diag_d10
         assert "Cap" in diag_d10
         assert "Su" in diag_d10
+
+    def test_transits(self):
+        """Test transit (Gochar) calculation, Sade Sati detection, and table output."""
+        birth = BirthData(
+            year=1997, month=5, day=22, hour=4, minute=53, second=0,
+            latitude=27.8667, longitude=83.4833,
+            timezone="Asia/Kathmandu",
+        )
+        chart = calculate_chart(birth)
+
+        # Transit for a specific date
+        from datetime import datetime
+        t_dt = datetime(2026, 10, 10, 12, 0, 0)
+        report = chart.get_transits(t_dt)
+
+        assert report.natal_lagna_sign == "Aries"
+        assert report.natal_moon_sign == "Scorpio"
+        assert len(report.planets) == 9
+        assert report.sade_sati.natal_moon_sign == "Scorpio"
+        assert report.jupiter_gochar["sign"] == "Cancer"
+
+        # Table formatting
+        tbl = report.to_table()
+        assert "VEDIC TRANSIT (GOCHAR) REPORT" in tbl
+        assert "JUPITER GOCHAR" in tbl
+        assert "DOUBLE TRANSIT" in tbl
 
 
 if __name__ == "__main__":

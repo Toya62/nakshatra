@@ -62,8 +62,8 @@ Examples:
     parser.add_argument(
         "--ayanamsa",
         choices=[a.value for a in Ayanamsa],
-        default=Ayanamsa.LAHIRI.value,
-        help=f"Ayanamsa system (default: {Ayanamsa.LAHIRI.value})"
+        default=Ayanamsa.JHORA_LAHIRI.value,
+        help=f"Ayanamsa system (default: {Ayanamsa.JHORA_LAHIRI.value})"
     )
     parser.add_argument(
         "--house-system",
@@ -95,6 +95,13 @@ Examples:
         "--varga",
         default="D1",
         help="Divisional chart to display for diagram/varga view (e.g., D1, D9, D10; default: D1)"
+    )
+    parser.add_argument(
+        "--transit",
+        nargs="?",
+        const="now",
+        default=None,
+        help="Calculate planetary transits against natal chart (e.g., --transit or --transit 2026-10-10)"
     )
     parser.add_argument(
         "--version", "-v",
@@ -151,6 +158,36 @@ Examples:
         print(f"Error calculating chart: {e}", file=sys.stderr)
         sys.exit(1)
     
+    # Check for transit calculation
+    if args.transit is not None:
+        t_date = None
+        if args.transit != "now":
+            try:
+                if "T" in args.transit:
+                    t_date = datetime.fromisoformat(args.transit)
+                elif " " in args.transit:
+                    t_date = datetime.strptime(args.transit, "%Y-%m-%d %H:%M:%S")
+                else:
+                    t_date = datetime.strptime(args.transit, "%Y-%m-%d")
+            except ValueError:
+                print(f"Error: Invalid transit date '{args.transit}'. Use YYYY-MM-DD or YYYY-MM-DD HH:MM:SS", file=sys.stderr)
+                sys.exit(1)
+
+        transit_rep = chart.get_transits(t_date)
+        fmt = "json" if args.pretty else args.format
+        if fmt == "json":
+            output = transit_rep.model_dump_json(indent=2 if args.pretty else None)
+        else:
+            output = transit_rep.to_table()
+
+        if args.output:
+            with open(args.output, "w", encoding="utf-8") as f:
+                f.write(output)
+            print(f"Transit report saved to {args.output}", file=sys.stderr)
+        else:
+            print(output)
+        return
+
     # Format output
     fmt = "json" if args.pretty else args.format
     if fmt == "table":
