@@ -136,26 +136,89 @@ dict_data = chart.to_dict()       # Python dictionary
 
 ---
 
-## Architecture
+## System Architecture
+
+The complete Nakshatra architecture integrates high-precision astronomical computation with classical shloka retrieval and generative AI synthesis:
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      Nakshatra API                          │
-│  FastAPI REST Endpoints (/chart, /health, /docs)            │
-├─────────────────────────────────────────────────────────────┤
-│  nakshatra.core                                             │
-│    ├─ ChartData / Pydantic Models (AI & JSON serialization) │
-│    ├─ Vimshottari Engine (MD → AD → PD exact timestamps)   │
-│    ├─ Shodashavarga (D1 to D60 varga sign calculators)     │
-│    ├─ Ashtakavarga (Sarvashtakavarga & Bhinnashtakavarga)  │
-│    └─ Shadbala & Upagraha processors                        │
-├─────────────────────────────────────────────────────────────┤
-│  mayaastrolib & pyswisseph (Swiss Ephemeris)                │
-│    ├─ Ephemeris positions & IAU planetary calculations      │
-│    ├─ True planetary velocities & retrograde flags          │
-│    └─ Ayanamsa engines (Lahiri, JHora, Raman, KP, etc.)     │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              USER (Browser)                                 │
+│                       Streamlit / Next.js Frontend                          │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         BACKEND (FastAPI / Streamlit)                       │
+│                                                                             │
+│   ┌────────────────────┐  ┌─────────────────────┐  ┌────────────────────┐   │
+│   │    Chart Layer     │  │      RAG Layer      │  │     LLM Layer      │   │
+│   ├────────────────────┤  ├─────────────────────┤  ├────────────────────┤   │
+│   │ MayaAstroLib       │  │ FAISS Index         │  │ Gemini 3 / 2.5     │   │
+│   │ (Swiss Ephemeris)  │  │ + all-MiniLM-L6-v2  │  │ Flash (Primary)    │   │
+│   │                    │  │ (Local embeddings)  │  │                    │   │
+│   │ • D1–D60 Vargas    │  │                     │  │ OpenRouter         │   │
+│   │ • Vimshottari      │  │ Classical Corpus:   │  │ (Fallback)         │   │
+│   │   (MD/AD/PD)       │  │ • BPHS              │  │                    │   │
+│   │ • Ashtakavarga     │  │ • Phaladeepika      │  │ Temp: 0.3          │   │
+│   │ • Shadbala         │  │ • Brihat Jataka     │  │ Max tokens: 4096   │   │
+│   │ • Upagrahas        │  │ • Saravali          │  │                    │   │
+│   │ • Yogas & Transits │  │ • Crux (Rath)       │  │                    │   │
+│   └─────────┬──────────┘  └──────────┬──────────┘  └─────────┬──────────┘   │
+│             │                        │                       │              │
+│             └────────────────────────┼───────────────────────┘              │
+│                                      ▼                                      │
+│                        ┌───────────────────────────┐                        │
+│                        │   PROMPT ASSEMBLY LAYER   │                        │
+│                        │ (System + Context + Data) │                        │
+│                        └───────────────────────────┘                        │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+### Layer Breakdown
+
+1. **Chart Calculation Layer (`nakshatra.core`)**:
+   - High-precision astronomical positions via Swiss Ephemeris (`mayaastrolib` / `pyswisseph`).
+   - True velocities, retrograde flags, dignities, and whole-sign house placements.
+   - Comprehensive divisional charts ($D1$ through $D60$).
+   - Vimshottari Dasha timeline with exact timestamp transitions down to Pratyantardasha (PD).
+   - Ashtakavarga (337 bindu grand total) and 6-fold Shadbala planetary strength metrics.
+
+2. **RAG Layer (Classical Vedic Shloka Retrieval)**:
+   - Local dense retrieval using `all-MiniLM-L6-v2` embeddings and FAISS vector index.
+   - Authoritative classical corpus:
+     - *Brihat Parashara Hora Shastra* (BPHS)
+     - *Phaladeepika* (Mantreswara)
+     - *Brihat Jataka* (Varahamihira)
+     - *Saravali* (Kalyana Varma)
+     - *The Crux of Vedic Astrology* (Pt. Sanjay Rath)
+   - Context-aware retrieval triggered by active graha positions, house lords, and dasha rulers.
+
+3. **LLM & Prompt Assembly Layer**:
+   - Synthesizes exact astrological facts with classical shloka evidence.
+   - **Primary Model**: Google Gemini Flash (via `google-genai` SDK, temp: 0.3, max tokens: 4096).
+   - **Fallback Model**: OpenRouter endpoint for redundancy.
+   - Prevents AI hallucinations by strictly grounding predictions in retrieved classical rules and calculated chart positions.
+
+4. **Frontend Layer**:
+   - Interactive UI (Streamlit for rapid experimentation / Next.js for production SaaS).
+   - South Indian and North Indian chart layouts with transit overlays and interactive Dasha timeline.
+
+---
+
+## Roadmap
+
+- [x] **Swiss Ephemeris Core**: Sub-second astronomical chart generation with `pyswisseph`.
+- [x] **Vimshottari Engine**: Exact MD, AD, and PD timestamps down to the second.
+- [x] **Divisional Charts (Shodashavarga)**: D1 through D60 support.
+- [x] **Ashtakavarga & Shadbala**: 337 SAV bindus and 6 classical strength balas.
+- [x] **Multi-format Outputs**: ASCII tables, South Indian diagram, Markdown, CSV, and JSON.
+- [x] **Jagannatha Hora Calibration**: `jhora_lahiri` ayanamsa for 100% concordance.
+- [ ] **Classical Yoga Detection**: Raja, Dhana, Pancha Mahapurusha, Gaja Kesari, Kemadruma, Neechabhanga.
+- [ ] **Gochar (Transit) Engine**: Natal-to-transit planetary aspect and house activations.
+- [ ] **RAG Corpus Ingestion**: Parsing and chunking of BPHS, Phaladeepika, Saravali, and Crux.
+- [ ] **FAISS Vector Store**: Local embeddings via `sentence-transformers` (`all-MiniLM-L6-v2`).
+- [ ] **LLM Integration**: Gemini Flash + OpenRouter prompt synthesis agent.
+- [ ] **Interactive Frontend**: Streamlit / Next.js web application.
 
 ---
 
