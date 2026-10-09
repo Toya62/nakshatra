@@ -418,6 +418,30 @@ class TestVedicExtensions:
         assert md_file.exists()
         assert "# Nakshatra Vedic Birth Chart" in md_file.read_text()
 
+    def test_vargas_and_d10(self):
+        """Test D10 Dasamsa calculation and diagram rendering."""
+        birth = BirthData(
+            year=1997, month=5, day=22, hour=4, minute=53, second=0,
+            latitude=27.8667, longitude=83.4833,
+            timezone="Asia/Kathmandu",
+        )
+        chart = calculate_chart(birth, ayanamsa=Ayanamsa.JHORA_LAHIRI)
+
+        d10 = chart.get_varga("D10")
+        assert d10["varga"] == "D10"
+        assert d10["ascendant"]["sign"] == "Capricorn"
+        assert d10["ascendant"]["house"] == 1
+        assert d10["planets"]["Sun"]["sign"] == "Pisces"
+        assert d10["planets"]["Sun"]["house"] == 3
+        assert d10["planets"]["Mars"]["sign"] == "Aries"
+        assert d10["planets"]["Mars"]["house"] == 4
+
+        # D10 diagram
+        diag_d10 = chart.to_diagram("D10")
+        assert "NAKSHATRA VEDIC D10" in diag_d10
+        assert "Cap" in diag_d10
+        assert "Su" in diag_d10
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

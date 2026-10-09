@@ -259,20 +259,10 @@ def format_csv(chart: ChartData) -> str:
     return buf.getvalue()
 
 
-def format_chart_diagram(chart: ChartData) -> str:
+def format_chart_diagram(chart: ChartData, varga: str = "D1") -> str:
     """
     Render South Indian 4x4 style chart box diagram in ASCII.
-    Layout:
-    +-----------+-----------+-----------+-----------+
-    | Pisces    | Aries     | Taurus    | Gemini    |
-    | (House)   | (House)   | (House)   | (House)   |
-    +-----------+-----------+-----------+-----------+
-    | Aquarius  |                       | Cancer    |
-    +-----------+      NAKSHATRA        +-----------+
-    | Capricorn |      VEDIC D1         | Leo       |
-    +-----------+                       +-----------+
-    | Sagittarius| Scorpio  | Libra     | Virgo     |
-    +-----------+-----------+-----------+-----------+
+    Supports any divisional chart (D1, D9, D10, etc.).
     """
     # Group bodies by sign
     sign_bodies: dict[str, list[str]] = {s: [] for s in [
@@ -280,30 +270,52 @@ def format_chart_diagram(chart: ChartData) -> str:
         "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
     ]}
 
-    sign_bodies[chart.ascendant.sign].append("Asc")
-    for p in chart.planets + [chart.rahu, chart.ketu]:
-        abbr = p.name[:2]
-        if p.name in ("North Node", "Rahu"):
-            abbr = "Ra"
-        elif p.name in ("South Node", "Ketu"):
-            abbr = "Ke"
-        elif p.name == "Mercury":
-            abbr = "Me"
-        elif p.name == "Jupiter":
-            abbr = "Ju"
-        elif p.name == "Venus":
-            abbr = "Ve"
-        elif p.name == "Saturn":
-            abbr = "Sa"
-        elif p.name == "Sun":
-            abbr = "Su"
-        elif p.name == "Moon":
-            abbr = "Mo"
-        elif p.name == "Mars":
-            abbr = "Ma"
-        if p.retrograde:
-            abbr += "(R)"
-        sign_bodies[p.sign].append(abbr)
+    v_key = varga.upper()
+    v_data = chart.vargas.get(v_key) if chart.vargas else None
+
+    if v_data and v_key != "D1":
+        asc_sign = v_data.get("Ascendant", chart.ascendant.sign)
+        sign_bodies[asc_sign].append("Asc")
+        for p in chart.planets + [chart.rahu, chart.ketu]:
+            v_name = "North Node" if p.name in ("North Node", "Rahu") else "South Node" if p.name in ("South Node", "Ketu") else p.name
+            abbr = "Ra" if p.name in ("North Node", "Rahu") else "Ke" if p.name in ("South Node", "Ketu") else p.name[:2]
+            if p.name == "Mercury":
+                abbr = "Me"
+            elif p.name == "Jupiter":
+                abbr = "Ju"
+            elif p.name == "Venus":
+                abbr = "Ve"
+            elif p.name == "Saturn":
+                abbr = "Sa"
+            if p.retrograde:
+                abbr += "(R)"
+            p_sign = v_data.get(v_name, p.sign)
+            sign_bodies[p_sign].append(abbr)
+    else:
+        sign_bodies[chart.ascendant.sign].append("Asc")
+        for p in chart.planets + [chart.rahu, chart.ketu]:
+            abbr = p.name[:2]
+            if p.name in ("North Node", "Rahu"):
+                abbr = "Ra"
+            elif p.name in ("South Node", "Ketu"):
+                abbr = "Ke"
+            elif p.name == "Mercury":
+                abbr = "Me"
+            elif p.name == "Jupiter":
+                abbr = "Ju"
+            elif p.name == "Venus":
+                abbr = "Ve"
+            elif p.name == "Saturn":
+                abbr = "Sa"
+            elif p.name == "Sun":
+                abbr = "Su"
+            elif p.name == "Moon":
+                abbr = "Mo"
+            elif p.name == "Mars":
+                abbr = "Ma"
+            if p.retrograde:
+                abbr += "(R)"
+            sign_bodies[p.sign].append(abbr)
 
     def cell_lines(sign_name: str) -> tuple[str, str]:
         short_sign = sign_name[:3]
@@ -331,6 +343,7 @@ def format_chart_diagram(chart: ChartData) -> str:
     vi_s, vi_b = cell_lines("Virgo")
 
     mid_blank = " " * (col_w * 2 + 1)
+    title_label = f"NAKSHATRA VEDIC {v_key}".center(col_w * 2 + 1)
 
     diagram = [
         h_line,
@@ -338,7 +351,7 @@ def format_chart_diagram(chart: ChartData) -> str:
         f"| {p_b:<12} | {ar_b:<12} | {ta_b:<12} | {ge_b:<12} |",
         h_line,
         f"| {aq_s:<12} |{mid_blank}| {cn_s:<12} |",
-        f"| {aq_b:<12} |       NAKSHATRA VEDIC D1       | {cn_b:<12} |",
+        f"| {aq_b:<12} |{title_label}| {cn_b:<12} |",
         f"|{'-' * col_w}+                +                +{'-' * col_w}|",
         f"| {cp_s:<12} |    Ayanamsa: {chart.ayanamsa.value:<10}    | {le_s:<12} |",
         f"| {cp_b:<12} |{mid_blank}| {le_b:<12} |",

@@ -92,6 +92,11 @@ Examples:
         help="Auto-save to timestamped file (e.g., chart_19970522_045300.json)"
     )
     parser.add_argument(
+        "--varga",
+        default="D1",
+        help="Divisional chart to display for diagram/varga view (e.g., D1, D9, D10; default: D1)"
+    )
+    parser.add_argument(
         "--version", "-v",
         action="version",
         version="Nakshatra 0.1.0"
@@ -155,7 +160,7 @@ Examples:
     elif fmt == "csv":
         output = chart.to_csv()
     elif fmt == "diagram":
-        output = chart.to_diagram()
+        output = chart.to_diagram(varga=args.varga)
     elif fmt == "json":
         output = chart.to_json() if args.pretty else chart.model_dump_json()
     else:

@@ -230,10 +230,43 @@ class ChartData(BaseModel):
         from nakshatra.formatters import format_csv
         return format_csv(self)
 
-    def to_diagram(self) -> str:
-        """Format chart into ASCII South Indian visual diagram."""
+    def to_diagram(self, varga: str = "D1") -> str:
+        """Format chart into ASCII South Indian visual diagram for given varga (e.g. D1, D9, D10)."""
         from nakshatra.formatters import format_chart_diagram
-        return format_chart_diagram(self)
+        return format_chart_diagram(self, varga=varga)
+
+    def get_varga(self, varga: str = "D10") -> dict:
+        """
+        Get structured divisional chart data (signs and whole-sign houses relative to varga Ascendant).
+        """
+        v_key = varga.upper()
+        if not self.vargas or v_key not in self.vargas:
+            return {}
+        v_data = self.vargas[v_key]
+        asc_sign = v_data.get("Ascendant", self.ascendant.sign)
+        asc_idx = ZODIAC_SIGNS.index(asc_sign)
+
+        planets_data = {}
+        for name in ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "North Node", "South Node"]:
+            sign = v_data.get(name)
+            if sign:
+                sign_idx = ZODIAC_SIGNS.index(sign)
+                house = ((sign_idx - asc_idx) % 12) + 1
+                planets_data[name] = {
+                    "sign": sign,
+                    "house": house,
+                    "sign_lord": SIGN_LORDS[sign],
+                }
+
+        return {
+            "varga": v_key,
+            "ascendant": {
+                "sign": asc_sign,
+                "house": 1,
+                "sign_lord": SIGN_LORDS[asc_sign],
+            },
+            "planets": planets_data,
+        }
 
     def save(self, filepath: str, format: Optional[str] = None) -> str:
         """
