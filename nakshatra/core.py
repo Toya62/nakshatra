@@ -32,6 +32,7 @@ import mayaastrolib.vedic.upagrahas as vupa
 class Ayanamsa(str, Enum):
     """Supported ayanamsa systems."""
     LAHIRI = "lahiri"
+    JHORA_LAHIRI = "jhora_lahiri"
     RAMAN = "raman"
     KRISHNAMURTI = "krishnamurti"
     FAGAN_BRADLEY = "fagan_bradley"
@@ -398,7 +399,11 @@ def calculate_chart(
     m_pos = GeoPos(birth.latitude, birth.longitude)
 
     # 2. Configure Ayanamsa and House system
-    m_ayanamsa = ayanamsa.value
+    is_jhora = (ayanamsa == Ayanamsa.JHORA_LAHIRI)
+    base_ayanamsa = "lahiri" if is_jhora else ayanamsa.value
+    # JHora traditional Lahiri is 56.5318 arcseconds smaller than standard IAU Lahiri
+    jhora_offset_deg = (56.5318 / 3600.0) if is_jhora else 0.0
+
     m_hsys = HOUSE_MAP.get(house_system, const.HOUSES_WHOLE_SIGN)
 
     # Objects to calculate
@@ -414,19 +419,19 @@ def calculate_chart(
         m_pos,
         IDs=objects_list,
         zodiac=const.ZODIAC_SIDEREAL,
-        ayanamsa=m_ayanamsa,
+        ayanamsa=base_ayanamsa,
         hsys=m_hsys,
     )
 
     # Exact ayanamsa value in degrees
-    ayanamsa_deg = vaya.get(m_ayanamsa, m_dt)
+    ayanamsa_deg = vaya.get(base_ayanamsa, m_dt) - jhora_offset_deg
 
     # 3. Ascendant and Midheaven
     asc_angle = chart.getAngle(const.ASC)
-    asc_lon = asc_angle.lon
-    asc_sign = asc_angle.sign
+    asc_lon = (asc_angle.lon + jhora_offset_deg) % 360.0
+    asc_sign = get_sign(asc_lon)
     asc_sign_idx = ZODIAC_SIGNS.index(asc_sign)
-    asc_deg_in_sign = asc_angle.signlon
+    asc_deg_in_sign = get_degree_in_sign(asc_lon)
     asc_nak, asc_lord, asc_pada = get_nakshatra(asc_lon)
 
     ascendant = PlanetPosition(
@@ -446,10 +451,10 @@ def calculate_chart(
     )
 
     mc_angle = chart.getAngle(const.MC)
-    mc_lon = mc_angle.lon
-    mc_sign = mc_angle.sign
+    mc_lon = (mc_angle.lon + jhora_offset_deg) % 360.0
+    mc_sign = get_sign(mc_lon)
     mc_sign_idx = ZODIAC_SIGNS.index(mc_sign)
-    mc_deg_in_sign = mc_angle.signlon
+    mc_deg_in_sign = get_degree_in_sign(mc_lon)
 
     # In Whole Sign, Midheaven house is determined by sign from Ascendant
     mc_house = ((mc_sign_idx - asc_sign_idx) % 12) + 1 if house_system == HouseSystem.WHOLE_SIGN else 10
@@ -473,20 +478,24 @@ def calculate_chart(
     # 4. Houses
     houses_list = []
     for i, h in enumerate(chart.houses):
-        h_sign = h.sign
+        if house_system == HouseSystem.WHOLE_SIGN:
+            h_lon = ((asc_sign_idx + i) % 12) * 30.0
+        else:
+            h_lon = (h.lon + jhora_offset_deg) % 360.0
+        h_sign = get_sign(h_lon)
         houses_list.append(
             HouseCusp(
                 house=i + 1,
-                longitude=round(h.lon, 6),
+                longitude=round(h_lon, 6),
                 sign=h_sign,
                 sign_lord=SIGN_LORDS[h_sign],
-                degree_in_sign=round(h.signlon, 6),
+                degree_in_sign=round(get_degree_in_sign(h_lon), 6),
             )
         )
 
     # 5. Planetary positions (7 Grahas) with Swiss Ephemeris true speeds
     planets = []
-    swe_mode = vaya._swe_mode_for(m_ayanamsa)
+    swe_mode = vaya._swe_mode_for(base_ayanamsa)
     with vaya._AYANAMSA_LOCK:
         swisseph.set_sid_mode(swe_mode)
 
@@ -496,7 +505,7 @@ def calculate_chart(
 
         # Calculate exact speed and coordinates from Swiss Ephemeris
         swe_calc, _ = swisseph.calc_ut(m_dt.jd, swe_id, swisseph.FLG_SIDEREAL | swisseph.FLG_SPEED)
-        p_lon = swe_calc[0]
+        p_lon = (swe_calc[0] + jhora_offset_deg) % 360.0
         p_lat = swe_calc[1]
         p_dist = swe_calc[2]
         p_speed = swe_calc[3]
@@ -539,7 +548,7 @@ def calculate_chart(
 
     # 6. Rahu & Ketu (Mean Node)
     rahu_calc, _ = swisseph.calc_ut(m_dt.jd, swisseph.MEAN_NODE, swisseph.FLG_SIDEREAL | swisseph.FLG_SPEED)
-    rahu_lon = rahu_calc[0]
+    rahu_lon = (rahu_calc[0] + jhora_offset_deg) % 360.0
     rahu_speed = rahu_calc[3]
     rahu_sign = get_sign(rahu_lon)
     rahu_sign_idx = ZODIAC_SIGNS.index(rahu_sign)
@@ -628,18 +637,30 @@ def calculate_chart(
             t_str,
         )
 
-        d_res = vdasha.vimshottari(chart, target=target_mdt, ayanamsa=m_ayanamsa)
-        md_models = [_convert_dasha_period(md, include_subs=True) for md in d_res.sequence]
+        moon_p = next(p for p in planets if p.name == "Moon")
+        natal_nak = vnak.of_longitude(moon_p.longitude)
+        balance_lord, balance_years = vdasha._birth_balance(natal_nak, moon_p.longitude)
+        sequence = vdasha._build_md_sequence(m_dt, balance_lord, balance_years)
 
-        current_md_model = _convert_dasha_period(d_res.current_md, include_subs=False) if d_res.current_md else None
-        current_ad_model = _convert_dasha_period(d_res.current_ad, include_subs=False) if d_res.current_ad else None
-        current_pd_model = _convert_dasha_period(d_res.current_pratyantar, include_subs=False) if d_res.current_pratyantar else None
+        current_md = vdasha._find_active(sequence, target_mdt)
+        current_ad = current_pratyantar = None
+        if current_md is not None:
+            ads = vdasha.antardashas(current_md)
+            current_ad = vdasha._find_active(ads, target_mdt)
+            if current_ad is not None:
+                prs = vdasha.pratyantar_dashas(current_ad)
+                current_pratyantar = vdasha._find_active(prs, target_mdt)
+
+        md_models = [_convert_dasha_period(md, include_subs=True) for md in sequence]
+        current_md_model = _convert_dasha_period(current_md, include_subs=False) if current_md else None
+        current_ad_model = _convert_dasha_period(current_ad, include_subs=False) if current_ad else None
+        current_pd_model = _convert_dasha_period(current_pratyantar, include_subs=False) if current_pratyantar else None
 
         dashas_data = VimshottariDasha(
-            birth_nakshatra=d_res.janma_nakshatra.name,
-            birth_nakshatra_lord=d_res.janma_nakshatra.lord,
-            balance_lord=d_res.birth_balance_lord,
-            balance_years=round(d_res.birth_balance_years, 4),
+            birth_nakshatra=natal_nak.name,
+            birth_nakshatra_lord=natal_nak.lord,
+            balance_lord=balance_lord,
+            balance_years=round(balance_years, 4),
             current_md=current_md_model,
             current_ad=current_ad_model,
             current_pd=current_pd_model,
@@ -649,17 +670,20 @@ def calculate_chart(
     # 9. Shodashavarga (Divisional Charts)
     vargas_data = None
     if include_vargas:
-        raw_vargas = vdiv.all_vargas(chart, ayanamsa=m_ayanamsa)
+        all_objs = {p.name: p.longitude for p in planets}
+        all_objs["Ascendant"] = asc_lon
+        all_objs["North Node"] = rahu_lon
+        all_objs["South Node"] = ketu_lon
         vargas_data = {}
-        for v_name, v_planets in raw_vargas.items():
+        for v_name, fn in vdiv._VARGA_FUNCTIONS.items():
             vargas_data[v_name] = {
-                p_id: vdiv.SIGN_NAMES[sign_idx] for p_id, sign_idx in v_planets.items()
+                p_id: vdiv.SIGN_NAMES[fn(lon)] for p_id, lon in all_objs.items()
             }
 
     # 10. Ashtakavarga
     ashtakavarga_data = None
     if include_ashtakavarga:
-        av_res = vav.ashtakavarga(chart, ayanamsa=m_ayanamsa)
+        av_res = vav.ashtakavarga(chart, ayanamsa=base_ayanamsa)
         ashtakavarga_data = AshtakavargaData(
             sarvashtakavarga=av_res["per_rasi"],
             grand_total=av_res["grand_total"],
@@ -692,14 +716,16 @@ def calculate_chart(
         raw_upas = vupa.upagrahas(chart)
         upagrahas_data = []
         for name, up_obj in raw_upas.items():
-            up_sign_idx = ZODIAC_SIGNS.index(up_obj.sign)
+            up_lon = (up_obj.sidereal_longitude + jhora_offset_deg) % 360.0
+            up_sign = get_sign(up_lon)
+            up_sign_idx = ZODIAC_SIGNS.index(up_sign)
             up_house = ((up_sign_idx - asc_sign_idx) % 12) + 1
             upagrahas_data.append(
                 UpagrahaPosition(
                     name=name,
-                    longitude=round(up_obj.sidereal_longitude, 6),
-                    sign=up_obj.sign,
-                    degree_in_sign=round(up_obj.deg_in_sign, 6),
+                    longitude=round(up_lon, 6),
+                    sign=up_sign,
+                    degree_in_sign=round(get_degree_in_sign(up_lon), 6),
                     house=up_house,
                 )
             )
