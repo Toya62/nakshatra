@@ -399,6 +399,25 @@ class TestVedicExtensions:
         assert "Asc" in diagram
         assert "Mo" in diagram
 
+    def test_chart_save(self, tmp_path):
+        """Test chart.save() method with automatic format inference."""
+        birth = BirthData(
+            year=1997, month=5, day=22, hour=4, minute=53, second=0,
+            latitude=27.8667, longitude=83.4833,
+            timezone="Asia/Kathmandu",
+        )
+        chart = calculate_chart(birth, ayanamsa=Ayanamsa.JHORA_LAHIRI)
+
+        json_file = tmp_path / "chart.json"
+        chart.save(str(json_file))
+        assert json_file.exists()
+        assert '"ayanamsa": "jhora_lahiri"' in json_file.read_text()
+
+        md_file = tmp_path / "chart.md"
+        chart.save(str(md_file))
+        assert md_file.exists()
+        assert "# Nakshatra Vedic Birth Chart" in md_file.read_text()
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

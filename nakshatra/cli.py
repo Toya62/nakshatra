@@ -84,7 +84,12 @@ Examples:
     )
     parser.add_argument(
         "--output", "-o",
-        help="Output file (default: stdout)"
+        help="Output file path (default: stdout)"
+    )
+    parser.add_argument(
+        "--save", "-s",
+        action="store_true",
+        help="Auto-save to timestamped file (e.g., chart_19970522_045300.json)"
     )
     parser.add_argument(
         "--version", "-v",
@@ -156,10 +161,16 @@ Examples:
     else:
         output = chart.to_table()
 
-    if args.output:
-        with open(args.output, "w") as f:
+    # Determine destination file path
+    target_file = args.output
+    if not target_file and args.save:
+        ext = "json" if fmt == "json" else "md" if fmt == "markdown" else "csv" if fmt == "csv" else "txt"
+        target_file = f"chart_{year:04d}{month:02d}{day:02d}_{hour:02d}{minute:02d}{second:02d}.{ext}"
+
+    if target_file:
+        with open(target_file, "w", encoding="utf-8") as f:
             f.write(output)
-        print(f"Chart saved to {args.output}", file=sys.stderr)
+        print(f"Chart saved to {target_file}", file=sys.stderr)
     else:
         print(output)
 

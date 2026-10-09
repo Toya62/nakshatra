@@ -235,6 +235,37 @@ class ChartData(BaseModel):
         from nakshatra.formatters import format_chart_diagram
         return format_chart_diagram(self)
 
+    def save(self, filepath: str, format: Optional[str] = None) -> str:
+        """
+        Save chart data directly to file.
+        Infers format from file extension (.json, .md, .csv, .txt) if not provided.
+        """
+        fmt = format.lower() if format else None
+        if not fmt:
+            if filepath.endswith(".json"):
+                fmt = "json"
+            elif filepath.endswith((".md", ".markdown")):
+                fmt = "markdown"
+            elif filepath.endswith(".csv"):
+                fmt = "csv"
+            else:
+                fmt = "table"
+
+        if fmt == "json":
+            content = self.to_json()
+        elif fmt == "markdown":
+            content = self.to_markdown()
+        elif fmt == "csv":
+            content = self.to_csv()
+        elif fmt == "diagram":
+            content = self.to_diagram()
+        else:
+            content = self.to_table()
+
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(content)
+        return filepath
+
 
 
 # Nakshatra data (27 nakshatras with lords)

@@ -102,8 +102,12 @@ nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Ka
 # Output as pretty JSON
 nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --format json -p
 
-# Save output to file
-nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu -o chart.txt
+# Save output to specific file
+nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --format json -p -o chart.json
+
+# Auto-save to timestamped file (chart_YYYYMMDD_HHMMSS.<ext>)
+nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --format json -p -s
+nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --format markdown -s
 ```
 
 ### Python Library Usage
@@ -125,7 +129,13 @@ chart = calculate_chart(
     house_system=HouseSystem.WHOLE_SIGN
 )
 
-# Export in multiple formats
+# Save directly to file (format inferred from file extension)
+chart.save("my_chart.json")      # JSON
+chart.save("my_chart.md")        # Markdown report
+chart.save("my_chart.csv")       # Planetary CSV
+chart.save("my_chart.txt")       # Formatted ASCII tables
+
+# Or get in-memory strings
 table_str = chart.to_table()      # Human-readable ASCII tables
 diagram_str = chart.to_diagram()  # South Indian ASCII chart box
 md_str = chart.to_markdown()      # GitHub-flavored Markdown
