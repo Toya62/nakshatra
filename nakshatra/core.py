@@ -203,9 +203,11 @@ class ChartData(BaseModel):
     ketu: PlanetPosition
     dashas: Optional[VimshottariDasha] = None
     vargas: Optional[dict[str, dict[str, str]]] = None
+    d10_chart: Optional[dict] = None
     ashtakavarga: Optional[AshtakavargaData] = None
     shadbala: Optional[dict[str, ShadbalaPlanet]] = None
     upagrahas: Optional[list[UpagrahaPosition]] = None
+    transits: Optional[dict] = None
 
     def to_json(self) -> str:
         """Export as JSON string."""
@@ -481,6 +483,7 @@ def calculate_chart(
     include_ashtakavarga: bool = True,
     include_shadbala: bool = True,
     include_upagrahas: bool = True,
+    include_transits: bool = True,
 ) -> ChartData:
     """
     Calculate complete Vedic birth chart using Swiss Ephemeris / mayaastrolib.
@@ -846,7 +849,33 @@ def calculate_chart(
                 )
             )
 
-    return ChartData(
+    d10_chart_data = None
+    if vargas_data and "D10" in vargas_data:
+        d10_v = vargas_data["D10"]
+        d10_asc = d10_v.get("Ascendant", ascendant.sign)
+        d10_asc_idx = ZODIAC_SIGNS.index(d10_asc)
+        d10_planets = {}
+        for name in ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "North Node", "South Node"]:
+            if name in d10_v:
+                s = d10_v[name]
+                s_idx = ZODIAC_SIGNS.index(s)
+                h = ((s_idx - d10_asc_idx) % 12) + 1
+                d10_planets[name] = {
+                    "sign": s,
+                    "house": h,
+                    "sign_lord": SIGN_LORDS[s],
+                }
+        d10_chart_data = {
+            "varga": "D10",
+            "ascendant": {
+                "sign": d10_asc,
+                "house": 1,
+                "sign_lord": SIGN_LORDS[d10_asc],
+            },
+            "planets": d10_planets,
+        }
+
+    res_chart = ChartData(
         birth_data=birth,
         calculation_time=datetime.utcnow().isoformat() + "Z",
         zodiac=ZodiacSystem.SIDEREAL,
@@ -862,7 +891,17 @@ def calculate_chart(
         ketu=ketu,
         dashas=dashas_data,
         vargas=vargas_data,
+        d10_chart=d10_chart_data,
         ashtakavarga=ashtakavarga_data,
         shadbala=shadbala_data,
         upagrahas=upagrahas_data,
     )
+
+    if include_transits:
+        try:
+            from nakshatra.transits import calculate_transits
+            res_chart.transits = calculate_transits(res_chart, transit_date=target_date).model_dump()
+        except Exception:
+            pass
+
+    return res_chart
