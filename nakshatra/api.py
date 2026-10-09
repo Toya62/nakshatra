@@ -56,7 +56,7 @@ class HealthResponse(BaseModel):
     """Health check response."""
     status: str = "healthy"
     version: str = "0.1.0"
-    ephemeris: str = "JPL DE440/DE441 via Skyfield"
+    ephemeris: str = "Swiss Ephemeris (pyswisseph) via mayaastrolib"
     default_ayanamsa: str = "Lahiri (Chitra Paksha)"
 
 
@@ -70,7 +70,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Nakshatra - Vedic Astrology AI Engine",
-    description="JSON API for Vedic birth charts using JPL/NASA ephemeris (MIT licensed)",
+    description="JSON API for Vedic birth charts with Vimshottari Dashas, Vargas, Ashtakavarga, and Shadbala",
     version="0.1.0",
     lifespan=lifespan,
 )
@@ -173,7 +173,7 @@ async def root():
         "description": "Vedic Astrology AI Engine - JSON API for birth charts",
         "version": "0.1.0",
         "license": "MIT",
-        "ephemeris": "JPL DE440/DE441 via Skyfield",
+        "ephemeris": "Swiss Ephemeris via mayaastrolib",
         "default_ayanamsa": "Lahiri (Chitra Paksha)",
         "default_house_system": "Whole Sign",
         "endpoints": {

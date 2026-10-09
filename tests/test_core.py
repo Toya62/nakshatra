@@ -239,10 +239,130 @@ class TestBirthData:
             year=2000, month=1, day=1, hour=12, minute=0,
             latitude=0.0, longitude=0.0, timezone="UTC"
         )
-        assert birth.year == 2000
-        
-        # Invalid latitude should fail at Pydantic level if we add validators
-        # (currently using dataclass, so validation happens at calculate_chart)
+
+class TestVedicExtensions:
+    """Test rich Vedic extensions: dashas, vargas, ashtakavarga, shadbala, upagrahas."""
+
+    def test_vimshottari_dashas(self):
+        birth = BirthData(
+            year=1997, month=5, day=22, hour=4, minute=53,
+            latitude=27.8667, longitude=83.4833,
+            timezone="Asia/Kathmandu",
+            place_name="Palpa, Nepal"
+        )
+        chart = calculate_chart(birth)
+        assert chart.dashas is not None
+        assert chart.dashas.birth_nakshatra == "Vishakha"
+        assert chart.dashas.balance_lord == "Jupiter"
+        assert chart.dashas.balance_years > 0.0
+
+        # Verify MDs
+        assert len(chart.dashas.mahadashas) >= 9
+        first_md = chart.dashas.mahadashas[0]
+        assert first_md.lord == "Jupiter"
+        assert first_md.subs is not None
+        assert len(first_md.subs) == 9  # 9 Antardashas
+
+        first_ad = first_md.subs[0]
+        assert first_ad.subs is not None
+        assert len(first_ad.subs) == 9  # 9 Pratyantardashas
+
+        # Active current dasha
+        assert chart.dashas.current_md is not None
+        assert chart.dashas.current_ad is not None
+        assert chart.dashas.current_pd is not None
+
+    def test_vargas_shodashavarga(self):
+        birth = BirthData(
+            year=1997, month=5, day=22, hour=4, minute=53,
+            latitude=27.8667, longitude=83.4833,
+            timezone="Asia/Kathmandu",
+        )
+        chart = calculate_chart(birth)
+        assert chart.vargas is not None
+        expected_vargas = ["D1", "D2", "D3", "D4", "D7", "D9", "D10", "D12", "D16", "D20", "D24", "D27", "D30", "D40", "D45", "D60"]
+        for v in expected_vargas:
+            assert v in chart.vargas
+            assert "Moon" in chart.vargas[v]
+            assert "Sun" in chart.vargas[v]
+
+        # In reference chart, Moon Navamsa (D9) is Cancer
+        assert chart.vargas["D9"]["Moon"] == "Cancer"
+
+    def test_ashtakavarga(self):
+        birth = BirthData(
+            year=1997, month=5, day=22, hour=4, minute=53,
+            latitude=27.8667, longitude=83.4833,
+            timezone="Asia/Kathmandu",
+        )
+        chart = calculate_chart(birth)
+        assert chart.ashtakavarga is not None
+        assert chart.ashtakavarga.grand_total == 337
+        assert len(chart.ashtakavarga.sarvashtakavarga) == 12
+
+    def test_shadbala(self):
+        birth = BirthData(
+            year=1997, month=5, day=22, hour=4, minute=53,
+            latitude=27.8667, longitude=83.4833,
+            timezone="Asia/Kathmandu",
+        )
+        chart = calculate_chart(birth)
+        assert chart.shadbala is not None
+        for p in ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"]:
+            assert p in chart.shadbala
+            assert chart.shadbala[p].total_rupas > 0
+            assert isinstance(chart.shadbala[p].sufficient, bool)
+
+    def test_upagrahas(self):
+        birth = BirthData(
+            year=1997, month=5, day=22, hour=4, minute=53,
+            latitude=27.8667, longitude=83.4833,
+            timezone="Asia/Kathmandu",
+        )
+        chart = calculate_chart(birth)
+        assert chart.upagrahas is not None
+        names = [u.name for u in chart.upagrahas]
+        assert "Dhuma" in names
+        assert "Vyatipata" in names
+        assert "Parivesha" in names
+        assert "Indrachapa" in names
+        assert "Upaketu" in names
+
+    def test_reference_chart_concordance(self):
+        """Test against TNP LCP.txt reference chart."""
+        birth = BirthData(
+            year=1997, month=5, day=22, hour=4, minute=53, second=0,
+            latitude=27 + 52/60, longitude=83 + 29/60,
+            timezone="Asia/Kathmandu",
+            place_name="Palpa, Nepal"
+        )
+        chart = calculate_chart(birth)
+
+        # Check Signs
+        assert chart.ascendant.sign == "Aries"
+        p_signs = {p.name: p.sign for p in chart.planets}
+        assert p_signs["Sun"] == "Taurus"
+        assert p_signs["Moon"] == "Scorpio"
+        assert p_signs["Mars"] == "Leo"
+        assert p_signs["Mercury"] == "Aries"
+        assert p_signs["Jupiter"] == "Capricorn"
+        assert p_signs["Venus"] == "Taurus"
+        assert p_signs["Saturn"] == "Pisces"
+        assert chart.rahu.sign == "Virgo"
+        assert chart.ketu.sign == "Pisces"
+
+        # Check Houses (Whole Sign)
+        p_houses = {p.name: p.house for p in chart.planets}
+        assert chart.ascendant.house == 1
+        assert p_houses["Sun"] == 2
+        assert p_houses["Moon"] == 8
+        assert p_houses["Mars"] == 5
+        assert p_houses["Mercury"] == 1
+        assert p_houses["Jupiter"] == 10
+        assert p_houses["Venus"] == 2
+        assert p_houses["Saturn"] == 12
+        assert chart.rahu.house == 6
+        assert chart.ketu.house == 12
 
 
 if __name__ == "__main__":

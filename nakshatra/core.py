@@ -1,6 +1,6 @@
 """
 Nakshatra - Vedic Astrology AI Engine
-Core calculation module using openephem (JPL/NASA ephemeris via Skyfield).
+Core calculation module powered by Swiss Ephemeris / mayaastrolib.
 Default ayanamsa: Lahiri (Chitra Paksha).
 """
 
@@ -8,13 +8,25 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
 from enum import Enum
+from typing import Optional
 from zoneinfo import ZoneInfo
 
-from openephem import resolve, assemble
-from openephem.houses import houses_from_jd
-from pydantic import BaseModel, Field, field_validator
+import swisseph
+from pydantic import BaseModel, Field
+
+from mayaastrolib import const
+from mayaastrolib.aspects import getAspect
+from mayaastrolib.chart import Chart
+from mayaastrolib.datetime import Datetime
+from mayaastrolib.geopos import GeoPos
+import mayaastrolib.vedic.ashtakavarga as vav
+import mayaastrolib.vedic.ayanamsa as vaya
+import mayaastrolib.vedic.dasha as vdasha
+import mayaastrolib.vedic.divisional as vdiv
+import mayaastrolib.vedic.nakshatras as vnak
+import mayaastrolib.vedic.shadbala as vsb
+import mayaastrolib.vedic.upagrahas as vupa
 
 
 class Ayanamsa(str, Enum):
@@ -78,9 +90,9 @@ class PlanetPosition(BaseModel):
     """Single planet position in chart."""
     name: str
     longitude: float
-    latitude: float
-    distance: float
-    speed: float
+    latitude: float = 0.0
+    distance: float = 0.0
+    speed: float = 0.0
     sign: str
     sign_lord: str
     degree_in_sign: float
@@ -88,7 +100,7 @@ class PlanetPosition(BaseModel):
     nakshatra_lord: Optional[str] = None
     pada: Optional[int] = None
     house: int
-    retrograde: bool
+    retrograde: bool = False
     dignity: Optional[str] = None
 
 
@@ -97,6 +109,7 @@ class HouseCusp(BaseModel):
     house: int
     longitude: float
     sign: str
+    sign_lord: str = ""
     degree_in_sign: float
 
 
@@ -110,12 +123,66 @@ class Aspect(BaseModel):
     exact_degree: float
 
 
+class DashaPeriod(BaseModel):
+    """Single Dasha period (Mahadasha, Antardasha, or Pratyantardasha)."""
+    lord: str
+    start: str
+    end: str
+    level: int = 1
+    duration_years: Optional[float] = None
+    subs: Optional[list[DashaPeriod]] = None
+
+
+class VimshottariDasha(BaseModel):
+    """Complete Vimshottari Dasha system data."""
+    birth_nakshatra: str
+    birth_nakshatra_lord: str
+    balance_lord: str
+    balance_years: float
+    current_md: Optional[DashaPeriod] = None
+    current_ad: Optional[DashaPeriod] = None
+    current_pd: Optional[DashaPeriod] = None
+    mahadashas: list[DashaPeriod] = Field(default_factory=list)
+
+
+class ShadbalaPlanet(BaseModel):
+    """Planetary strength metrics from Shadbala."""
+    planet: str
+    total_rupas: float
+    total_virupas: float
+    required_rupas: float
+    sufficient: bool
+    sthana_bala: float
+    dig_bala: float
+    kala_bala: float
+    cheshta_bala: float
+    naisargika_bala: float
+    drik_bala: float
+
+
+class AshtakavargaData(BaseModel):
+    """Ashtakavarga bindu totals."""
+    sarvashtakavarga: list[int]
+    grand_total: int
+    bhinnashtakavarga: dict[str, list[int]]
+
+
+class UpagrahaPosition(BaseModel):
+    """Position of a shadow planet / upagraha."""
+    name: str
+    longitude: float
+    sign: str
+    degree_in_sign: float
+    house: int
+
+
 class ChartData(BaseModel):
     """Complete birth chart data."""
     birth_data: BirthData
     calculation_time: str
     zodiac: ZodiacSystem
     ayanamsa: Ayanamsa
+    ayanamsa_value: Optional[float] = None
     house_system: HouseSystem
     planets: list[PlanetPosition]
     houses: list[HouseCusp]
@@ -124,6 +191,11 @@ class ChartData(BaseModel):
     midheaven: PlanetPosition
     rahu: PlanetPosition
     ketu: PlanetPosition
+    dashas: Optional[VimshottariDasha] = None
+    vargas: Optional[dict[str, dict[str, str]]] = None
+    ashtakavarga: Optional[AshtakavargaData] = None
+    shadbala: Optional[dict[str, ShadbalaPlanet]] = None
+    upagrahas: Optional[list[UpagrahaPosition]] = None
 
     def to_json(self) -> str:
         """Export as JSON string."""
@@ -147,6 +219,12 @@ NAKSHATRAS = [
     ("Purva Bhadrapada", "Jupiter"), ("Uttara Bhadrapada", "Saturn"), ("Revati", "Mercury"),
 ]
 
+# Zodiac signs in order
+ZODIAC_SIGNS = [
+    "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
+    "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
+]
+
 # Sign lords
 SIGN_LORDS = {
     "Aries": "Mars", "Taurus": "Venus", "Gemini": "Mercury",
@@ -155,59 +233,58 @@ SIGN_LORDS = {
     "Capricorn": "Saturn", "Aquarius": "Saturn", "Pisces": "Jupiter",
 }
 
-# Vedic planet names mapping (openephem uses Sanskrit sign names)
-VEDIC_PLANET_MAP = {
-    "Sun": "Sun",
-    "Moon": "Moon", 
-    "Mars": "Mars",
-    "Mercury": "Mercury",
-    "Jupiter": "Jupiter",
-    "Venus": "Venus",
-    "Saturn": "Saturn",
-    "TrueNode": "Rahu",  # Mean node is Rahu
-}
-
-# Sanskrit sign names to Western
-SANSKRIT_TO_WESTERN = {
-    "Mesha": "Aries", "Vrishabha": "Taurus", "Mithuna": "Gemini",
-    "Karka": "Cancer", "Simha": "Leo", "Kanya": "Virgo",
-    "Tula": "Libra", "Vrishchika": "Scorpio", "Dhanu": "Sagittarius",
-    "Makara": "Capricorn", "Kumbha": "Aquarius", "Meena": "Pisces",
-}
-
-# Planet order for Vedic
+# 7 Classical Grahas
 VEDIC_PLANETS = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"]
+
+# Mayaastrolib House system mapping
+HOUSE_MAP = {
+    HouseSystem.WHOLE_SIGN: const.HOUSES_WHOLE_SIGN,
+    HouseSystem.PLACIDUS: const.HOUSES_PLACIDUS,
+    HouseSystem.KOCH: const.HOUSES_KOCH,
+    HouseSystem.REGIOMONTANUS: const.HOUSES_REGIOMONTANUS,
+    HouseSystem.CAMPANUS: const.HOUSES_CAMPANUS,
+    HouseSystem.EQUAL: const.HOUSES_EQUAL,
+    HouseSystem.PORPHYRY: const.HOUSES_PORPHYRIUS,
+}
+
+# Swiss Ephemeris body IDs
+SWE_BODY_MAP = {
+    "Sun": swisseph.SUN,
+    "Moon": swisseph.MOON,
+    "Mercury": swisseph.MERCURY,
+    "Venus": swisseph.VENUS,
+    "Mars": swisseph.MARS,
+    "Jupiter": swisseph.JUPITER,
+    "Saturn": swisseph.SATURN,
+    "Rahu": swisseph.MEAN_NODE,
+    "North Node": swisseph.MEAN_NODE,
+}
 
 
 def get_nakshatra(longitude: float) -> tuple[str, str, int]:
     """Calculate nakshatra, lord, and pada from sidereal longitude."""
-    nakshatra_span = 360 / 27
-    nakshatra_index = int(longitude / nakshatra_span) % 27
+    nakshatra_span = 360.0 / 27.0
+    nakshatra_index = int((longitude % 360.0) / nakshatra_span) % 27
     nakshatra_name, lord = NAKSHATRAS[nakshatra_index]
-    
-    degree_in_nakshatra = longitude % nakshatra_span
-    pada = int(degree_in_nakshatra / (nakshatra_span / 4)) + 1
-    
-    return nakshatra_name, lord, pada
+
+    degree_in_nakshatra = (longitude % 360.0) % nakshatra_span
+    pada = int(degree_in_nakshatra / (nakshatra_span / 4.0)) + 1
+    return nakshatra_name, lord, min(pada, 4)
 
 
 def get_sign(longitude: float) -> str:
     """Get zodiac sign from longitude."""
-    signs = [
-        "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
-        "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
-    ]
-    sign_index = int(longitude / 30) % 12
-    return signs[sign_index]
+    sign_index = int((longitude % 360.0) / 30.0) % 12
+    return ZODIAC_SIGNS[sign_index]
 
 
 def get_degree_in_sign(longitude: float) -> float:
     """Get degree within sign (0-30)."""
-    return longitude % 30
+    return (longitude % 360.0) % 30.0
 
 
 def calculate_dignity(planet: str, sign: str) -> str:
-    """Calculate planetary dignity (simplified)."""
+    """Calculate planetary dignity (simplified classical Vedic)."""
     exaltation = {
         "Sun": "Aries", "Moon": "Taurus", "Mars": "Capricorn",
         "Mercury": "Virgo", "Jupiter": "Cancer", "Venus": "Pisces",
@@ -223,7 +300,7 @@ def calculate_dignity(planet: str, sign: str) -> str:
         "Mercury": ["Gemini", "Virgo"], "Jupiter": ["Sagittarius", "Pisces"],
         "Venus": ["Taurus", "Libra"], "Saturn": ["Capricorn", "Aquarius"],
     }
-    
+
     if sign == exaltation.get(planet):
         return "exalted"
     elif sign == debilitation.get(planet):
@@ -233,113 +310,125 @@ def calculate_dignity(planet: str, sign: str) -> str:
     return "neutral"
 
 
+def _format_datetime(dt: Datetime) -> str:
+    """Format mayaastrolib Datetime to YYYY-MM-DD HH:MM:SS string."""
+    pydt = dt.to_pydatetime()
+    return pydt.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _convert_dasha_period(period: vdasha.DashaPeriod, include_subs: bool = True) -> DashaPeriod:
+    """Convert mayaastrolib DashaPeriod to Pydantic model with nested subdivisions."""
+    subs_models = None
+    if include_subs and period.level == 1:
+        # Antardashas
+        ads = vdasha.antardashas(period)
+        subs_models = []
+        for ad in ads:
+            # Pratyantardashas
+            pds = vdasha.pratyantar_dashas(ad)
+            pd_models = [
+                DashaPeriod(
+                    lord=pd.lord,
+                    start=_format_datetime(pd.start),
+                    end=_format_datetime(pd.end),
+                    level=3,
+                )
+                for pd in pds
+            ]
+            subs_models.append(
+                DashaPeriod(
+                    lord=ad.lord,
+                    start=_format_datetime(ad.start),
+                    end=_format_datetime(ad.end),
+                    level=2,
+                    subs=pd_models,
+                )
+            )
+
+    return DashaPeriod(
+        lord=period.lord,
+        start=_format_datetime(period.start),
+        end=_format_datetime(period.end),
+        level=period.level,
+        subs=subs_models,
+    )
+
+
 def calculate_chart(
     birth: BirthData,
     ayanamsa: Ayanamsa = Ayanamsa.LAHIRI,
     house_system: HouseSystem = HouseSystem.WHOLE_SIGN,
+    target_date: Optional[datetime] = None,
+    include_dashas: bool = True,
+    include_vargas: bool = True,
+    include_ashtakavarga: bool = True,
+    include_shadbala: bool = True,
+    include_upagrahas: bool = True,
 ) -> ChartData:
     """
-    Calculate complete Vedic birth chart.
-    
+    Calculate complete Vedic birth chart using Swiss Ephemeris / mayaastrolib.
+
     Args:
-        birth: Birth data (date, time, location)
+        birth: Birth data (date, time, location, timezone)
         ayanamsa: Ayanamsa system (default: Lahiri)
         house_system: House system (default: Whole Sign)
-    
+        target_date: Target datetime for current Dasha lookup (default: now)
+        include_dashas: Whether to calculate Vimshottari Dashas
+        include_vargas: Whether to calculate Shodashavarga charts
+        include_ashtakavarga: Whether to calculate Ashtakavarga points
+        include_shadbala: Whether to calculate Shadbala strengths
+        include_upagrahas: Whether to calculate shadow planets (upagrahas)
+
     Returns:
-        ChartData with all planetary positions, houses, aspects
+        ChartData with planetary positions, houses, aspects, dashas, vargas, etc.
     """
-    # Resolve birth moment to coordinates
-    moment = resolve(
-        date=(birth.year, birth.month, birth.day),
-        time=(birth.hour, birth.minute, birth.second),
-        lat=birth.latitude,
-        lon=birth.longitude,
-        tz=birth.timezone,
+    # 1. Prepare timezone offset string for Datetime
+    dt_local = datetime(
+        birth.year, birth.month, birth.day,
+        birth.hour, birth.minute, birth.second,
+        tzinfo=ZoneInfo(birth.timezone),
     )
-    
-    # Assemble chart with sidereal zodiac and specified ayanamsa
-    chart = assemble(
-        moment,
-        zodiac="sidereal",
-        ayanamsa=ayanamsa.value,
-        house_system=house_system.value,
+    offset_sec = dt_local.utcoffset().total_seconds()
+    offset_h = int(offset_sec // 3600)
+    offset_m = int((abs(offset_sec) % 3600) // 60)
+    offset_str = f"{offset_h:+03d}:{offset_m:02d}"
+
+    decimal_hour = birth.hour + (birth.minute / 60.0) + (birth.second / 3600.0)
+    m_dt = Datetime([birth.year, birth.month, birth.day], decimal_hour, offset_str)
+    m_pos = GeoPos(birth.latitude, birth.longitude)
+
+    # 2. Configure Ayanamsa and House system
+    m_ayanamsa = ayanamsa.value
+    m_hsys = HOUSE_MAP.get(house_system, const.HOUSES_WHOLE_SIGN)
+
+    # Objects to calculate
+    objects_list = [
+        const.SUN, const.MOON, const.MARS, const.MERCURY,
+        const.JUPITER, const.VENUS, const.SATURN,
+        const.NORTH_NODE, const.SOUTH_NODE,
+    ]
+
+    # Instantiate sidereal chart
+    chart = Chart(
+        m_dt,
+        m_pos,
+        IDs=objects_list,
+        zodiac=const.ZODIAC_SIDEREAL,
+        ayanamsa=m_ayanamsa,
+        hsys=m_hsys,
     )
-    
-    # Use sidereal angles from assemble (already ayanamsa-corrected)
-    angles = chart.get("angles", {})
-    asc_lon = angles.get("asc", 0.0)
-    mc_lon = angles.get("mc", 0.0)
-    
-    # Compute house cusps for the selected house system
-    # For Whole Sign, we derive cusps from sidereal ascendant
-    # For other systems, we need tropical houses then convert
-    if house_system == HouseSystem.WHOLE_SIGN:
-        # Whole Sign: each house = one sign starting from ascendant sign
-        asc_sign_idx = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
-                        "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"].index(get_sign(asc_lon))
-        cusps = [((asc_sign_idx + i) % 12) * 30 for i in range(12)]
-    else:
-        # For quadrant systems, use houses_from_jd (tropical) - approximation
-        houses_obj = houses_from_jd(chart["jd_ut"], chart["lat"], chart["lon"], house_system.value)
-        cusps = houses_obj.cusps
-    
-    # Extract planet positions from chart["bodies"] (dict)
-    # Only the 7 grahas (excluding Rahu/Ketu which are handled separately)
-    GRAHAS = {
-        "Sun": "Sun",
-        "Moon": "Moon", 
-        "Mars": "Mars",
-        "Mercury": "Mercury",
-        "Jupiter": "Jupiter",
-        "Venus": "Venus",
-        "Saturn": "Saturn",
-    }
-    
-    planets = []
-    for ephem_name, vedic_name in GRAHAS.items():
-        if ephem_name not in chart["bodies"]:
-            continue
-            
-        body = chart["bodies"][ephem_name]
-        lon = body["lon"]
-        speed = body.get("speed", 0)
-        retro = body.get("retro", False)
-        
-        # openephem doesn't provide latitude/distance in this format, use defaults
-        lat = 0.0
-        dist = 1.0
-        
-        sign = get_sign(lon)
-        deg_in_sign = get_degree_in_sign(lon)
-        nakshatra, nakshatra_lord, pada = get_nakshatra(lon)
-        dignity = calculate_dignity(vedic_name, sign)
-        
-        # House assignment (will be calculated properly below)
-        house = 1
-        
-        planets.append(PlanetPosition(
-            name=vedic_name,
-            longitude=round(lon, 6),
-            latitude=round(lat, 6),
-            distance=round(dist, 6),
-            speed=round(speed, 6),
-            sign=sign,
-            sign_lord=SIGN_LORDS[sign],
-            degree_in_sign=round(deg_in_sign, 6),
-            nakshatra=nakshatra,
-            nakshatra_lord=nakshatra_lord,
-            pada=pada,
-            house=house,
-            retrograde=retro,
-            dignity=dignity,
-        ))
-    
-    # Ascendant
-    asc_sign = get_sign(asc_lon)
-    asc_deg = get_degree_in_sign(asc_lon)
+
+    # Exact ayanamsa value in degrees
+    ayanamsa_deg = vaya.get(m_ayanamsa, m_dt)
+
+    # 3. Ascendant and Midheaven
+    asc_angle = chart.getAngle(const.ASC)
+    asc_lon = asc_angle.lon
+    asc_sign = asc_angle.sign
+    asc_sign_idx = ZODIAC_SIGNS.index(asc_sign)
+    asc_deg_in_sign = asc_angle.signlon
     asc_nak, asc_lord, asc_pada = get_nakshatra(asc_lon)
-    
+
     ascendant = PlanetPosition(
         name="Ascendant",
         longitude=round(asc_lon, 6),
@@ -348,18 +437,23 @@ def calculate_chart(
         speed=0.0,
         sign=asc_sign,
         sign_lord=SIGN_LORDS[asc_sign],
-        degree_in_sign=round(asc_deg, 6),
+        degree_in_sign=round(asc_deg_in_sign, 6),
         nakshatra=asc_nak,
         nakshatra_lord=asc_lord,
         pada=asc_pada,
         house=1,
         retrograde=False,
     )
-    
-    # Midheaven
-    mc_sign = get_sign(mc_lon)
-    mc_deg = get_degree_in_sign(mc_lon)
-    
+
+    mc_angle = chart.getAngle(const.MC)
+    mc_lon = mc_angle.lon
+    mc_sign = mc_angle.sign
+    mc_sign_idx = ZODIAC_SIGNS.index(mc_sign)
+    mc_deg_in_sign = mc_angle.signlon
+
+    # In Whole Sign, Midheaven house is determined by sign from Ascendant
+    mc_house = ((mc_sign_idx - asc_sign_idx) % 12) + 1 if house_system == HouseSystem.WHOLE_SIGN else 10
+
     midheaven = PlanetPosition(
         name="Midheaven",
         longitude=round(mc_lon, 6),
@@ -368,116 +462,254 @@ def calculate_chart(
         speed=0.0,
         sign=mc_sign,
         sign_lord=SIGN_LORDS[mc_sign],
-        degree_in_sign=round(mc_deg, 6),
+        degree_in_sign=round(mc_deg_in_sign, 6),
         nakshatra=None,
         nakshatra_lord=None,
         pada=None,
-        house=10,
+        house=mc_house,
         retrograde=False,
     )
-    
-    # Rahu (TrueNode from openephem)
-    rahu_lon = chart["bodies"]["TrueNode"]["lon"] if "TrueNode" in chart["bodies"] else 0.0
-    ketu_lon = (rahu_lon + 180) % 360
-    
+
+    # 4. Houses
+    houses_list = []
+    for i, h in enumerate(chart.houses):
+        h_sign = h.sign
+        houses_list.append(
+            HouseCusp(
+                house=i + 1,
+                longitude=round(h.lon, 6),
+                sign=h_sign,
+                sign_lord=SIGN_LORDS[h_sign],
+                degree_in_sign=round(h.signlon, 6),
+            )
+        )
+
+    # 5. Planetary positions (7 Grahas) with Swiss Ephemeris true speeds
+    planets = []
+    swe_mode = vaya._swe_mode_for(m_ayanamsa)
+    with vaya._AYANAMSA_LOCK:
+        swisseph.set_sid_mode(swe_mode)
+
+    for p_name in VEDIC_PLANETS:
+        p_obj = chart.getObject(p_name)
+        swe_id = SWE_BODY_MAP[p_name]
+
+        # Calculate exact speed and coordinates from Swiss Ephemeris
+        swe_calc, _ = swisseph.calc_ut(m_dt.jd, swe_id, swisseph.FLG_SIDEREAL | swisseph.FLG_SPEED)
+        p_lon = swe_calc[0]
+        p_lat = swe_calc[1]
+        p_dist = swe_calc[2]
+        p_speed = swe_calc[3]
+        p_retro = bool(p_speed < 0)
+
+        p_sign = get_sign(p_lon)
+        p_sign_idx = ZODIAC_SIGNS.index(p_sign)
+        p_deg_in_sign = get_degree_in_sign(p_lon)
+        p_nak, p_nak_lord, p_pada = get_nakshatra(p_lon)
+
+        # House assignment
+        if house_system == HouseSystem.WHOLE_SIGN:
+            p_house = ((p_sign_idx - asc_sign_idx) % 12) + 1
+        else:
+            if hasattr(p_obj, "house") and p_obj.house is not None:
+                p_house = getattr(p_obj.house, "num", None) or int(str(getattr(p_obj.house, "id", "1")).replace("House", ""))
+            else:
+                p_house = ((p_sign_idx - asc_sign_idx) % 12) + 1
+
+        dignity = calculate_dignity(p_name, p_sign)
+
+        planets.append(
+            PlanetPosition(
+                name=p_name,
+                longitude=round(p_lon, 6),
+                latitude=round(p_lat, 6),
+                distance=round(p_dist, 6),
+                speed=round(p_speed, 6),
+                sign=p_sign,
+                sign_lord=SIGN_LORDS[p_sign],
+                degree_in_sign=round(p_deg_in_sign, 6),
+                nakshatra=p_nak,
+                nakshatra_lord=p_nak_lord,
+                pada=p_pada,
+                house=p_house,
+                retrograde=p_retro,
+                dignity=dignity,
+            )
+        )
+
+    # 6. Rahu & Ketu (Mean Node)
+    rahu_calc, _ = swisseph.calc_ut(m_dt.jd, swisseph.MEAN_NODE, swisseph.FLG_SIDEREAL | swisseph.FLG_SPEED)
+    rahu_lon = rahu_calc[0]
+    rahu_speed = rahu_calc[3]
     rahu_sign = get_sign(rahu_lon)
+    rahu_sign_idx = ZODIAC_SIGNS.index(rahu_sign)
     rahu_deg = get_degree_in_sign(rahu_lon)
     rahu_nak, rahu_lord, rahu_pada = get_nakshatra(rahu_lon)
-    
+    rahu_house = ((rahu_sign_idx - asc_sign_idx) % 12) + 1
+
     rahu = PlanetPosition(
         name="Rahu",
         longitude=round(rahu_lon, 6),
         latitude=0.0,
-        distance=0.0,
-        speed=0.0,
+        distance=round(rahu_calc[2], 6),
+        speed=round(rahu_speed, 6),
         sign=rahu_sign,
         sign_lord=SIGN_LORDS[rahu_sign],
         degree_in_sign=round(rahu_deg, 6),
         nakshatra=rahu_nak,
         nakshatra_lord=rahu_lord,
         pada=rahu_pada,
-        house=1,
+        house=rahu_house,
         retrograde=True,
     )
-    
+
+    ketu_lon = (rahu_lon + 180.0) % 360.0
     ketu_sign = get_sign(ketu_lon)
+    ketu_sign_idx = ZODIAC_SIGNS.index(ketu_sign)
     ketu_deg = get_degree_in_sign(ketu_lon)
     ketu_nak, ketu_lord, ketu_pada = get_nakshatra(ketu_lon)
-    
+    ketu_house = ((ketu_sign_idx - asc_sign_idx) % 12) + 1
+
     ketu = PlanetPosition(
         name="Ketu",
         longitude=round(ketu_lon, 6),
         latitude=0.0,
-        distance=0.0,
-        speed=0.0,
+        distance=round(rahu_calc[2], 6),
+        speed=round(rahu_speed, 6),
         sign=ketu_sign,
         sign_lord=SIGN_LORDS[ketu_sign],
         degree_in_sign=round(ketu_deg, 6),
         nakshatra=ketu_nak,
         nakshatra_lord=ketu_lord,
         pada=ketu_pada,
-        house=1,
+        house=ketu_house,
         retrograde=True,
     )
-    
-    # Calculate houses from cusps
-    houses_list = []
-    signs = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
-             "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
-    
-    for i, cusp_lon in enumerate(cusps):
-        house_sign = get_sign(cusp_lon)
-        houses_list.append(HouseCusp(
-            house=i + 1,
-            longitude=round(cusp_lon, 6),
-            sign=house_sign,
-            degree_in_sign=round(get_degree_in_sign(cusp_lon), 6),
-        ))
-    
-    # Assign houses to planets based on Whole Sign from Ascendant
-    asc_sign_idx = signs.index(asc_sign)
-    
-    for planet in planets:
-        planet_sign_idx = signs.index(planet.sign)
-        house_num = ((planet_sign_idx - asc_sign_idx) % 12) + 1
-        planet.house = house_num
-    
-    rahu.house = ((signs.index(rahu.sign) - asc_sign_idx) % 12) + 1
-    ketu.house = ((signs.index(ketu.sign) - asc_sign_idx) % 12) + 1
-    
-    # Calculate aspects from chart["aspects"] (already computed by openephem)
+
+    # 7. Aspects
     aspects = []
-    for aspect in chart.get("aspects", []):
-        # Only include aspects involving Vedic planets + Asc/MC/Rahu/Ketu
-        p1, p2 = aspect["a"], aspect["b"]
-        aspect_type = aspect["aspect"]
-        orb = aspect["orb"]
-        applying = aspect["applying"]
-        
-        # Map openephem aspect names to our format
-        aspect_map = {
-            "conjunction": "conjunction",
-            "sextile": "sextile", 
-            "square": "square",
-            "trine": "trine",
-            "opposition": "opposition",
-        }
-        
-        if aspect_type in aspect_map:
-            aspects.append(Aspect(
-                planet1=p1,
-                planet2=p2,
-                aspect_type=aspect_map[aspect_type],
-                orb=round(abs(orb), 2),
-                applying=applying,
-                exact_degree=round(aspect["angle"], 2),
-            ))
-    
+    aspect_bodies = planets + [ascendant, midheaven]
+    for i in range(len(aspect_bodies)):
+        for j in range(i + 1, len(aspect_bodies)):
+            p1, p2 = aspect_bodies[i], aspect_bodies[j]
+            # Calculate angular separation
+            diff = abs(p1.longitude - p2.longitude)
+            angle = min(diff, 360.0 - diff)
+
+            for target_angle, name in [
+                (0.0, "conjunction"),
+                (60.0, "sextile"),
+                (90.0, "square"),
+                (120.0, "trine"),
+                (180.0, "opposition"),
+            ]:
+                orb = abs(angle - target_angle)
+                if orb <= 8.0:
+                    aspects.append(
+                        Aspect(
+                            planet1=p1.name,
+                            planet2=p2.name,
+                            aspect_type=name,
+                            orb=round(orb, 2),
+                            applying=True,
+                            exact_degree=round(target_angle, 2),
+                        )
+                    )
+
+    # 8. Vimshottari Dashas
+    dashas_data = None
+    if include_dashas:
+        target_pydt = target_date or datetime.now(ZoneInfo(birth.timezone))
+        t_sec = target_pydt.utcoffset().total_seconds() if target_pydt.tzinfo else offset_sec
+        t_str = f"{int(t_sec//3600):+03d}:{int((abs(t_sec)%3600)//60):02d}"
+        target_mdt = Datetime(
+            [target_pydt.year, target_pydt.month, target_pydt.day],
+            target_pydt.hour + (target_pydt.minute / 60.0) + (target_pydt.second / 3600.0),
+            t_str,
+        )
+
+        d_res = vdasha.vimshottari(chart, target=target_mdt, ayanamsa=m_ayanamsa)
+        md_models = [_convert_dasha_period(md, include_subs=True) for md in d_res.sequence]
+
+        current_md_model = _convert_dasha_period(d_res.current_md, include_subs=False) if d_res.current_md else None
+        current_ad_model = _convert_dasha_period(d_res.current_ad, include_subs=False) if d_res.current_ad else None
+        current_pd_model = _convert_dasha_period(d_res.current_pratyantar, include_subs=False) if d_res.current_pratyantar else None
+
+        dashas_data = VimshottariDasha(
+            birth_nakshatra=d_res.janma_nakshatra.name,
+            birth_nakshatra_lord=d_res.janma_nakshatra.lord,
+            balance_lord=d_res.birth_balance_lord,
+            balance_years=round(d_res.birth_balance_years, 4),
+            current_md=current_md_model,
+            current_ad=current_ad_model,
+            current_pd=current_pd_model,
+            mahadashas=md_models,
+        )
+
+    # 9. Shodashavarga (Divisional Charts)
+    vargas_data = None
+    if include_vargas:
+        raw_vargas = vdiv.all_vargas(chart, ayanamsa=m_ayanamsa)
+        vargas_data = {}
+        for v_name, v_planets in raw_vargas.items():
+            vargas_data[v_name] = {
+                p_id: vdiv.SIGN_NAMES[sign_idx] for p_id, sign_idx in v_planets.items()
+            }
+
+    # 10. Ashtakavarga
+    ashtakavarga_data = None
+    if include_ashtakavarga:
+        av_res = vav.ashtakavarga(chart, ayanamsa=m_ayanamsa)
+        ashtakavarga_data = AshtakavargaData(
+            sarvashtakavarga=av_res["per_rasi"],
+            grand_total=av_res["grand_total"],
+            bhinnashtakavarga=av_res["by_planet"],
+        )
+
+    # 11. Shadbala
+    shadbala_data = None
+    if include_shadbala:
+        sb_res = vsb.shadbala(chart)
+        shadbala_data = {}
+        for p_id, p_sb in sb_res.items():
+            shadbala_data[p_id] = ShadbalaPlanet(
+                planet=p_id,
+                total_rupas=round(p_sb["total_rupas"], 2),
+                total_virupas=round(p_sb["total_virupas"], 2),
+                required_rupas=round(p_sb["required_rupas"], 2),
+                sufficient=p_sb["sufficient"],
+                sthana_bala=round(p_sb["sthana"]["total"], 2),
+                dig_bala=round(p_sb["dig"], 2),
+                kala_bala=round(p_sb["kala"]["total"], 2),
+                cheshta_bala=round(p_sb["cheshta"], 2),
+                naisargika_bala=round(p_sb["naisargika"], 2),
+                drik_bala=round(p_sb["drik"], 2),
+            )
+
+    # 12. Upagrahas
+    upagrahas_data = None
+    if include_upagrahas:
+        raw_upas = vupa.upagrahas(chart)
+        upagrahas_data = []
+        for name, up_obj in raw_upas.items():
+            up_sign_idx = ZODIAC_SIGNS.index(up_obj.sign)
+            up_house = ((up_sign_idx - asc_sign_idx) % 12) + 1
+            upagrahas_data.append(
+                UpagrahaPosition(
+                    name=name,
+                    longitude=round(up_obj.sidereal_longitude, 6),
+                    sign=up_obj.sign,
+                    degree_in_sign=round(up_obj.deg_in_sign, 6),
+                    house=up_house,
+                )
+            )
+
     return ChartData(
         birth_data=birth,
         calculation_time=datetime.utcnow().isoformat() + "Z",
         zodiac=ZodiacSystem.SIDEREAL,
         ayanamsa=ayanamsa,
+        ayanamsa_value=round(ayanamsa_deg, 6),
         house_system=house_system,
         planets=planets,
         houses=houses_list,
@@ -486,4 +718,9 @@ def calculate_chart(
         midheaven=midheaven,
         rahu=rahu,
         ketu=ketu,
+        dashas=dashas_data,
+        vargas=vargas_data,
+        ashtakavarga=ashtakavarga_data,
+        shadbala=shadbala_data,
+        upagrahas=upagrahas_data,
     )
