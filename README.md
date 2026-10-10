@@ -11,10 +11,10 @@
 ## Features
 
 - **Accurate Astronomical Engine**: Swiss Ephemeris (`pyswisseph`) backend with true planetary velocities and retrograde indicators.
-- **Complete Birth Chart Data**: 9 Grahas (Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu) + Ascendant + Midheaven with sign, degree, nakshatra, pada, house, dignity, and retrograde state.
+- **Complete Birth Chart Data**: 7 classical Grahas (Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn) + Rahu/Ketu lunar nodes + Ascendant + Midheaven with sign, degree, nakshatra, pada, house, dignity, and retrograde state.
 - **Multiple Ayanamsas**:
-  - `lahiri`: Astronomical Chitra Paksha (official Indian standard, default).
-  - `jhora_lahiri`: Traditional Lahiri calibrated for 100% concordance with Jagannatha Hora.
+  - `jhora_lahiri`: Traditional Lahiri calibrated for 100% concordance with Jagannatha Hora (**default**).
+  - `lahiri`: Astronomical Chitra Paksha (official Indian standard).
   - `raman`: B.V. Raman's ayanamsa.
   - `krishnamurti`: K.P. (Krishnamurti Paddhati) ayanamsa.
   - `fagan_bradley`: Western sidereal standard.
@@ -34,8 +34,16 @@
 - **Upagrahas (Shadow Planets)**:
   - Dhuma, Vyatipata, Parivesha, Indrachapa, and Upaketu with exact sidereal degree and house.
 - **Major Aspects**: Conjunction, sextile, square, trine, and opposition with orbs.
+- **Transits (Gochar)**:
+  - Current or user-specified transit date against the natal chart.
+  - Transit houses from natal Lagna and natal Moon (Chandra Lagna).
+  - Sade Sati (rising / peak / setting), Ashtama Shani, and Kantaka Shani detection.
+  - Jupiter Gochar with Phaladeepika favorable-house evaluation.
+  - Double Transit detection (houses simultaneously aspected by Jupiter and Saturn).
+  - Sarvashtakavarga (SAV) and Bhinnashtakavarga (BAV) bindus per transit sign.
+- **Multi-Format Outputs**: ASCII tables, South Indian chart diagram (any varga), Markdown, CSV, and JSON.
 - **REST API**: FastAPI server with interactive Swagger UI at `/docs`.
-- **CLI**: Terminal tool `nakshatra` for quick JSON chart generation.
+- **CLI**: Terminal tool `nakshatra` for quick chart, transit, and formatted output generation.
 - **AI-Ready**: Clean Pydantic models designed for LLM prompts and agent workflows.
 
 ---
@@ -108,6 +116,13 @@ nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Ka
 # Auto-save to timestamped file (chart_YYYYMMDD_HHMMSS.<ext>)
 nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --format json -p -s
 nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --format markdown -s
+
+# Calculate planetary transits (Gochar) for the current date
+nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --transit
+
+# Calculate transits for a specific date (table or JSON output)
+nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --transit 2026-12-25
+nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --transit 2026-12-25 --format json -p
 ```
 
 ### Python Library Usage
@@ -142,6 +157,12 @@ md_str = chart.to_markdown()      # GitHub-flavored Markdown
 csv_str = chart.to_csv()          # Planetary CSV
 json_str = chart.to_json()        # Formatted JSON
 dict_data = chart.to_dict()       # Python dictionary
+
+# Calculate transits (Gochar) for a specific date
+from datetime import datetime
+report = chart.get_transits(datetime(2026, 12, 25))
+print(report.to_table())          # Sade Sati, Jupiter Gochar, Double Transit
+report_json = report.model_dump_json()
 ```
 
 ---
@@ -223,8 +244,8 @@ The complete Nakshatra architecture integrates high-precision astronomical compu
 - [x] **Ashtakavarga & Shadbala**: 337 SAV bindus and 6 classical strength balas.
 - [x] **Multi-format Outputs**: ASCII tables, South Indian diagram, Markdown, CSV, and JSON.
 - [x] **Jagannatha Hora Calibration**: `jhora_lahiri` ayanamsa for 100% concordance.
+- [x] **Gochar (Transit) Engine**: Natal-to-transit planetary aspects, Sade Sati, Jupiter Gochar, Double Transit.
 - [ ] **Classical Yoga Detection**: Raja, Dhana, Pancha Mahapurusha, Gaja Kesari, Kemadruma, Neechabhanga.
-- [ ] **Gochar (Transit) Engine**: Natal-to-transit planetary aspect and house activations.
 - [ ] **RAG Corpus Ingestion**: Parsing and chunking of BPHS, Phaladeepika, Saravali, and Crux.
 - [ ] **FAISS Vector Store**: Local embeddings via `sentence-transformers` (`all-MiniLM-L6-v2`).
 - [ ] **LLM Integration**: Gemini Flash + OpenRouter prompt synthesis agent.

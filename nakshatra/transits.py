@@ -8,26 +8,23 @@ and Double Transit (Jupiter + Saturn) detection.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
 from zoneinfo import ZoneInfo
-from pydantic import BaseModel, Field
 
-from nakshatra.core import (
-    BirthData,
-    ChartData,
-    Ayanamsa,
-    PlanetPosition,
-    ZODIAC_SIGNS,
-    SIGN_LORDS,
-    get_sign,
-    get_degree_in_sign,
-    get_nakshatra,
-)
+import swisseph as swe
 from mayaastrolib.chart import Chart
 from mayaastrolib.datetime import Datetime
 from mayaastrolib.geopos import GeoPos
-import swisseph as swe
+from pydantic import BaseModel, Field
 
+from nakshatra.core import (
+    SIGN_LORDS,
+    ZODIAC_SIGNS,
+    Ayanamsa,
+    ChartData,
+    get_degree_in_sign,
+    get_nakshatra,
+    get_sign,
+)
 
 # Classical Phaladeepika auspicious transit houses from Natal Moon (Chandra Lagna)
 FAVORABLE_GOCHAR_HOUSES: dict[str, list[int]] = {
@@ -42,8 +39,9 @@ FAVORABLE_GOCHAR_HOUSES: dict[str, list[int]] = {
     "Ketu": [3, 6, 11],
 }
 
-# Vedic full planetary aspects by sign count from planet position
-# All planets cast 7th aspect; Mars casts 4th, 7th, 8th; Jupiter casts 5th, 7th, 9th; Saturn casts 3rd, 7th, 10th
+# Vedic full planetary aspects by sign count from planet position.
+# All planets cast 7th aspect; Mars casts 4th, 7th, 8th;
+# Jupiter casts 5th, 7th, 9th; Saturn casts 3rd, 7th, 10th.
 VEDIC_ASPECTS: dict[str, list[int]] = {
     "Sun": [7],
     "Moon": [7],
@@ -68,17 +66,30 @@ class TransitPlanet(BaseModel):
     pada: int
     retrograde: bool
     speed: float
-    house_from_lagna: int = Field(..., description="Transit house relative to natal Ascendant (1-12)")
-    house_from_moon: int = Field(..., description="Transit house relative to natal Moon / Chandra Lagna (1-12)")
-    sav_bindus: Optional[int] = Field(None, description="Sarvashtakavarga bindus in transited sign (>=28 favorable)")
-    bav_bindus: Optional[int] = Field(None, description="Planet's own Bhinnashtakavarga bindus in transited sign (>=4 favorable)")
-    is_favorable_gochar: bool = Field(..., description="Whether transit is in an auspicious house from Moon per Phaladeepika")
+    house_from_lagna: int = Field(
+        ..., description="Transit house relative to natal Ascendant (1-12)"
+    )
+    house_from_moon: int = Field(
+        ..., description="Transit house relative to natal Moon / Chandra Lagna (1-12)"
+    )
+    sav_bindus: int | None = Field(
+        None, description="Sarvashtakavarga bindus in transited sign (>=28 favorable)"
+    )
+    bav_bindus: int | None = Field(
+        None,
+        description="Planet's own Bhinnashtakavarga bindus in transited sign (>=4 favorable)",
+    )
+    is_favorable_gochar: bool = Field(
+        ..., description="Whether transit is in an auspicious house from Moon per Phaladeepika"
+    )
 
 
 class SadeSatiInfo(BaseModel):
     """Saturn Sade Sati and special transit affliction status."""
     is_active: bool
-    phase: Optional[str] = None  # "Rising (12th from Moon)", "Peak (Janma Shani / 1st from Moon)", "Setting (2nd from Moon)"
+    # Phases: "Rising (12th from Moon)", "Peak (Janma Shani / 1st from Moon)",
+    # "Setting (2nd from Moon)"
+    phase: str | None = None
     is_ashtama_shani: bool = False  # Saturn in 8th from Moon
     is_kantaka_shani: bool = False  # Saturn in 4th or 10th from Moon
     saturn_sign: str
@@ -96,7 +107,10 @@ class TransitReport(BaseModel):
     planets: list[TransitPlanet]
     sade_sati: SadeSatiInfo
     jupiter_gochar: dict
-    double_transit_houses: list[int] = Field(default_factory=list, description="Houses simultaneously aspected by Transit Jupiter & Transit Saturn")
+    double_transit_houses: list[int] = Field(
+        default_factory=list,
+        description="Houses simultaneously aspected by Transit Jupiter & Transit Saturn",
+    )
 
     def to_table(self) -> str:
         """Render transit analysis as formatted ASCII table."""
@@ -105,7 +119,10 @@ class TransitReport(BaseModel):
         lines.append("                         VEDIC TRANSIT (GOCHAR) REPORT")
         lines.append("=" * 86)
         lines.append(f" Transit Timestamp   : {self.transit_time}")
-        lines.append(f" Natal Birth Lagna   : {self.natal_lagna_sign} | Natal Moon: {self.natal_moon_sign}")
+        lines.append(
+            f" Natal Birth Lagna   : {self.natal_lagna_sign} "
+            f"| Natal Moon: {self.natal_moon_sign}"
+        )
         lines.append(f" Ayanamsa Used       : {self.ayanamsa.upper()}")
         lines.append("-" * 86)
 
@@ -114,25 +131,43 @@ class TransitReport(BaseModel):
         if ss.is_active:
             lines.append(f" SADE SATI ALERT     : ACTIVE - {ss.phase} (Saturn in {ss.saturn_sign})")
         elif ss.is_ashtama_shani:
-            lines.append(f" ASHTAMA SHANI ALERT : ACTIVE - Saturn in 8th from Moon ({ss.saturn_sign})")
+            lines.append(
+                f" ASHTAMA SHANI ALERT : ACTIVE - "
+                f"Saturn in 8th from Moon ({ss.saturn_sign})"
+            )
         elif ss.is_kantaka_shani:
-            lines.append(f" KANTAKA SHANI ALERT : ACTIVE - Saturn in {ss.house_from_moon}th from Moon ({ss.saturn_sign})")
+            lines.append(
+                f" KANTAKA SHANI ALERT : ACTIVE - "
+                f"Saturn in {ss.house_from_moon}th from Moon ({ss.saturn_sign})"
+            )
         else:
-            lines.append(f" SADE SATI STATUS    : Inactive (Saturn in {ss.saturn_sign}, {ss.house_from_moon}th from Moon)")
+            lines.append(
+                f" SADE SATI STATUS    : Inactive "
+                f"(Saturn in {ss.saturn_sign}, {ss.house_from_moon}th from Moon)"
+            )
 
         jg = self.jupiter_gochar
         j_status = "AUSPICIOUS" if jg.get("favorable") else "Neutral / Introspective"
-        lines.append(f" JUPITER GOCHAR      : In {jg.get('sign')} ({jg.get('house_from_moon')}th from Moon) -> {j_status}")
-        
+        lines.append(
+            f" JUPITER GOCHAR      : In {jg.get('sign')} "
+            f"({jg.get('house_from_moon')}th from Moon) -> {j_status}"
+        )
+
         if self.double_transit_houses:
             dt_str = ", ".join(f"House {h}" for h in self.double_transit_houses)
-            lines.append(f" DOUBLE TRANSIT      : Jupiter + Saturn both aspect {dt_str} (High event manifestation)")
+            lines.append(
+                f" DOUBLE TRANSIT      : Jupiter + Saturn both aspect "
+                f"{dt_str} (High event manifestation)"
+            )
         lines.append("-" * 86)
 
         # Planetary Transits Table
         lines.append(" TRANSITING GRAHA POSITIONS")
         lines.append("-" * 86)
-        lines.append(f"{'Planet':<10} {'Sign':<12} {'Deg':<10} {'From Lagna':<12} {'From Moon':<12} {'SAV/BAV':<9} {'Gochar':<10}")
+        lines.append(
+            f"{'Planet':<10} {'Sign':<12} {'Deg':<10} "
+            f"{'From Lagna':<12} {'From Moon':<12} {'SAV/BAV':<9} {'Gochar':<10}"
+        )
         lines.append("-" * 86)
         for p in self.planets:
             r_flag = "(R)" if p.retrograde else "   "
@@ -142,16 +177,19 @@ class TransitReport(BaseModel):
             sav_bav = f"{p.sav_bindus or '-'}/{p.bav_bindus or '-'}"
             g_eval = "FAVORABLE" if p.is_favorable_gochar else "Challenging"
             deg_str = f"{p.degree_in_sign:05.2f}°"
-            lines.append(f"{p_name:<10} {p.sign:<12} {deg_str:<10} {h_lagna:<12} {h_moon:<12} {sav_bav:<9} {g_eval:<10}")
+            lines.append(
+                f"{p_name:<10} {p.sign:<12} {deg_str:<10} "
+                f"{h_lagna:<12} {h_moon:<12} {sav_bav:<9} {g_eval:<10}"
+            )
         lines.append("=" * 86)
         return "\n".join(lines)
 
 
 def calculate_transits(
     natal_chart: ChartData,
-    transit_date: Optional[datetime] = None,
-    transit_latitude: Optional[float] = None,
-    transit_longitude: Optional[float] = None,
+    transit_date: datetime | None = None,
+    transit_latitude: float | None = None,
+    transit_longitude: float | None = None,
 ) -> TransitReport:
     """
     Calculate Vedic planetary transits overlaying current/specified sky positions on natal chart.
@@ -169,7 +207,8 @@ def calculate_transits(
         t_dt = transit_date
 
     # Setup mayaastrolib Datetime & GeoPos
-    offset_sec = t_dt.utcoffset().total_seconds() if t_dt.tzinfo else 0
+    t_td = t_dt.utcoffset()
+    offset_sec = t_td.total_seconds() if t_td is not None else 0
     t_h = t_dt.hour + (t_dt.minute / 60.0) + (t_dt.second / 3600.0)
     t_tz_str = f"{int(offset_sec//3600):+03d}:{int((abs(offset_sec)%3600)//60):02d}"
 
@@ -177,7 +216,11 @@ def calculate_transits(
     m_pos = GeoPos(t_lat, t_lon)
 
     # Use natal ayanamsa
-    maya_ayanamsa = "lahiri" if natal_chart.ayanamsa == Ayanamsa.JHORA_LAHIRI else natal_chart.ayanamsa.value
+    maya_ayanamsa = (
+        "lahiri"
+        if natal_chart.ayanamsa == Ayanamsa.JHORA_LAHIRI
+        else natal_chart.ayanamsa.value
+    )
     ayan_offset = (56.5318 / 3600.0) if natal_chart.ayanamsa == Ayanamsa.JHORA_LAHIRI else 0.0
 
     m_chart = Chart(
@@ -354,11 +397,16 @@ def calculate_transits(
 
     double_aspected_signs = sat_aspected_signs & jup_aspected_signs
     # Convert double aspected signs into houses from natal Lagna
-    double_transit_houses = sorted([((s_idx - natal_asc_idx) % 12) + 1 for s_idx in double_aspected_signs])
+    double_transit_houses = sorted(
+        ((s_idx - natal_asc_idx) % 12) + 1 for s_idx in double_aspected_signs
+    )
 
     return TransitReport(
         transit_time=t_dt.strftime("%Y-%m-%d %H:%M:%S"),
-        natal_birth_time=f"{b.year:04d}-{b.month:02d}-{b.day:02d} {b.hour:02d}:{b.minute:02d}:{b.second:02d}",
+        natal_birth_time=(
+            f"{b.year:04d}-{b.month:02d}-{b.day:02d} "
+            f"{b.hour:02d}:{b.minute:02d}:{b.second:02d}"
+        ),
         natal_lagna_sign=natal_chart.ascendant.sign,
         natal_moon_sign=natal_moon.sign,
         ayanamsa=natal_chart.ayanamsa.value,

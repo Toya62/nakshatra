@@ -1,6 +1,7 @@
 # Ephemeris large files (>100MB limit on GitHub)
 *.bsp
 my_chart*.json
+.kilo/
 
 # Python
 __pycache__/

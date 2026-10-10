@@ -18,17 +18,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
-import swisseph
-from pydantic import BaseModel, Field
-
-from mayaastrolib import const
-from mayaastrolib.aspects import getAspect
-from mayaastrolib.chart import Chart
-from mayaastrolib.datetime import Datetime
-from mayaastrolib.geopos import GeoPos
 import mayaastrolib.vedic.ashtakavarga as vav
 import mayaastrolib.vedic.ayanamsa as vaya
 import mayaastrolib.vedic.dasha as vdasha
@@ -36,6 +28,15 @@ import mayaastrolib.vedic.divisional as vdiv
 import mayaastrolib.vedic.nakshatras as vnak
 import mayaastrolib.vedic.shadbala as vsb
 import mayaastrolib.vedic.upagrahas as vupa
+import swisseph
+from mayaastrolib import const
+from mayaastrolib.chart import Chart
+from mayaastrolib.datetime import Datetime
+from mayaastrolib.geopos import GeoPos
+from pydantic import BaseModel, Field
+
+if TYPE_CHECKING:
+    from nakshatra.transits import TransitReport
 
 
 class Ayanamsa(str, Enum):
@@ -70,7 +71,7 @@ class GeoLocation:
     latitude: float
     longitude: float
     timezone: str
-    place_name: Optional[str] = None
+    place_name: str | None = None
 
 
 @dataclass(frozen=True)
@@ -85,7 +86,7 @@ class BirthData:
     latitude: float = 0.0
     longitude: float = 0.0
     timezone: str = "UTC"
-    place_name: Optional[str] = None
+    place_name: str | None = None
 
     @property
     def datetime_utc(self) -> datetime:
@@ -106,12 +107,12 @@ class PlanetPosition(BaseModel):
     sign: str
     sign_lord: str
     degree_in_sign: float
-    nakshatra: Optional[str] = None
-    nakshatra_lord: Optional[str] = None
-    pada: Optional[int] = None
+    nakshatra: str | None = None
+    nakshatra_lord: str | None = None
+    pada: int | None = None
     house: int
     retrograde: bool = False
-    dignity: Optional[str] = None
+    dignity: str | None = None
 
 
 class HouseCusp(BaseModel):
@@ -139,8 +140,8 @@ class DashaPeriod(BaseModel):
     start: str
     end: str
     level: int = 1
-    duration_years: Optional[float] = None
-    subs: Optional[list[DashaPeriod]] = None
+    duration_years: float | None = None
+    subs: list[DashaPeriod] | None = None
 
 
 class VimshottariDasha(BaseModel):
@@ -149,9 +150,9 @@ class VimshottariDasha(BaseModel):
     birth_nakshatra_lord: str
     balance_lord: str
     balance_years: float
-    current_md: Optional[DashaPeriod] = None
-    current_ad: Optional[DashaPeriod] = None
-    current_pd: Optional[DashaPeriod] = None
+    current_md: DashaPeriod | None = None
+    current_ad: DashaPeriod | None = None
+    current_pd: DashaPeriod | None = None
     mahadashas: list[DashaPeriod] = Field(default_factory=list)
 
 
@@ -192,7 +193,7 @@ class ChartData(BaseModel):
     calculation_time: str
     zodiac: ZodiacSystem
     ayanamsa: Ayanamsa
-    ayanamsa_value: Optional[float] = None
+    ayanamsa_value: float | None = None
     house_system: HouseSystem
     planets: list[PlanetPosition]
     houses: list[HouseCusp]
@@ -201,13 +202,13 @@ class ChartData(BaseModel):
     midheaven: PlanetPosition
     rahu: PlanetPosition
     ketu: PlanetPosition
-    dashas: Optional[VimshottariDasha] = None
-    vargas: Optional[dict[str, dict[str, str]]] = None
-    d10_chart: Optional[dict] = None
-    ashtakavarga: Optional[AshtakavargaData] = None
-    shadbala: Optional[dict[str, ShadbalaPlanet]] = None
-    upagrahas: Optional[list[UpagrahaPosition]] = None
-    transits: Optional[dict] = None
+    dashas: VimshottariDasha | None = None
+    vargas: dict[str, dict[str, str]] | None = None
+    d10_chart: dict | None = None
+    ashtakavarga: AshtakavargaData | None = None
+    shadbala: dict[str, ShadbalaPlanet] | None = None
+    upagrahas: list[UpagrahaPosition] | None = None
+    transits: dict | None = None
 
     def to_json(self) -> str:
         """Export as JSON string."""
@@ -233,13 +234,14 @@ class ChartData(BaseModel):
         return format_csv(self)
 
     def to_diagram(self, varga: str = "D1") -> str:
-        """Format chart into ASCII South Indian visual diagram for given varga (e.g. D1, D9, D10)."""
+        """Format chart into ASCII South Indian diagram for given varga (e.g. D1, D9)."""
         from nakshatra.formatters import format_chart_diagram
         return format_chart_diagram(self, varga=varga)
 
     def get_varga(self, varga: str = "D10") -> dict:
         """
-        Get structured divisional chart data (signs and whole-sign houses relative to varga Ascendant).
+        Get structured divisional chart data (signs and whole-sign houses
+        relative to varga Ascendant).
         """
         v_key = varga.upper()
         if not self.vargas or v_key not in self.vargas:
@@ -249,7 +251,7 @@ class ChartData(BaseModel):
         asc_idx = ZODIAC_SIGNS.index(asc_sign)
 
         planets_data = {}
-        for name in ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "North Node", "South Node"]:
+        for name in CHART_BODIES:
             sign = v_data.get(name)
             if sign:
                 sign_idx = ZODIAC_SIGNS.index(sign)
@@ -272,10 +274,10 @@ class ChartData(BaseModel):
 
     def get_transits(
         self,
-        transit_date: Optional[datetime] = None,
-        transit_latitude: Optional[float] = None,
-        transit_longitude: Optional[float] = None,
-    ):
+        transit_date: datetime | None = None,
+        transit_latitude: float | None = None,
+        transit_longitude: float | None = None,
+    ) -> TransitReport:
         """
         Calculate Vedic transits (Gochar) relative to natal chart.
         Returns TransitReport with Sade Sati, Double Transits, and Ashtakavarga weighting.
@@ -288,7 +290,7 @@ class ChartData(BaseModel):
             transit_longitude=transit_longitude,
         )
 
-    def save(self, filepath: str, format: Optional[str] = None) -> str:
+    def save(self, filepath: str, format: str | None = None) -> str:
         """
         Save chart data directly to file.
         Infers format from file extension (.json, .md, .csv, .txt) if not provided.
@@ -350,6 +352,12 @@ SIGN_LORDS = {
 
 # 7 Classical Grahas
 VEDIC_PLANETS = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"]
+
+# All chart bodies (7 grahas + lunar nodes)
+CHART_BODIES = [
+    "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn",
+    "North Node", "South Node",
+]
 
 # Mayaastrolib House system mapping
 HOUSE_MAP = {
@@ -431,6 +439,13 @@ def _format_datetime(dt: Datetime) -> str:
     return pydt.strftime("%Y-%m-%d %H:%M:%S")
 
 
+def _active_period(period: vdasha.DashaPeriod | None) -> DashaPeriod | None:
+    """Convert an optionally-None DashaPeriod without subdivisions."""
+    if period is None:
+        return None
+    return _convert_dasha_period(period, include_subs=False)
+
+
 def _convert_dasha_period(period: vdasha.DashaPeriod, include_subs: bool = True) -> DashaPeriod:
     """Convert mayaastrolib DashaPeriod to Pydantic model with nested subdivisions."""
     subs_models = None
@@ -450,7 +465,8 @@ def _convert_dasha_period(period: vdasha.DashaPeriod, include_subs: bool = True)
                 )
                 for pd in pds
             ]
-            dur = round((ad.end.jd - ad.start.jd) / 365.25, 3) if hasattr(ad.start, 'jd') and hasattr(ad.end, 'jd') else None
+            has_jd = hasattr(ad.start, 'jd') and hasattr(ad.end, 'jd')
+            dur = round((ad.end.jd - ad.start.jd) / 365.25, 3) if has_jd else None
             subs_models.append(
                 DashaPeriod(
                     lord=ad.lord,
@@ -462,7 +478,8 @@ def _convert_dasha_period(period: vdasha.DashaPeriod, include_subs: bool = True)
                 )
             )
 
-    dur = round((period.end.jd - period.start.jd) / 365.25, 3) if hasattr(period.start, 'jd') and hasattr(period.end, 'jd') else None
+    has_jd = hasattr(period.start, 'jd') and hasattr(period.end, 'jd')
+    dur = round((period.end.jd - period.start.jd) / 365.25, 3) if has_jd else None
     return DashaPeriod(
         lord=period.lord,
         start=_format_datetime(period.start),
@@ -477,7 +494,7 @@ def calculate_chart(
     birth: BirthData,
     ayanamsa: Ayanamsa = Ayanamsa.JHORA_LAHIRI,
     house_system: HouseSystem = HouseSystem.WHOLE_SIGN,
-    target_date: Optional[datetime] = None,
+    target_date: datetime | None = None,
     include_dashas: bool = True,
     include_vargas: bool = True,
     include_ashtakavarga: bool = True,
@@ -508,7 +525,8 @@ def calculate_chart(
         birth.hour, birth.minute, birth.second,
         tzinfo=ZoneInfo(birth.timezone),
     )
-    offset_sec = dt_local.utcoffset().total_seconds()
+    utc_offset = dt_local.utcoffset()
+    offset_sec = utc_offset.total_seconds() if utc_offset is not None else 0.0
     offset_h = int(offset_sec // 3600)
     offset_m = int((abs(offset_sec) % 3600) // 60)
     offset_str = f"{offset_h:+03d}:{offset_m:02d}"
@@ -576,7 +594,10 @@ def calculate_chart(
     mc_deg_in_sign = get_degree_in_sign(mc_lon)
 
     # In Whole Sign, Midheaven house is determined by sign from Ascendant
-    mc_house = ((mc_sign_idx - asc_sign_idx) % 12) + 1 if house_system == HouseSystem.WHOLE_SIGN else 10
+    if house_system == HouseSystem.WHOLE_SIGN:
+        mc_house = ((mc_sign_idx - asc_sign_idx) % 12) + 1
+    else:
+        mc_house = 10
 
     midheaven = PlanetPosition(
         name="Midheaven",
@@ -640,7 +661,11 @@ def calculate_chart(
             p_house = ((p_sign_idx - asc_sign_idx) % 12) + 1
         else:
             if hasattr(p_obj, "house") and p_obj.house is not None:
-                p_house = getattr(p_obj.house, "num", None) or int(str(getattr(p_obj.house, "id", "1")).replace("House", ""))
+                house_num = getattr(p_obj.house, "num", None)
+                if house_num is None:
+                    house_id = str(getattr(p_obj.house, "id", "1")).replace("House", "")
+                    house_num = int(house_id)
+                p_house = house_num
             else:
                 p_house = ((p_sign_idx - asc_sign_idx) % 12) + 1
 
@@ -666,7 +691,10 @@ def calculate_chart(
         )
 
     # 6. Rahu & Ketu (Mean Node)
-    rahu_calc, _ = swisseph.calc_ut(m_dt.jd, swisseph.MEAN_NODE, swisseph.FLG_SIDEREAL | swisseph.FLG_SPEED)
+    rahu_calc, _ = swisseph.calc_ut(
+        m_dt.jd, swisseph.MEAN_NODE,
+        swisseph.FLG_SIDEREAL | swisseph.FLG_SPEED,
+    )
     rahu_lon = (rahu_calc[0] + jhora_offset_deg) % 360.0
     rahu_speed = rahu_calc[3]
     rahu_sign = get_sign(rahu_lon)
@@ -748,7 +776,8 @@ def calculate_chart(
     dashas_data = None
     if include_dashas:
         target_pydt = target_date or datetime.now(ZoneInfo(birth.timezone))
-        t_sec = target_pydt.utcoffset().total_seconds() if target_pydt.tzinfo else offset_sec
+        t_td = target_pydt.utcoffset()
+        t_sec = t_td.total_seconds() if t_td is not None else offset_sec
         t_str = f"{int(t_sec//3600):+03d}:{int((abs(t_sec)%3600)//60):02d}"
         target_mdt = Datetime(
             [target_pydt.year, target_pydt.month, target_pydt.day],
@@ -771,9 +800,9 @@ def calculate_chart(
                 current_pratyantar = vdasha._find_active(prs, target_mdt)
 
         md_models = [_convert_dasha_period(md, include_subs=True) for md in sequence]
-        current_md_model = _convert_dasha_period(current_md, include_subs=False) if current_md else None
-        current_ad_model = _convert_dasha_period(current_ad, include_subs=False) if current_ad else None
-        current_pd_model = _convert_dasha_period(current_pratyantar, include_subs=False) if current_pratyantar else None
+        current_md_model = _active_period(current_md)
+        current_ad_model = _active_period(current_ad)
+        current_pd_model = _active_period(current_pratyantar)
 
         dashas_data = VimshottariDasha(
             birth_nakshatra=natal_nak.name,
@@ -855,7 +884,7 @@ def calculate_chart(
         d10_asc = d10_v.get("Ascendant", ascendant.sign)
         d10_asc_idx = ZODIAC_SIGNS.index(d10_asc)
         d10_planets = {}
-        for name in ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "North Node", "South Node"]:
+        for name in CHART_BODIES:
             if name in d10_v:
                 s = d10_v[name]
                 s_idx = ZODIAC_SIGNS.index(s)
@@ -900,7 +929,8 @@ def calculate_chart(
     if include_transits:
         try:
             from nakshatra.transits import calculate_transits
-            res_chart.transits = calculate_transits(res_chart, transit_date=target_date).model_dump()
+            transit_report = calculate_transits(res_chart, transit_date=target_date)
+            res_chart.transits = transit_report.model_dump()
         except Exception:
             pass
 

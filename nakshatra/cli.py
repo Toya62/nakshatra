@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
 """
-Nakshatra CLI - Calculate Vedic birth charts, Vimshottari Dashas, Vargas, Ashtakavarga, and Shadbala from the command line.
+Nakshatra CLI - Calculate Vedic birth charts, Vimshottari Dashas,
+Vargas, Ashtakavarga, and Shadbala from the command line.
 """
 
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from datetime import datetime
 
 from nakshatra.core import (
-    BirthData,
     Ayanamsa,
+    BirthData,
     HouseSystem,
     calculate_chart,
 )
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         prog="nakshatra",
         description="Nakshatra - Vedic Astrology AI Engine CLI (Swiss Ephemeris)",
@@ -26,11 +26,11 @@ def main():
         epilog="""
 Examples:
   nakshatra --dob 1990-05-15 --time 14:30 --lat 40.7128 --lon -74.0060 --tz America/New_York
-  nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --ayanamsa jhora_lahiri
-  nakshatra --dob 1990-05-15 --time 14:30:00 --lat 12.9716 --lon 77.5946 --tz Asia/Kolkata --ayanamsa raman -p
+  nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu
+  nakshatra --dob 1990-05-15 --time 14:30:00 --lat 12.9716 --lon 77.5946 --tz Asia/Kolkata
         """
     )
-    
+
     parser.add_argument(
         "--dob", "--date",
         required=True,
@@ -101,16 +101,19 @@ Examples:
         nargs="?",
         const="now",
         default=None,
-        help="Calculate planetary transits against natal chart (e.g., --transit or --transit 2026-10-10)"
+        help=(
+            "Calculate planetary transits against natal chart "
+            "(e.g., --transit or --transit 2026-10-10)"
+        )
     )
     parser.add_argument(
         "--version", "-v",
         action="version",
         version="Nakshatra 0.1.0"
     )
-    
+
     args = parser.parse_args()
-    
+
     # Parse date
     try:
         date_parts = args.dob.split("-")
@@ -118,7 +121,7 @@ Examples:
     except (ValueError, IndexError):
         print("Error: Invalid date format. Use YYYY-MM-DD", file=sys.stderr)
         sys.exit(1)
-    
+
     # Parse time
     try:
         time_parts = args.time.split(":")
@@ -127,12 +130,12 @@ Examples:
     except (ValueError, IndexError):
         print("Error: Invalid time format. Use HH:MM or HH:MM:SS", file=sys.stderr)
         sys.exit(1)
-    
+
     # Validate required location data
     if args.lat is None or args.lon is None or args.tz is None:
         print("Error: --lat, --lon, and --tz are required", file=sys.stderr)
         sys.exit(1)
-    
+
     # Create birth data
     birth = BirthData(
         year=year,
@@ -146,7 +149,7 @@ Examples:
         timezone=args.tz,
         place_name=args.place,
     )
-    
+
     # Calculate chart
     try:
         chart = calculate_chart(
@@ -157,7 +160,7 @@ Examples:
     except Exception as e:
         print(f"Error calculating chart: {e}", file=sys.stderr)
         sys.exit(1)
-    
+
     # Check for transit calculation
     if args.transit is not None:
         t_date = None
@@ -170,7 +173,11 @@ Examples:
                 else:
                     t_date = datetime.strptime(args.transit, "%Y-%m-%d")
             except ValueError:
-                print(f"Error: Invalid transit date '{args.transit}'. Use YYYY-MM-DD or YYYY-MM-DD HH:MM:SS", file=sys.stderr)
+                print(
+                    f"Error: Invalid transit date '{args.transit}'. "
+                    "Use YYYY-MM-DD or YYYY-MM-DD HH:MM:SS",
+                    file=sys.stderr,
+                )
                 sys.exit(1)
 
         transit_rep = chart.get_transits(t_date)
@@ -206,8 +213,16 @@ Examples:
     # Determine destination file path
     target_file = args.output
     if not target_file and args.save:
-        ext = "json" if fmt == "json" else "md" if fmt == "markdown" else "csv" if fmt == "csv" else "txt"
-        target_file = f"chart_{year:04d}{month:02d}{day:02d}_{hour:02d}{minute:02d}{second:02d}.{ext}"
+        if fmt == "json":
+            ext = "json"
+        elif fmt == "markdown":
+            ext = "md"
+        elif fmt == "csv":
+            ext = "csv"
+        else:
+            ext = "txt"
+        stamp = f"{year:04d}{month:02d}{day:02d}_{hour:02d}{minute:02d}{second:02d}"
+        target_file = f"chart_{stamp}.{ext}"
 
     if target_file:
         with open(target_file, "w", encoding="utf-8") as f:

@@ -11,23 +11,39 @@ Features:
 - Complete Ashtakavarga (Sarvashtakavarga and Bhinnashtakavarga)
 - Shadbala planetary strength calculations (rupas and virupas)
 - Upagrahas (shadow planets: Dhuma, Vyatipata, Parivesha, Indrachapa, Upaketu)
+- Gochar transits with Sade Sati, Jupiter Gochar, and Double Transit analysis
+- Multi-format outputs: ASCII tables, South Indian diagram, Markdown, CSV, JSON
 """
 
+import nakshatra.formatters as formatters
+import nakshatra.transits as transits
 from nakshatra.core import (
+    AshtakavargaData,
+    Aspect,
+    Ayanamsa,
     BirthData,
     ChartData,
-    Ayanamsa,
+    DashaPeriod,
+    HouseCusp,
     HouseSystem,
+    PlanetPosition,
+    ShadbalaPlanet,
+    UpagrahaPosition,
+    VimshottariDasha,
     ZodiacSystem,
     calculate_chart,
-    PlanetPosition,
-    HouseCusp,
-    Aspect,
-    DashaPeriod,
-    VimshottariDasha,
-    ShadbalaPlanet,
-    AshtakavargaData,
-    UpagrahaPosition,
+)
+from nakshatra.formatters import (
+    format_chart_diagram,
+    format_csv,
+    format_markdown,
+    format_table,
+)
+from nakshatra.transits import (
+    SadeSatiInfo,
+    TransitPlanet,
+    TransitReport,
+    calculate_transits,
 )
 
 __version__ = "0.1.0"
@@ -49,4 +65,14 @@ __all__ = [
     "ShadbalaPlanet",
     "AshtakavargaData",
     "UpagrahaPosition",
+    "format_table",
+    "format_markdown",
+    "format_csv",
+    "format_chart_diagram",
+    "calculate_transits",
+    "TransitReport",
+    "TransitPlanet",
+    "SadeSatiInfo",
+    "formatters",
+    "transits",
 ]

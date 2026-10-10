@@ -9,6 +9,8 @@ import csv
 import io
 from typing import TYPE_CHECKING
 
+from nakshatra.core import CHART_BODIES
+
 if TYPE_CHECKING:
     from nakshatra.core import ChartData
 
@@ -38,27 +40,47 @@ def format_table(chart: ChartData) -> str:
     lines.append("                         NAKSHATRA VEDIC BIRTH CHART")
     lines.append("=" * 88)
     place_str = f" ({b.place_name})" if b.place_name else ""
-    lines.append(f" Date of Birth : {b.year:04d}-{b.month:02d}-{b.day:02d} {b.hour:02d}:{b.minute:02d}:{b.second:02d}")
-    lines.append(f" Coordinates   : {abs(b.latitude):.4f}°{'N' if b.latitude>=0 else 'S'}, {abs(b.longitude):.4f}°{'E' if b.longitude>=0 else 'W'}{place_str}")
+    lines.append(
+        f" Date of Birth : {b.year:04d}-{b.month:02d}-{b.day:02d} "
+        f"{b.hour:02d}:{b.minute:02d}:{b.second:02d}"
+    )
+    lat_dir = "N" if b.latitude >= 0 else "S"
+    lon_dir = "E" if b.longitude >= 0 else "W"
+    lines.append(
+        f" Coordinates   : {abs(b.latitude):.4f}°{lat_dir}, "
+        f"{abs(b.longitude):.4f}°{lon_dir}{place_str}"
+    )
     lines.append(f" Timezone      : {b.timezone}")
-    lines.append(f" Ayanamsa      : {chart.ayanamsa.value.upper()} ({_dec_to_dms(chart.ayanamsa_value or 0.0)})")
+    lines.append(
+        f" Ayanamsa      : {chart.ayanamsa.value.upper()} "
+        f"({_dec_to_dms(chart.ayanamsa_value or 0.0)})"
+    )
     lines.append(f" House System  : {chart.house_system.value.replace('_', ' ').title()}")
     lines.append("-" * 88)
 
     # Planetary Positions Table
     lines.append(" PLANETARY POSITIONS")
     lines.append("-" * 88)
-    lines.append(f"{'Body':<11} {'Sign':<12} {'Sign Deg':<13} {'Nakshatra':<16} {'Pada':<5} {'Hse':<4} {'Motion':<8} {'Speed':<9}")
+    lines.append(
+        f"{'Body':<11} {'Sign':<12} {'Sign Deg':<13} "
+        f"{'Nakshatra':<16} {'Pada':<5} {'Hse':<4} {'Motion':<8} {'Speed':<9}"
+    )
     lines.append("-" * 88)
 
     # Ascendant first
     asc = chart.ascendant
-    lines.append(f"{'Ascendant':<11} {asc.sign:<12} {_dec_to_dms(asc.degree_in_sign):<13} {asc.nakshatra:<16} {asc.pada:<5} {'1':<4} {'Direct':<8} {'-':<9}")
+    lines.append(
+        f"{'Ascendant':<11} {asc.sign:<12} {_dec_to_dms(asc.degree_in_sign):<13} "
+        f"{asc.nakshatra:<16} {asc.pada:<5} {'1':<4} {'Direct':<8} {'-':<9}"
+    )
 
     for p in chart.planets + [chart.rahu, chart.ketu]:
         motion = "Retro" if p.retrograde else "Direct"
         spd = f"{p.speed:+.3f}°/d"
-        lines.append(f"{p.name:<11} {p.sign:<12} {_dec_to_dms(p.degree_in_sign):<13} {p.nakshatra:<16} {p.pada:<5} {str(p.house):<4} {motion:<8} {spd:<9}")
+        lines.append(
+            f"{p.name:<11} {p.sign:<12} {_dec_to_dms(p.degree_in_sign):<13} "
+            f"{p.nakshatra:<16} {p.pada:<5} {str(p.house):<4} {motion:<8} {spd:<9}"
+        )
 
     lines.append("-" * 88)
 
@@ -71,14 +93,20 @@ def format_table(chart: ChartData) -> str:
         d1 = chart.vargas.get("D1", {})
         d9 = chart.vargas.get("D9", {})
         d10 = chart.vargas.get("D10", {})
-        for body in ["Ascendant", "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "North Node", "South Node"]:
-            lines.append(f"{body:<11} {d1.get(body, '-'):<16} {d9.get(body, '-'):<16} {d10.get(body, '-'):<16}")
+        for body in ["Ascendant", *CHART_BODIES]:
+            lines.append(
+                f"{body:<11} {d1.get(body, '-'):<16} "
+                f"{d9.get(body, '-'):<16} {d10.get(body, '-'):<16}"
+            )
         lines.append("-" * 88)
 
     # Vimshottari Dashas
     if chart.dashas:
         d = chart.dashas
-        lines.append(f" VIMSHOTTARI DASHA  (Birth Nakshatra: {d.birth_nakshatra}, Balance: {d.balance_lord} {d.balance_years:.2f} yrs)")
+        lines.append(
+            f" VIMSHOTTARI DASHA  (Birth Nakshatra: {d.birth_nakshatra}, "
+            f"Balance: {d.balance_lord} {d.balance_years:.2f} yrs)"
+        )
         lines.append("-" * 88)
         if d.current_md and d.current_ad:
             curr_str = f" Active: MD [{d.current_md.lord}] -> AD [{d.current_ad.lord}]"
@@ -90,7 +118,10 @@ def format_table(chart: ChartData) -> str:
         for md in d.mahadashas:
             active_marker = " *" if d.current_md and d.current_md.lord == md.lord else ""
             dur_str = f"({md.duration_years:4.1f} yrs)" if md.duration_years is not None else ""
-            lines.append(f"   {md.lord:<11} : {md.start[:10]} to {md.end[:10]} {dur_str}{active_marker}")
+            lines.append(
+                f"   {md.lord:<11} : {md.start[:10]} to {md.end[:10]} "
+                f"{dur_str}{active_marker}"
+            )
         lines.append("-" * 88)
 
     # Ashtakavarga
@@ -98,7 +129,10 @@ def format_table(chart: ChartData) -> str:
         av = chart.ashtakavarga
         lines.append(f" ASHTAKAVARGA (Sarvashtakavarga Grand Total: {av.grand_total} bindus)")
         lines.append("-" * 88)
-        signs_short = ["Ari", "Tau", "Gem", "Can", "Leo", "Vir", "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis"]
+        signs_short = [
+            "Ari", "Tau", "Gem", "Can", "Leo", "Vir",
+            "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis",
+        ]
         header_row = f"{'Planet':<9} " + " ".join(f"{s:>4}" for s in signs_short) + " Total"
         lines.append(header_row)
         lines.append("-" * 88)
@@ -106,7 +140,10 @@ def format_table(chart: ChartData) -> str:
             row_str = f"{planet:<9} " + " ".join(f"{b:>4}" for b in bindus) + f" {sum(bindus):>5}"
             lines.append(row_str)
         lines.append("-" * 88)
-        sav_row = f"{'SAV':<9} " + " ".join(f"{b:>4}" for b in av.sarvashtakavarga) + f" {av.grand_total:>5}"
+        sav_row = (
+            f"{'SAV':<9} " + " ".join(f"{b:>4}" for b in av.sarvashtakavarga)
+            + f" {av.grand_total:>5}"
+        )
         lines.append(sav_row)
         lines.append("-" * 88)
 
@@ -114,18 +151,28 @@ def format_table(chart: ChartData) -> str:
     if chart.shadbala:
         lines.append(" SHADBALA (Planetary Strength in Rupas)")
         lines.append("-" * 88)
-        lines.append(f"{'Planet':<9} {'Total Rupas':<12} {'Required':<10} {'Strength':<10} {'Sthana':<8} {'Dig':<8} {'Kala':<8}")
+        lines.append(
+            f"{'Planet':<9} {'Total Rupas':<12} {'Required':<10} "
+            f"{'Strength':<10} {'Sthana':<8} {'Dig':<8} {'Kala':<8}"
+        )
         lines.append("-" * 88)
         for p_name, sb in chart.shadbala.items():
             status = "STRONG" if sb.sufficient else "WEAK"
-            lines.append(f"{p_name:<9} {sb.total_rupas:<12.2f} {sb.required_rupas:<10.2f} {status:<10} {sb.sthana_bala:<8.1f} {sb.dig_bala:<8.1f} {sb.kala_bala:<8.1f}")
+            lines.append(
+                f"{p_name:<9} {sb.total_rupas:<12.2f} {sb.required_rupas:<10.2f} "
+                f"{status:<10} {sb.sthana_bala:<8.1f} {sb.dig_bala:<8.1f} "
+                f"{sb.kala_bala:<8.1f}"
+            )
         lines.append("-" * 88)
 
     # Upagrahas
     if chart.upagrahas:
         lines.append(" UPAGRAHAS (Shadow Planets)")
         lines.append("-" * 88)
-        up_parts = [f"{u.name}: {u.sign} {_dec_to_dms(u.degree_in_sign)} (H{u.house})" for u in chart.upagrahas]
+        up_parts = [
+            f"{u.name}: {u.sign} {_dec_to_dms(u.degree_in_sign)} (H{u.house})"
+            for u in chart.upagrahas
+        ]
         lines.append("  " + " | ".join(up_parts[:3]))
         if len(up_parts) > 3:
             lines.append("  " + " | ".join(up_parts[3:]))
@@ -139,11 +186,22 @@ def format_markdown(chart: ChartData) -> str:
     md: list[str] = []
     b = chart.birth_data
 
-    md.append(f"# Nakshatra Vedic Birth Chart")
+    md.append("# Nakshatra Vedic Birth Chart")
     md.append("")
-    md.append(f"**Date & Time**: `{b.year:04d}-{b.month:02d}-{b.day:02d} {b.hour:02d}:{b.minute:02d}:{b.second:02d}`  ")
-    md.append(f"**Location**: `{abs(b.latitude):.4f}°{'N' if b.latitude>=0 else 'S'}, {abs(b.longitude):.4f}°{'E' if b.longitude>=0 else 'W'}` ({b.place_name or b.timezone})  ")
-    md.append(f"**Ayanamsa**: `{chart.ayanamsa.value}` (`{_dec_to_dms(chart.ayanamsa_value or 0.0)}`) | **House System**: `{chart.house_system.value}`")
+    dt_str = f"{b.year:04d}-{b.month:02d}-{b.day:02d} {b.hour:02d}:{b.minute:02d}:{b.second:02d}"
+    md.append(f"**Date & Time**: `{dt_str}`  ")
+    lat_dir = "N" if b.latitude >= 0 else "S"
+    lon_dir = "E" if b.longitude >= 0 else "W"
+    md.append(
+        f"**Location**: `{abs(b.latitude):.4f}°{lat_dir}, "
+        f"{abs(b.longitude):.4f}°{lon_dir}` "
+        f"({b.place_name or b.timezone})  "
+    )
+    md.append(
+        f"**Ayanamsa**: `{chart.ayanamsa.value}` "
+        f"(`{_dec_to_dms(chart.ayanamsa_value or 0.0)}`) "
+        f"| **House System**: `{chart.house_system.value}`"
+    )
     md.append("")
 
     # Planets
@@ -152,10 +210,17 @@ def format_markdown(chart: ChartData) -> str:
     md.append("| Planet | Sign | Degree | Nakshatra | Pada | House | Motion | Speed |")
     md.append("|:---|:---|:---|:---|:---:|:---:|:---:|:---|")
     asc = chart.ascendant
-    md.append(f"| **Ascendant** | {asc.sign} | {_dec_to_dms(asc.degree_in_sign)} | {asc.nakshatra} | {asc.pada} | 1 | Direct | - |")
+    md.append(
+        f"| **Ascendant** | {asc.sign} | {_dec_to_dms(asc.degree_in_sign)} "
+        f"| {asc.nakshatra} | {asc.pada} | 1 | Direct | - |"
+    )
     for p in chart.planets + [chart.rahu, chart.ketu]:
         motion = "Retrograde" if p.retrograde else "Direct"
-        md.append(f"| **{p.name}** | {p.sign} | {_dec_to_dms(p.degree_in_sign)} | {p.nakshatra} | {p.pada} | {p.house} | {motion} | {p.speed:+.3f}°/d |")
+        md.append(
+            f"| **{p.name}** | {p.sign} | {_dec_to_dms(p.degree_in_sign)} "
+            f"| {p.nakshatra} | {p.pada} | {p.house} | {motion} "
+            f"| {p.speed:+.3f}°/d |"
+        )
     md.append("")
 
     # Dashas
@@ -174,8 +239,14 @@ def format_markdown(chart: ChartData) -> str:
         md.append("| Mahadasha Lord | Start Date | End Date | Duration (Years) |")
         md.append("|:---|:---|:---|:---:|")
         for md_period in d.mahadashas:
-            dur_str = f"{md_period.duration_years:.1f}" if md_period.duration_years is not None else "-"
-            md.append(f"| **{md_period.lord}** | {md_period.start[:10]} | {md_period.end[:10]} | {dur_str} |")
+            dur_str = (
+                f"{md_period.duration_years:.1f}"
+                if md_period.duration_years is not None else "-"
+            )
+            md.append(
+                f"| **{md_period.lord}** | {md_period.start[:10]} "
+                f"| {md_period.end[:10]} | {dur_str} |"
+            )
         md.append("")
 
     # Ashtakavarga
@@ -193,7 +264,10 @@ def format_markdown(chart: ChartData) -> str:
         for planet, bindus in av.bhinnashtakavarga.items():
             row = f"| **{planet}** | " + " | ".join(str(b) for b in bindus) + f" | {sum(bindus)} |"
             md.append(row)
-        sav_row = f"| **SAV** | " + " | ".join(str(b) for b in av.sarvashtakavarga) + f" | **{av.grand_total}** |"
+        sav_row = (
+            "| **SAV** | " + " | ".join(str(b) for b in av.sarvashtakavarga)
+            + f" | **{av.grand_total}** |"
+        )
         md.append(sav_row)
         md.append("")
 
@@ -201,11 +275,18 @@ def format_markdown(chart: ChartData) -> str:
     if chart.shadbala:
         md.append("## Shadbala (Planetary Strength)")
         md.append("")
-        md.append("| Planet | Total Rupas | Required Rupas | Status | Sthana | Dig | Kala | Cheshta |")
+        md.append(
+            "| Planet | Total Rupas | Required Rupas | Status | "
+            "Sthana | Dig | Kala | Cheshta |"
+        )
         md.append("|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|")
         for p_name, sb in chart.shadbala.items():
             status = "Strong" if sb.sufficient else "Weak"
-            md.append(f"| **{p_name}** | {sb.total_rupas:.2f} | {sb.required_rupas:.2f} | {status} | {sb.sthana_bala:.1f} | {sb.dig_bala:.1f} | {sb.kala_bala:.1f} | {sb.cheshta_bala:.1f} |")
+            md.append(
+                f"| **{p_name}** | {sb.total_rupas:.2f} | {sb.required_rupas:.2f} "
+                f"| {status} | {sb.sthana_bala:.1f} | {sb.dig_bala:.1f} "
+                f"| {sb.kala_bala:.1f} | {sb.cheshta_bala:.1f} |"
+            )
         md.append("")
 
     return "\n".join(md)
@@ -277,8 +358,15 @@ def format_chart_diagram(chart: ChartData, varga: str = "D1") -> str:
         asc_sign = v_data.get("Ascendant", chart.ascendant.sign)
         sign_bodies[asc_sign].append("Asc")
         for p in chart.planets + [chart.rahu, chart.ketu]:
-            v_name = "North Node" if p.name in ("North Node", "Rahu") else "South Node" if p.name in ("South Node", "Ketu") else p.name
-            abbr = "Ra" if p.name in ("North Node", "Rahu") else "Ke" if p.name in ("South Node", "Ketu") else p.name[:2]
+            if p.name in ("North Node", "Rahu"):
+                v_name = "North Node"
+                abbr = "Ra"
+            elif p.name in ("South Node", "Ketu"):
+                v_name = "South Node"
+                abbr = "Ke"
+            else:
+                v_name = p.name
+                abbr = p.name[:2]
             if p.name == "Mercury":
                 abbr = "Me"
             elif p.name == "Jupiter":
