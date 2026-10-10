@@ -107,6 +107,16 @@ Examples:
         )
     )
     parser.add_argument(
+        "--panchanga",
+        action="store_true",
+        help="Calculate and display Vedic Panchanga (Tithi, Vara, Nakshatra, Yoga, Karana)"
+    )
+    parser.add_argument(
+        "--yogas",
+        action="store_true",
+        help="Detect and display classical Vedic Yogas (Mahapurusha, Gaja Kesari, Kemadruma, Neechabhanga, etc.)"
+    )
+    parser.add_argument(
         "--version", "-v",
         action="version",
         version="Nakshatra 0.1.0"
@@ -191,6 +201,45 @@ Examples:
             with open(args.output, "w", encoding="utf-8") as f:
                 f.write(output)
             print(f"Transit report saved to {args.output}", file=sys.stderr)
+        else:
+            print(output)
+        return
+
+    # Check for panchanga calculation
+    if args.panchanga:
+        p_data = chart.get_panchanga()
+        fmt = "json" if args.pretty else args.format
+        if fmt == "json":
+            output = p_data.model_dump_json(indent=2 if args.pretty else None)
+        else:
+            output = p_data.to_table()
+
+        if args.output:
+            with open(args.output, "w", encoding="utf-8") as f:
+                f.write(output)
+            print(f"Panchanga report saved to {args.output}", file=sys.stderr)
+        else:
+            print(output)
+        return
+
+    # Check for yogas calculation
+    if args.yogas:
+        import json
+
+        from nakshatra.yogas import format_yogas_markdown, format_yogas_table
+        yogas_list = chart.get_yogas()
+        fmt = "json" if args.pretty else args.format
+        if fmt == "json":
+            output = json.dumps([y.model_dump() for y in yogas_list], indent=2 if args.pretty else None)
+        elif fmt == "markdown":
+            output = format_yogas_markdown(yogas_list)
+        else:
+            output = format_yogas_table(yogas_list)
+
+        if args.output:
+            with open(args.output, "w", encoding="utf-8") as f:
+                f.write(output)
+            print(f"Yogas report saved to {args.output}", file=sys.stderr)
         else:
             print(output)
         return

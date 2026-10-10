@@ -58,6 +58,33 @@ def format_table(chart: ChartData) -> str:
     lines.append(f" House System  : {chart.house_system.value.replace('_', ' ').title()}")
     lines.append("-" * 88)
 
+    # Panchanga
+    if chart.panchanga:
+        p = chart.panchanga
+        lines.append(" PANCHANGA (5 Limbs of Vedic Time)")
+        lines.append("-" * 88)
+        lines.append(f" Vara (Day)     : {p.vara.name} (Lord: {p.vara.lord})")
+        lines.append(
+            f" Tithi          : {p.tithi.name} ({p.tithi.paksha}) - "
+            f"{p.tithi.percentage_left:.2f}% left (Lord: {p.tithi.lord})"
+        )
+        lines.append(
+            f" Nakshatra      : {p.nakshatra.name} (Pada {p.nakshatra.pada}) - "
+            f"{p.nakshatra.percentage_left:.2f}% left (Lord: {p.nakshatra.lord})"
+        )
+        lines.append(
+            f" Yoga           : {p.yoga.name} - "
+            f"{p.yoga.percentage_left:.2f}% left (Lord: {p.yoga.lord})"
+        )
+        bhadra = " [BHADRA/VISHTI]" if p.karana.is_vishti_bhadra else ""
+        lines.append(
+            f" Karana         : {p.karana.name}{bhadra} - "
+            f"{p.karana.percentage_left:.2f}% left (Lord: {p.karana.lord})"
+        )
+        if p.sunrise_time and p.sunset_time:
+            lines.append(f" Solar Markers  : Sunrise {p.sunrise_time} | Sunset {p.sunset_time}")
+        lines.append("-" * 88)
+
     # Planetary Positions Table
     lines.append(" PLANETARY POSITIONS")
     lines.append("-" * 88)
@@ -176,8 +203,23 @@ def format_table(chart: ChartData) -> str:
         lines.append("  " + " | ".join(up_parts[:3]))
         if len(up_parts) > 3:
             lines.append("  " + " | ".join(up_parts[3:]))
-        lines.append("=" * 88)
+        lines.append("-" * 88)
 
+    # Vedic Yogas
+    if chart.yogas:
+        lines.append(f" VEDIC YOGAS ({len(chart.yogas)} Identified)")
+        lines.append("-" * 88)
+        for idx, y in enumerate(chart.yogas, 1):
+            cat_val = y.category.value if hasattr(y.category, "value") else y.category
+            lines.append(f" {idx:2d}. {y.name} [{y.strength.upper()}] ({cat_val})")
+            lines.append(f"     Rule    : {y.description}")
+            if y.cancellation_reason:
+                lines.append(f"     Cancel  : {y.cancellation_reason}")
+            if y.effects:
+                lines.append(f"     Effects : {y.effects}")
+        lines.append("-" * 88)
+
+    lines.append("=" * 88)
     return "\n".join(lines)
 
 
@@ -203,6 +245,25 @@ def format_markdown(chart: ChartData) -> str:
         f"| **House System**: `{chart.house_system.value}`"
     )
     md.append("")
+
+    # Panchanga
+    if chart.panchanga:
+        p = chart.panchanga
+        md.append("## Panchanga (5 Limbs of Vedic Time)")
+        md.append("")
+        md.append(f"- **Vara (Day)**: {p.vara.name} (Lord: {p.vara.lord})")
+        md.append(
+            f"- **Tithi**: {p.tithi.name} ({p.tithi.paksha}) — {p.tithi.percentage_left:.2f}% left (Lord: {p.tithi.lord})"
+        )
+        md.append(
+            f"- **Nakshatra**: {p.nakshatra.name} (Pada {p.nakshatra.pada}) — {p.nakshatra.percentage_left:.2f}% left (Lord: {p.nakshatra.lord})"
+        )
+        md.append(f"- **Yoga**: {p.yoga.name} — {p.yoga.percentage_left:.2f}% left (Lord: {p.yoga.lord})")
+        bhadra = " [BHADRA/VISHTI]" if p.karana.is_vishti_bhadra else ""
+        md.append(f"- **Karana**: {p.karana.name}{bhadra} — {p.karana.percentage_left:.2f}% left (Lord: {p.karana.lord})")
+        if p.sunrise_time and p.sunset_time:
+            md.append(f"- **Solar Markers**: Sunrise {p.sunrise_time} | Sunset {p.sunset_time}")
+        md.append("")
 
     # Planets
     md.append("## Planetary Positions")
@@ -287,6 +348,18 @@ def format_markdown(chart: ChartData) -> str:
                 f"| {status} | {sb.sthana_bala:.1f} | {sb.dig_bala:.1f} "
                 f"| {sb.kala_bala:.1f} | {sb.cheshta_bala:.1f} |"
             )
+        md.append("")
+
+    # Vedic Yogas
+    if chart.yogas:
+        md.append("## Vedic Yogas Detected")
+        md.append("")
+        md.append("| No. | Yoga | Category | Strength | Planets | Description |")
+        md.append("|:---:|:---|:---|:---:|:---|:---|")
+        for idx, y in enumerate(chart.yogas, 1):
+            cat_val = y.category.value if hasattr(y.category, "value") else y.category
+            planets_s = ", ".join(y.planets_involved) if y.planets_involved else "-"
+            md.append(f"| {idx} | **{y.name}** | {cat_val} | {y.strength} | {planets_s} | {y.description} |")
         md.append("")
 
     return "\n".join(md)

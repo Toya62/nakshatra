@@ -22,7 +22,14 @@ from nakshatra.core import (
     HouseSystem,
     calculate_chart,
 )
+from nakshatra.panchanga import PanchangaData, calculate_panchanga
 from nakshatra.transits import TransitReport, calculate_transits
+from nakshatra.yogas import (
+    YogaResult,
+    detect_yogas,
+    format_yogas_markdown,
+    format_yogas_table,
+)
 
 SUPPORTED_FORMATS = ("json", "table", "markdown", "csv", "diagram")
 
@@ -109,6 +116,22 @@ class TransitResponse(BaseModel):
     success: bool = True
     data: TransitReport
     meta: dict = Field(default_factory=dict)
+
+
+class PanchangaResponse(BaseModel):
+    """Vedic Panchanga calculation response."""
+    success: bool = True
+    data: PanchangaData
+    meta: dict = Field(default_factory=dict)
+
+
+class YogaResponse(BaseModel):
+    """Vedic Yoga detection response."""
+    success: bool = True
+    total: int
+    data: list[YogaResult]
+    meta: dict = Field(default_factory=dict)
+
 
 
 class HealthResponse(BaseModel):
@@ -335,12 +358,139 @@ async def create_transits(request: TransitRequest) -> TransitResponse:
         raise HTTPException(status_code=500, detail=f"Calculation error: {str(e)}")
 
 
+@app.get("/panchanga", response_model=PanchangaResponse, tags=["Panchanga"])
+async def get_panchanga_endpoint(
+    year: int = Query(..., ge=1, le=3000, description="Year"),
+    month: int = Query(..., ge=1, le=12, description="Month"),
+    day: int = Query(..., ge=1, le=31, description="Day"),
+    hour: int = Query(..., ge=0, le=23, description="Hour (24-hour)"),
+    minute: int = Query(..., ge=0, le=59, description="Minute"),
+    second: int = Query(0, ge=0, le=59, description="Second"),
+    latitude: float = Query(..., ge=-90, le=90, description="Latitude"),
+    longitude: float = Query(..., ge=-180, le=180, description="Longitude"),
+    timezone: str = Query(..., description="IANA timezone (e.g. 'Asia/Kathmandu')"),
+    ayanamsa: Ayanamsa = Query(Ayanamsa.JHORA_LAHIRI, description="Ayanamsa system"),
+    format: str = Query("json", description="Output format: json, table"),
+) -> PanchangaResponse | Response:
+    """Calculate 5-limb Vedic Panchanga (Tithi, Vara, Nakshatra, Yoga, Karana)."""
+    try:
+        dt = datetime(year, month, day, hour, minute, second)
+        p = calculate_panchanga(dt, latitude, longitude, timezone, ayanamsa=ayanamsa)
+        if format == "table":
+            return Response(content=p.to_table(), media_type="text/plain; charset=utf-8")
+        return PanchangaResponse(
+            data=p,
+            meta={
+                "ayanamsa": ayanamsa.value,
+                "timezone": timezone,
+            },
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Calculation error: {str(e)}")
+
+
+@app.post("/panchanga", response_model=PanchangaResponse, tags=["Panchanga"])
+async def create_panchanga_endpoint(
+    request: ChartRequest,
+    format: str = Query("json", description="Output format: json, table"),
+) -> PanchangaResponse | Response:
+    """Calculate 5-limb Vedic Panchanga from birth request data."""
+    try:
+        dt = datetime(request.year, request.month, request.day, request.hour, request.minute, request.second)
+        p = calculate_panchanga(
+            dt, request.latitude, request.longitude, request.timezone, ayanamsa=request.ayanamsa
+        )
+        if format == "table":
+            return Response(content=p.to_table(), media_type="text/plain; charset=utf-8")
+        return PanchangaResponse(
+            data=p,
+            meta={
+                "ayanamsa": request.ayanamsa.value,
+                "timezone": request.timezone,
+            },
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Calculation error: {str(e)}")
+
+
+@app.get("/yogas", response_model=YogaResponse, tags=["Yogas"])
+async def get_yogas_endpoint(
+    year: int = Query(..., ge=1, le=3000),
+    month: int = Query(..., ge=1, le=12),
+    day: int = Query(..., ge=1, le=31),
+    hour: int = Query(..., ge=0, le=23),
+    minute: int = Query(..., ge=0, le=59),
+    second: int = Query(0, ge=0, le=59),
+    latitude: float = Query(..., ge=-90, le=90),
+    longitude: float = Query(..., ge=-180, le=180),
+    timezone: str = Query(...),
+    ayanamsa: Ayanamsa = Query(Ayanamsa.JHORA_LAHIRI),
+    house_system: HouseSystem = Query(HouseSystem.WHOLE_SIGN),
+    format: str = Query("json", description="Output format: json, table, markdown"),
+) -> YogaResponse | Response:
+    """Detect classical Vedic Yogas in a birth chart."""
+    try:
+        birth = BirthData(
+            year=year, month=month, day=day, hour=hour, minute=minute, second=second,
+            latitude=latitude, longitude=longitude, timezone=timezone,
+        )
+        chart = calculate_chart(birth=birth, ayanamsa=ayanamsa, house_system=house_system)
+        yogas_list = detect_yogas(chart)
+        if format == "table":
+            return Response(content=format_yogas_table(yogas_list), media_type="text/plain; charset=utf-8")
+        if format == "markdown":
+            return Response(content=format_yogas_markdown(yogas_list), media_type="text/markdown; charset=utf-8")
+        return YogaResponse(
+            total=len(yogas_list),
+            data=yogas_list,
+            meta={
+                "ayanamsa": ayanamsa.value,
+                "house_system": house_system.value,
+            },
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Calculation error: {str(e)}")
+
+
+@app.post("/yogas", response_model=YogaResponse, tags=["Yogas"])
+async def create_yogas_endpoint(
+    request: ChartRequest,
+    format: str = Query("json", description="Output format: json, table, markdown"),
+) -> YogaResponse | Response:
+    """Detect classical Vedic Yogas from ChartRequest JSON."""
+    try:
+        chart = _build_chart(request)
+        yogas_list = detect_yogas(chart)
+        if format == "table":
+            return Response(content=format_yogas_table(yogas_list), media_type="text/plain; charset=utf-8")
+        if format == "markdown":
+            return Response(content=format_yogas_markdown(yogas_list), media_type="text/markdown; charset=utf-8")
+        return YogaResponse(
+            total=len(yogas_list),
+            data=yogas_list,
+            meta={
+                "ayanamsa": request.ayanamsa.value,
+                "house_system": request.house_system.value,
+            },
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Calculation error: {str(e)}")
+
+
 @app.get("/", tags=["System"])
 async def root() -> dict:
     """Root endpoint with API info."""
     return {
         "name": "Nakshatra",
-        "description": "Vedic Astrology AI Engine - JSON API for birth charts and transits",
+        "description": "Vedic Astrology AI Engine - JSON API for birth charts, panchangas, and yogas",
         "version": "0.1.0",
         "license": "MIT",
         "ephemeris": "Swiss Ephemeris via mayaastrolib (pyswisseph)",
@@ -353,6 +503,10 @@ async def root() -> dict:
             ),
             "GET /chart": "Calculate birth chart (query params); supports format param",
             "GET /chart/diagram": "South Indian ASCII chart diagram for a varga (D1, D9, D10, ...)",
+            "GET /panchanga": "Calculate 5-limb Panchanga (query params); ?format=json|table",
+            "POST /panchanga": "Calculate 5-limb Panchanga (JSON body); ?format=json|table",
+            "GET /yogas": "Detect Vedic Yogas (query params); ?format=json|table|markdown",
+            "POST /yogas": "Detect Vedic Yogas (JSON body); ?format=json|table|markdown",
             "POST /transits": "Calculate Gochar transits against a natal chart (JSON body)",
             "GET /health": "Health check",
             "GET /docs": "Interactive API docs (Swagger UI)",

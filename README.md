@@ -41,9 +41,24 @@
   - Jupiter Gochar with Phaladeepika favorable-house evaluation.
   - Double Transit detection (houses simultaneously aspected by Jupiter and Saturn).
   - Sarvashtakavarga (SAV) and Bhinnashtakavarga (BAV) bindus per transit sign.
+- **Panchanga Engine**:
+  - The 5 limbs of Vedic time: Tithi (lunar phase & percentage left), Vara (Vedic weekday from sunrise), Nakshatra (lunar mansion & percentage left), Yoga (solilunar angular sum & percentage left), and Karana (half-tithi & movable/fixed tracking with Bhadra alert).
+  - Swiss Ephemeris sunrise and sunset calculations with pre-sunrise solar day rollback.
+  - Standalone API (`GET /panchanga`, `POST /panchanga`) and CLI `--panchanga`.
+- **Classical Yoga Detection**:
+  - Rule-based detection engine over `ChartData`:
+    - **Pancha Mahapurusha**: Ruchaka (Mars), Bhadra (Mercury), Hamsa (Jupiter), Malavya (Venus), Sasa (Saturn).
+    - **Gaja Kesari**: Jupiter in Kendra from Moon.
+    - **Kemadruma & Bhanga**: Moon flanking checks with Kendra cancellations.
+    - **Neechabhanga Raja Yoga**: Multi-condition cancellation of planetary debility.
+    - **Chandra Yogas**: Sunapha, Anapha, Dhurdhura, Chandra Mangala, Chandradhi Yoga.
+    - **Surya Yogas**: Budhaditya, Vesi, Vasi, Ubhayachari.
+    - **Viparita Raja Yogas**: Harsha, Sarala, Vimala.
+    - **Raja & Dhana Yogas**: Amala Yoga, Kendra-Trikona conjunctions, wealth axis combinations.
+  - Standalone API (`GET /yogas`, `POST /yogas`) and CLI `--yogas`.
 - **Multi-Format Outputs**: ASCII tables, South Indian chart diagram (any varga), Markdown, CSV, and JSON.
 - **REST API**: FastAPI server with interactive Swagger UI at `/docs`.
-- **CLI**: Terminal tool `nakshatra` for quick chart, transit, and formatted output generation.
+- **CLI**: Terminal tool `nakshatra` for quick chart, transit, panchanga, and yoga generation.
 - **AI-Ready**: Clean Pydantic models designed for LLM prompts and agent workflows.
 
 ---
@@ -245,7 +260,8 @@ The complete Nakshatra architecture integrates high-precision astronomical compu
 - [x] **Multi-format Outputs**: ASCII tables, South Indian diagram, Markdown, CSV, and JSON.
 - [x] **Jagannatha Hora Calibration**: `jhora_lahiri` ayanamsa for 100% concordance.
 - [x] **Gochar (Transit) Engine**: Natal-to-transit planetary aspects, Sade Sati, Jupiter Gochar, Double Transit.
-- [ ] **Classical Yoga Detection**: Raja, Dhana, Pancha Mahapurusha, Gaja Kesari, Kemadruma, Neechabhanga.
+- [x] **Panchanga Engine**: Exact 5 limbs (Tithi, Vara, Nakshatra, Yoga, Karana) with solar day tracking.
+- [x] **Classical Yoga Detection**: Raja, Dhana, Pancha Mahapurusha, Gaja Kesari, Kemadruma (+ Bhanga), Neechabhanga (+ Raja Yoga).
 - [ ] **RAG Corpus Ingestion**: Parsing and chunking of BPHS, Phaladeepika, Saravali, and Crux.
 - [ ] **FAISS Vector Store**: Local embeddings via `sentence-transformers` (`all-MiniLM-L6-v2`).
 - [ ] **LLM Integration**: Gemini Flash + OpenRouter prompt synthesis agent.

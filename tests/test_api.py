@@ -191,6 +191,78 @@ class TestTransitsEndpoint:
         assert r.status_code == 422
 
 
+class TestPanchangaEndpoints:
+    """Tests for GET/POST /panchanga endpoints."""
+
+    def test_get_panchanga_json(self, client: TestClient, chart_payload: dict):
+        r = client.get("/panchanga", params=chart_payload)
+        assert r.status_code == 200
+        assert r.headers["content-type"].startswith("application/json")
+        body = r.json()
+        assert body["success"] is True
+        p = body["data"]
+        assert p["vara"]["name"] == "Budhavara (Wednesday)"
+        assert p["vara"]["lord"] == "Mercury"
+        assert p["tithi"]["name"] == "Purnima"
+        assert p["tithi"]["lord"] == "Saturn"
+        assert "Vishakha" in p["nakshatra"]["name"]
+        assert p["yoga"]["name"] == "Parigha"
+        assert p["karana"]["name"] == "Bava"
+
+    def test_get_panchanga_table(self, client: TestClient, chart_payload: dict):
+        r = client.get("/panchanga", params={**chart_payload, "format": "table"})
+        assert r.status_code == 200
+        assert r.headers["content-type"].startswith("text/plain")
+        assert "VEDIC PANCHANGA REPORT" in r.text
+        assert "1. VARA" in r.text
+        assert "2. TITHI" in r.text
+
+    def test_post_panchanga_json(self, client: TestClient, chart_payload: dict):
+        r = client.post("/panchanga", json=chart_payload)
+        assert r.status_code == 200
+        body = r.json()
+        assert body["success"] is True
+        assert body["data"]["tithi"]["name"] == "Purnima"
+
+    def test_post_panchanga_table(self, client: TestClient, chart_payload: dict):
+        r = client.post("/panchanga?format=table", json=chart_payload)
+        assert r.status_code == 200
+        assert "VEDIC PANCHANGA REPORT" in r.text
+
+
+class TestYogaEndpoints:
+    """Tests for GET/POST /yogas endpoints."""
+
+    def test_get_yogas_json(self, client: TestClient, chart_payload: dict):
+        r = client.get("/yogas", params=chart_payload)
+        assert r.status_code == 200
+        body = r.json()
+        assert body["success"] is True
+        assert body["total"] > 0
+        names = [y["name"] for y in body["data"]]
+        assert any("Neechabhanga Raja Yoga" in n for n in names)
+        assert any("Kemadruma Bhanga" in n for n in names)
+
+    def test_get_yogas_table(self, client: TestClient, chart_payload: dict):
+        r = client.get("/yogas", params={**chart_payload, "format": "table"})
+        assert r.status_code == 200
+        assert r.headers["content-type"].startswith("text/plain")
+        assert "VEDIC YOGA DETECTION REPORT" in r.text
+
+    def test_post_yogas_markdown(self, client: TestClient, chart_payload: dict):
+        r = client.post("/yogas?format=markdown", json=chart_payload)
+        assert r.status_code == 200
+        assert r.headers["content-type"].startswith("text/markdown")
+        assert "# Vedic Yoga Detection Report" in r.text
+
+    def test_post_yogas_json(self, client: TestClient, chart_payload: dict):
+        r = client.post("/yogas", json=chart_payload)
+        assert r.status_code == 200
+        body = r.json()
+        assert body["success"] is True
+        assert body["total"] > 0
+
+
 class TestSystemEndpoints:
     """Tests for /health and / endpoints."""
 
@@ -207,4 +279,6 @@ class TestSystemEndpoints:
         body = r.json()
         assert body["name"] == "Nakshatra"
         assert "POST /transits" in body["endpoints"]
-        assert "GET /chart/diagram" in body["endpoints"]
+        assert "GET /panchanga" in body["endpoints"]
+        assert "GET /yogas" in body["endpoints"]
+

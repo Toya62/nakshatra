@@ -18,7 +18,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from zoneinfo import ZoneInfo
 
 import mayaastrolib.vedic.ashtakavarga as vav
@@ -209,6 +209,33 @@ class ChartData(BaseModel):
     shadbala: dict[str, ShadbalaPlanet] | None = None
     upagrahas: list[UpagrahaPosition] | None = None
     transits: dict | None = None
+    panchanga: Any | None = None
+    yogas: list[Any] | None = None
+
+    def get_panchanga(self) -> Any:
+        """Get or calculate Vedic Panchanga."""
+        if self.panchanga is None:
+            from nakshatra.panchanga import calculate_panchanga
+            dt_local = datetime(
+                self.birth_data.year, self.birth_data.month, self.birth_data.day,
+                self.birth_data.hour, self.birth_data.minute, self.birth_data.second,
+                tzinfo=ZoneInfo(self.birth_data.timezone),
+            )
+            self.panchanga = calculate_panchanga(
+                dt_local,
+                self.birth_data.latitude,
+                self.birth_data.longitude,
+                self.birth_data.timezone,
+                ayanamsa=self.ayanamsa,
+            )
+        return self.panchanga
+
+    def get_yogas(self) -> list[Any]:
+        """Get or calculate Vedic Yogas."""
+        if self.yogas is None:
+            from nakshatra.yogas import detect_yogas
+            self.yogas = detect_yogas(self)
+        return self.yogas
 
     def to_json(self) -> str:
         """Export as JSON string."""
@@ -501,6 +528,8 @@ def calculate_chart(
     include_shadbala: bool = True,
     include_upagrahas: bool = True,
     include_transits: bool = True,
+    include_panchanga: bool = True,
+    include_yogas: bool = True,
 ) -> ChartData:
     """
     Calculate complete Vedic birth chart using Swiss Ephemeris / mayaastrolib.
@@ -931,6 +960,26 @@ def calculate_chart(
             from nakshatra.transits import calculate_transits
             transit_report = calculate_transits(res_chart, transit_date=target_date)
             res_chart.transits = transit_report.model_dump()
+        except Exception:
+            pass
+
+    if include_panchanga:
+        try:
+            from nakshatra.panchanga import calculate_panchanga
+            res_chart.panchanga = calculate_panchanga(
+                dt_local,
+                birth.latitude,
+                birth.longitude,
+                birth.timezone,
+                ayanamsa=ayanamsa,
+            )
+        except Exception:
+            pass
+
+    if include_yogas:
+        try:
+            from nakshatra.yogas import detect_yogas
+            res_chart.yogas = detect_yogas(res_chart)
         except Exception:
             pass
 
