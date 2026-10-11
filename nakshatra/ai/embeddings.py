@@ -123,6 +123,11 @@ class EmbeddingStore:
     def dim(self) -> int:
         return self._dim
 
+    @property
+    def chunks(self) -> list[CorpusChunk]:
+        """All chunks in the store, in insertion order."""
+        return [CorpusChunk(**record) for record in self._records]
+
     def add(self, chunks: list[CorpusChunk], vectors: np.ndarray) -> None:
         """Add chunks with their embedding vectors."""
         if not chunks:
@@ -148,6 +153,10 @@ class EmbeddingStore:
         self._records.extend(chunk.model_dump() for chunk in chunks)
         self._dim = int(vectors.shape[1])
 
+    def add_records(self, chunks: list[CorpusChunk]) -> None:
+        """Record chunks without embedding vectors (BM25-only mode)."""
+        self._records.extend(chunk.model_dump() for chunk in chunks)
+
     def build(
         self,
         chunks: list[CorpusChunk],
@@ -163,7 +172,7 @@ class EmbeddingStore:
 
     def search(self, query: np.ndarray, top_k: int = 5) -> list[SearchResult]:
         """Return the top_k most similar chunks by cosine similarity."""
-        if not self._records:
+        if not self._records or self._vectors.size == 0:
             return []
         query_vec = np.asarray(query, dtype=np.float32).ravel()
         norm = float(np.linalg.norm(query_vec))
