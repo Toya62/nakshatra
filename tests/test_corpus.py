@@ -50,6 +50,24 @@ class TestVerseHeaderParsing:
         assert chunks[0].chapter == "3"
         assert chunks[0].verse == "12"
 
+    def test_hyphen_header(self):
+        text = "3-12: Saturn in the 10th house gives authority."
+        chunks, _ = chunk_text(text, work="BPHS", source_file="bphs.txt")
+        assert chunks[0].chapter == "3"
+        assert chunks[0].verse == "12"
+
+    def test_hyphen_prose_range_ignored(self):
+        text = (
+            "145-148.\n"
+            "The bhava effects of Dhooma and Gulika are narrated in chapter 25."
+        )
+        chunks, stats = chunk_text(
+            text, work="BPHS", source_file="bphs.txt"
+        )
+        assert stats["verse"] == 0
+        assert stats["paragraph"] == 1
+        assert not chunks[0].chapter
+
     def test_multiple_verses(self):
         text = (
             "Chapter 2, Verse 1: First verse about the Moon.\n"

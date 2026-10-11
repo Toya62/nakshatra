@@ -51,9 +51,17 @@ VERSE_HEADER_PATTERNS: list[re.Pattern[str]] = [
         re.IGNORECASE,
     ),
     # "3.12:" decimal chapter.verse numbering (short lines only to avoid
-    # false positives on decimals in prose)
+    # false positives on decimals in prose; chapter 1-99, verse 1-999)
     re.compile(
-        r"^\s*(?P<chapter>\d+)\.(?P<verse>\d+)\s*[:.\-–—]?\s*(?P<text>\S.*)$",
+        r"^\s*(?P<chapter>[1-9]\d{0,1})\.(?P<verse>[1-9]\d{0,2})"
+        r"\s*[:.\-–—]?\s*(?P<text>\S.*)$",
+    ),
+    # "3-12:" hyphen chapter-verse numbering (Santhanam e-text style,
+    # short lines only to avoid prose ranges like "pages 145-148";
+    # chapter 1-99, verse 1-999)
+    re.compile(
+        r"^\s*(?P<chapter>[1-9]\d{0,1})[-–—](?P<verse>[1-9]\d{0,2})"
+        r"\s*[:.\-–—]?\s*(?P<text>\S.*)$",
     ),
 ]
 
@@ -103,9 +111,9 @@ class IngestResult(BaseModel):
 
 
 def _match_verse_header(line: str) -> re.Match[str] | None:
-    """Try verse header patterns; decimal pattern limited to short lines."""
+    """Try verse header patterns; decimal/hyphen limited to short lines."""
     for i, pattern in enumerate(VERSE_HEADER_PATTERNS):
-        if i == 2 and len(line) > 100:
+        if i >= 2 and len(line) > 100:
             continue
         match = pattern.match(line)
         if match:
