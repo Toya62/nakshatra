@@ -195,9 +195,12 @@ class LLMSynthesizer(BaseSynthesizer):
                     "The google-genai package is required for the google "
                     "provider. Install it with: pip install 'nakshatra[ai]'"
                 ) from e
-            self._client = genai.Client(
-                api_key=self._api_key or os.environ.get("GOOGLE_API_KEY"),
+            api_key = (
+                self._api_key
+                or os.environ.get("GOOGLE_API_KEY")
+                or os.environ.get("GEMINI_API_KEY")
             )
+            self._client = genai.Client(api_key=api_key)
         response = self._client.models.generate_content(
             model=self.model, contents=prompt
         )

@@ -11,6 +11,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import datetime
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse, Response
@@ -35,6 +36,8 @@ from nakshatra.yogas import (
     format_yogas_markdown,
     format_yogas_table,
 )
+
+load_dotenv()
 
 SUPPORTED_FORMATS = ("json", "table", "markdown", "csv", "diagram")
 

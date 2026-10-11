@@ -28,6 +28,12 @@ from nakshatra.ai.synthesize import (
     LLMSynthesizer,
 )
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 DEFAULT_CORPUS_DIR = "corpus"
 DEFAULT_INDEX_DIR = "index"
 
@@ -51,8 +57,9 @@ def _default_synthesizer() -> BaseSynthesizer:
     """LLM synthesizer when an API key and SDK are available."""
     if os.environ.get("OPENAI_API_KEY") and _module_available("openai"):
         return LLMSynthesizer(provider="openai", model="gpt-4o-mini")
-    if os.environ.get("GOOGLE_API_KEY") and _module_available("google.genai"):
-        return LLMSynthesizer(provider="google", model="gemini-2.0-flash")
+    google_key = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")
+    if google_key and _module_available("google.genai"):
+        return LLMSynthesizer(provider="google", model="gemini-3.8-flash", api_key=google_key)
     return FallbackSynthesizer()
 
 

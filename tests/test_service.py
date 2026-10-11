@@ -135,6 +135,7 @@ class TestRAGService:
         """Without API keys the default synthesizer is the fallback."""
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
         monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
+        monkeypatch.delenv("GEMINI_API_KEY", raising=False)
         service = RAGService()
         assert isinstance(service._get_synthesizer(), FallbackSynthesizer)
 

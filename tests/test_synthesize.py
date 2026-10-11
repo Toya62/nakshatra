@@ -6,6 +6,7 @@ and synthesizer providers.
 from __future__ import annotations
 
 import importlib.util
+import os
 
 import pytest
 
@@ -192,3 +193,13 @@ class TestLLMSynthesizer:
         answer = synthesizer.synthesize("Q", [])
         assert answer.citations == []
         assert "References:" in build_prompt("Q", [])
+
+    def test_google_live_when_key_present(self):
+        google_key = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")
+        if not google_key or not _module_available("google.genai"):
+            pytest.skip("No Google API key or google-genai package")
+        synthesizer = LLMSynthesizer(provider="google", model="gemini-3.8-flash")
+        answer = synthesizer.synthesize("career?", [_result()])
+        assert answer.model == "gemini-3.8-flash"
+        assert len(answer.answer.strip()) > 0
+
