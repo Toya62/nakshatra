@@ -64,6 +64,18 @@ ignore_missing_imports = true
 module = "sentence_transformers"
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = "rank_bm25"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "openai"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "google"
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
