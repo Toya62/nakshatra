@@ -25,14 +25,23 @@ from nakshatra.ai.embeddings import (
     SearchResult,
     SentenceTransformerEmbedder,
 )
+from nakshatra.ai.retrieval import (
+    BM25Index,
+    ConceptMap,
+    HybridRetriever,
+    tokenize,
+)
 
 __all__ = [
     "MAX_CHUNK_CHARS",
     "MIN_CHUNK_CHARS",
+    "BM25Index",
     "BaseEmbedder",
+    "ConceptMap",
     "CorpusChunk",
     "EmbeddingStore",
     "HashingEmbedder",
+    "HybridRetriever",
     "IngestReport",
     "IngestResult",
     "SearchResult",
@@ -41,4 +50,5 @@ __all__ = [
     "chunk_text",
     "ingest_corpus",
     "tag_topics",
+    "tokenize",
 ]
