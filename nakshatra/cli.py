@@ -18,27 +18,15 @@ from nakshatra.core import (
 )
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        prog="nakshatra",
-        description="Nakshatra - Vedic Astrology AI Engine CLI (Swiss Ephemeris)",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  nakshatra --dob 1990-05-15 --time 14:30 --lat 40.7128 --lon -74.0060 --tz America/New_York
-  nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu
-  nakshatra --dob 1990-05-15 --time 14:30:00 --lat 12.9716 --lon 77.5946 --tz Asia/Kolkata
-        """
-    )
-
+def _build_chart_parser() -> argparse.ArgumentParser:
+    """Parent parser holding all chart-mode arguments."""
+    parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument(
         "--dob", "--date",
-        required=True,
         help="Date of birth (YYYY-MM-DD)"
     )
     parser.add_argument(
         "--time",
-        required=True,
         help="Time of birth (HH:MM or HH:MM:SS, 24-hour format)"
     )
     parser.add_argument(
@@ -116,13 +104,85 @@ Examples:
         action="store_true",
         help="Detect and display classical Vedic Yogas (Mahapurusha, Gaja Kesari, Kemadruma, Neechabhanga, etc.)"
     )
+    return parser
+
+
+def _run_ingest_corpus(args: argparse.Namespace) -> None:
+    """Run corpus ingestion (nakshatra ingest-corpus subcommand)."""
+    from nakshatra.ai.corpus import ingest_corpus
+
+    try:
+        result = ingest_corpus(args.dir, args.out)
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"Ingested {result.total_chunks} chunks from {result.total_files} files")
+    for report in result.reports:
+        translator = report.translator or "unknown translator"
+        print(
+            f"  {report.work} ({translator}, {report.license}): "
+            f"{report.chunks} chunks "
+            f"({report.verse_chunks} verse, {report.paragraph_chunks} paragraph) "
+            f"from {report.files} file(s)"
+        )
+    print(f"Index written to {args.out}/corpus.jsonl")
+
+
+def main() -> None:
+    chart_parser = _build_chart_parser()
+    parser = argparse.ArgumentParser(
+        prog="nakshatra",
+        description="Nakshatra - Vedic Astrology AI Engine CLI (Swiss Ephemeris)",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        parents=[chart_parser],
+        epilog="""
+Examples:
+  nakshatra --dob 1990-05-15 --time 14:30 --lat 40.7128 --lon -74.0060 --tz America/New_York
+  nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu
+  nakshatra --dob 1990-05-15 --time 14:30:00 --lat 12.9716 --lon 77.5946 --tz Asia/Kolkata
+  nakshatra ingest-corpus --dir corpus --out index
+        """
+    )
     parser.add_argument(
         "--version", "-v",
         action="version",
         version="Nakshatra 0.1.0"
     )
 
+    subparsers = parser.add_subparsers(dest="command")
+    corpus_parser = subparsers.add_parser(
+        "ingest-corpus",
+        help="Ingest classical text corpus into a chunked JSONL index",
+        description=(
+            "Ingest classical Vedic astrology texts into a chunked JSONL "
+            "index with citation metadata. Each work directory must contain "
+            "meta.json with work, translator, and license fields."
+        ),
+    )
+    corpus_parser.add_argument(
+        "--dir",
+        default="corpus",
+        help="Corpus root directory (default: corpus)"
+    )
+    corpus_parser.add_argument(
+        "--out",
+        default="index",
+        help="Output directory for corpus.jsonl + manifest.json (default: index)"
+    )
+
     args = parser.parse_args()
+
+    if args.command == "ingest-corpus":
+        _run_ingest_corpus(args)
+        return
+
+    # Chart mode: validate required birth data
+    if args.dob is None or args.time is None:
+        parser.error(
+            "--dob and --time are required for chart calculation "
+            "(see 'nakshatra ingest-corpus --help' for corpus ingestion)"
+        )
 
     # Parse date
     try:
