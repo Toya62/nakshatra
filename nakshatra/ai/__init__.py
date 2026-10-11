@@ -31,6 +31,11 @@ from nakshatra.ai.retrieval import (
     HybridRetriever,
     tokenize,
 )
+from nakshatra.ai.service import (
+    DEFAULT_CORPUS_DIR,
+    DEFAULT_INDEX_DIR,
+    RAGService,
+)
 from nakshatra.ai.synthesize import (
     Answer,
     BaseSynthesizer,
@@ -42,6 +47,8 @@ from nakshatra.ai.synthesize import (
 )
 
 __all__ = [
+    "DEFAULT_CORPUS_DIR",
+    "DEFAULT_INDEX_DIR",
     "MAX_CHUNK_CHARS",
     "MIN_CHUNK_CHARS",
     "Answer",
@@ -58,6 +65,7 @@ __all__ = [
     "IngestReport",
     "IngestResult",
     "LLMSynthesizer",
+    "RAGService",
     "SearchResult",
     "SentenceTransformerEmbedder",
     "WorkMeta",

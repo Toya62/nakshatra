@@ -1,7 +1,8 @@
 """
 Nakshatra - Vedic Astrology AI Engine
 FastAPI application exposing chart calculation, Vimshottari Dashas, Shodashavarga,
-Ashtakavarga, Shadbala, and Gochar transits as JSON or formatted text.
+Ashtakavarga, Shadbala, Gochar transits, and RAG corpus consultation as JSON
+or formatted text.
 """
 
 from __future__ import annotations
@@ -15,6 +16,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse, Response
 from pydantic import BaseModel, Field, field_validator
 
+from nakshatra.ai.corpus import IngestResult
+from nakshatra.ai.embeddings import SearchResult
+from nakshatra.ai.service import RAGService
+from nakshatra.ai.synthesize import Answer
 from nakshatra.core import (
     Ayanamsa,
     BirthData,
@@ -142,6 +147,37 @@ class HealthResponse(BaseModel):
     default_ayanamsa: str = "jhora_lahiri (Traditional Lahiri, Jagannatha Hora calibrated)"
 
 
+class RAGIngestRequest(BaseModel):
+    """Corpus ingestion request."""
+    corpus_dir: str = Field("corpus", description="Corpus directory to ingest")
+    index_dir: str = Field("index", description="Index output directory")
+
+
+class RAGIngestResponse(BaseModel):
+    """Corpus ingestion response."""
+    success: bool = True
+    data: IngestResult
+    meta: dict = Field(default_factory=dict)
+
+
+class RAGAskRequest(BaseModel):
+    """Consultation question request."""
+    question: str = Field(..., min_length=1, description="Consultation question")
+    index_dir: str = Field("index", description="Index directory to query")
+    top_k: int = Field(5, ge=1, le=20, description="References to retrieve")
+    birth: ChartRequest | None = Field(
+        None, description="Optional natal chart context"
+    )
+
+
+class RAGAskResponse(BaseModel):
+    """Consultation answer with retrieved references."""
+    success: bool = True
+    data: Answer
+    references: list[SearchResult]
+    meta: dict = Field(default_factory=dict)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Application lifespan handler."""
@@ -167,6 +203,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+_rag_service = RAGService()
 
 
 def _format_chart(chart: ChartData, fmt: str) -> Response:
@@ -485,6 +523,70 @@ async def create_yogas_endpoint(
         raise HTTPException(status_code=500, detail=f"Calculation error: {str(e)}")
 
 
+@app.post("/rag/ingest", response_model=RAGIngestResponse, tags=["RAG"])
+async def rag_ingest(request: RAGIngestRequest) -> RAGIngestResponse:
+    """
+    Ingest a corpus directory into a searchable index.
+
+    Reads works from corpus_dir (each work directory: meta.json with
+    work/translator/license plus .txt/.md files), chunks the text, and
+    writes the index to index_dir. Embedding vectors are built when
+    sentence-transformers is installed; otherwise the index is BM25-only.
+    """
+    try:
+        result = _rag_service.ingest(request.corpus_dir, request.index_dir)
+        return RAGIngestResponse(
+            data=result,
+            meta={
+                "corpus_dir": request.corpus_dir,
+                "index_dir": request.index_dir,
+                "embeddings": _rag_service.embedder is not None,
+            },
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ingestion error: {str(e)}")
+
+
+@app.post("/rag/ask", response_model=RAGAskResponse, tags=["RAG"])
+async def rag_ask(request: RAGAskRequest) -> RAGAskResponse:
+    """
+    Answer a consultation question from the indexed corpus.
+
+    Retrieves the most relevant corpus chunks (hybrid BM25 + dense
+    ranking, RRF-fused, with Bhava/Karaka concept expansion) and
+    synthesizes a cited answer. Provide `birth` to include natal
+    chart context in the consultation.
+    """
+    try:
+        birth_context = None
+        if request.birth is not None:
+            chart = _build_chart(request.birth)
+            birth_context = chart.model_dump()
+        answer, references = _rag_service.ask(
+            request.question,
+            index_dir=request.index_dir,
+            top_k=request.top_k,
+            birth_context=birth_context,
+        )
+        return RAGAskResponse(
+            data=answer,
+            references=references,
+            meta={
+                "index_dir": request.index_dir,
+                "top_k": request.top_k,
+                "model": answer.model,
+            },
+        )
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"RAG error: {str(e)}")
+
+
 @app.get("/", tags=["System"])
 async def root() -> dict:
     """Root endpoint with API info."""
@@ -508,6 +610,8 @@ async def root() -> dict:
             "GET /yogas": "Detect Vedic Yogas (query params); ?format=json|table|markdown",
             "POST /yogas": "Detect Vedic Yogas (JSON body); ?format=json|table|markdown",
             "POST /transits": "Calculate Gochar transits against a natal chart (JSON body)",
+            "POST /rag/ingest": "Ingest a corpus directory into a searchable index",
+            "POST /rag/ask": "Answer a consultation question with cited corpus references",
             "GET /health": "Health check",
             "GET /docs": "Interactive API docs (Swagger UI)",
         },
