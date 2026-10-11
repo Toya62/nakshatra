@@ -140,6 +140,31 @@ nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Ka
 nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --transit 2026-12-25 --format json -p
 ```
 
+### RAG Consultation
+
+```bash
+# Ingest a classical corpus into a searchable index
+# Layout: corpus/<work>/meta.json (work, translator, license) + .txt/.md files
+nakshatra ingest-corpus --dir corpus --out index
+
+# Ask a question (API)
+curl -X POST http://localhost:8000/rag/ask \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What does my chart say about career?", "top_k": 5}'
+```
+
+Retrieval fuses BM25 lexical ranking with `all-MiniLM-L6-v2` dense
+embeddings (Reciprocal Rank Fusion) and expands queries via a Bhava/Karaka
+concept map (e.g., "marriage" → House 7, Venus, Jupiter, D9 Navamsa).
+Install the optional AI extras for semantic embeddings and LLM synthesis:
+
+```bash
+pip install 'nakshatra[ai]'   # sentence-transformers, google-genai, openai
+```
+
+Without the extras, the engine runs in zero-dependency BM25-only mode with
+verbatim cited references.
+
 ### Python Library Usage
 
 ```python
@@ -230,7 +255,9 @@ The complete Nakshatra architecture integrates high-precision astronomical compu
    - Ashtakavarga (337 bindu grand total) and 6-fold Shadbala planetary strength metrics.
 
 2. **RAG Layer (Classical Vedic Shloka Retrieval)**:
-   - Local dense retrieval using `all-MiniLM-L6-v2` embeddings and FAISS vector index.
+   - Hybrid retrieval: BM25 lexical ranking fused with `all-MiniLM-L6-v2` dense embeddings (NumPy cosine store) via Reciprocal Rank Fusion.
+   - Bhava/Karaka concept map expands queries (e.g., "marriage" → House 7, Venus, Jupiter, D9 Navamsa).
+   - Zero-dependency BM25-only fallback when sentence-transformers is unavailable.
    - Authoritative classical corpus:
      - *Brihat Parashara Hora Shastra* (BPHS)
      - *Phaladeepika* (Mantreswara)
@@ -241,9 +268,9 @@ The complete Nakshatra architecture integrates high-precision astronomical compu
 
 3. **LLM & Prompt Assembly Layer**:
    - Synthesizes exact astrological facts with classical shloka evidence.
-   - **Primary Model**: Google Gemini Flash (via `google-genai` SDK, temp: 0.3, max tokens: 4096).
-   - **Fallback Model**: OpenRouter endpoint for redundancy.
-   - Prevents AI hallucinations by strictly grounding predictions in retrieved classical rules and calculated chart positions.
+   - **Providers**: OpenAI (`gpt-4o-mini`) and Google Gemini via `google-genai`, selected by API key.
+   - Deterministic fallback: verbatim cited references when no LLM is configured.
+   - Prevents hallucinations by requiring bracketed `[n]` citations grounded in retrieved chunks.
 
 4. **Frontend Layer**:
    - Interactive UI (Streamlit for rapid experimentation / Next.js for production SaaS).
@@ -262,9 +289,9 @@ The complete Nakshatra architecture integrates high-precision astronomical compu
 - [x] **Gochar (Transit) Engine**: Natal-to-transit planetary aspects, Sade Sati, Jupiter Gochar, Double Transit.
 - [x] **Panchanga Engine**: Exact 5 limbs (Tithi, Vara, Nakshatra, Yoga, Karana) with solar day tracking.
 - [x] **Classical Yoga Detection**: Raja, Dhana, Pancha Mahapurusha, Gaja Kesari, Kemadruma (+ Bhanga), Neechabhanga (+ Raja Yoga).
-- [ ] **RAG Corpus Ingestion**: Parsing and chunking of BPHS, Phaladeepika, Saravali, and Crux.
-- [ ] **FAISS Vector Store**: Local embeddings via `sentence-transformers` (`all-MiniLM-L6-v2`).
-- [ ] **LLM Integration**: Gemini Flash + OpenRouter prompt synthesis agent.
+- [x] **RAG Corpus Ingestion**: Two-tier verse/paragraph chunker with license-gated works (BPHS, Phaladeepika, Saravali, Crux).
+- [x] **Hybrid Vector Store**: NumPy cosine store + BM25, RRF-fused, with Bhava/Karaka concept expansion.
+- [x] **LLM Integration**: OpenAI + Gemini cited synthesis with deterministic verbatim-reference fallback.
 - [ ] **Interactive Frontend**: Streamlit / Next.js web application.
 
 ---
