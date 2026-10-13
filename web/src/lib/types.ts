@@ -156,3 +156,152 @@ export interface SearchReference {
   score: number;
   text: string;
 }
+
+export interface KutaScore {
+  name: string;
+  max_score: number;
+  obtained_score: number;
+  bride_val: string;
+  groom_val: string;
+  is_favorable: boolean;
+  dosha_present: boolean;
+  cancelled: boolean;
+  notes: string;
+}
+
+export interface AshtakootaReport {
+  varna: KutaScore;
+  vashya: KutaScore;
+  tara: KutaScore;
+  yoni: KutaScore;
+  graha_maitri: KutaScore;
+  gana: KutaScore;
+  bhakoot: KutaScore;
+  nadi: KutaScore;
+  total_score: number;
+  percentage: number;
+  verdict: "Uttama" | "Madhyama" | "Adhama";
+  summary: string;
+}
+
+export interface ExtendedKutasReport {
+  mahendra: KutaScore;
+  stree_deergha: KutaScore;
+  rajju: KutaScore;
+  vedha: KutaScore;
+}
+
+export interface KujaDoshaDetails {
+  is_manglik: boolean;
+  severity: "None" | "Low" | "Moderate" | "High";
+  score: number;
+  afflicted_houses_lagna: number[];
+  afflicted_houses_moon: number[];
+  afflicted_houses_venus: number[];
+  cancellations: string[];
+  is_cancelled: boolean;
+}
+
+export interface KujaDoshaReport {
+  bride: KujaDoshaDetails;
+  groom: KujaDoshaDetails;
+  is_compatible: boolean;
+  verdict: string;
+  notes: string;
+}
+
+export interface CompatibilityReport {
+  bride_name?: string;
+  groom_name?: string;
+  bride_moon_sign: string;
+  bride_nakshatra: string;
+  bride_pada: number;
+  groom_moon_sign: string;
+  groom_nakshatra: string;
+  groom_pada: number;
+  ashtakoota: AshtakootaReport;
+  extended_kutas: ExtendedKutasReport;
+  kuja_dosha: KujaDoshaReport;
+  overall_score: number;
+  recommendation: string;
+}
+
+export interface TimeInterval {
+  name: string;
+  start_time: string;
+  end_time: string;
+  is_active: boolean;
+  nature: "Auspicious" | "Inauspicious" | "Neutral";
+  score: number;
+  notes: string;
+}
+
+export interface HoraItem {
+  hora_index: number;
+  period_type: "Day" | "Night";
+  ruling_planet: string;
+  start_time: string;
+  end_time: string;
+  is_current: boolean;
+  nature: string;
+  recommended_activities: string;
+}
+
+export interface ChoghadiyaItem {
+  index: number;
+  name: string;
+  period_type: "Day" | "Night";
+  ruler: string;
+  nature: string;
+  score: number;
+  start_time: string;
+  end_time: string;
+  is_current: boolean;
+}
+
+export interface SpecialYogaStatus {
+  sarvartha_siddhi: boolean;
+  amrita_siddhi: boolean;
+  guru_pushya: boolean;
+  ravi_pushya: boolean;
+  tripushkar: boolean;
+  vishti_bhadra_active: boolean;
+  active_yogas: string[];
+}
+
+export interface MuhurthaSuitability {
+  business_contract: boolean;
+  financial_investment: boolean;
+  travel: boolean;
+  marriage: boolean;
+  property_purchase: boolean;
+  medical_treatment: boolean;
+}
+
+export interface MuhurthaReport {
+  timestamp: string;
+  timezone: string;
+  latitude: number;
+  longitude: number;
+  sunrise_time: string;
+  sunset_time: string;
+  next_sunrise_time: string;
+  panchanga: PanchangaData;
+  current_hora: HoraItem;
+  current_choghadiya: ChoghadiyaItem;
+  special_yogas: SpecialYogaStatus;
+  abhijit_muhurtha: TimeInterval;
+  brahma_muhurtha: TimeInterval;
+  rahu_kalam: TimeInterval;
+  yamaganda: TimeInterval;
+  gulika_kalam: TimeInterval;
+  durmuhurtha: TimeInterval[];
+  day_horas: HoraItem[];
+  night_horas: HoraItem[];
+  day_choghadiyas: ChoghadiyaItem[];
+  night_choghadiyas: ChoghadiyaItem[];
+  muhurtha_score: number;
+  verdict: string;
+  suitability: MuhurthaSuitability;
+  recommendation: string;
+}

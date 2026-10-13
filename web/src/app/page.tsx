@@ -10,6 +10,8 @@ import { YogasView } from "@/components/YogasView";
 import { TransitsView } from "@/components/TransitsView";
 import { DashaView } from "@/components/DashaView";
 import { PanchangaView } from "@/components/PanchangaView";
+import { CompatibilityView } from "@/components/CompatibilityView";
+import { MuhurthaView } from "@/components/MuhurthaView";
 import { ConsultationView } from "@/components/ConsultationView";
 import { BirthDataInput, ChartData } from "@/lib/types";
 import { fetchChart, checkApiHealth } from "@/lib/api";
@@ -174,7 +176,19 @@ export default function Home() {
           />
         )}
 
-        {/* Tab 5: AI Consultation */}
+        {/* Tab 5: Kundali Matching */}
+        {activeTab === "compatibility" && <CompatibilityView defaultBride={birthData} />}
+
+        {/* Tab 6: Muhurtha & Horas */}
+        {activeTab === "muhurtha" && (
+          <MuhurthaView
+            defaultLat={birthData.latitude}
+            defaultLon={birthData.longitude}
+            defaultTz={birthData.timezone}
+          />
+        )}
+
+        {/* Tab 7: AI Consultation */}
         {activeTab === "consult" && <ConsultationView birth={chartData ? birthData : undefined} />}
       </main>
 

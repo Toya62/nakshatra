@@ -45,6 +45,10 @@ from nakshatra.ai.synthesize import (
     build_prompt,
     extract_citations,
 )
+from nakshatra.ai.splitter import (
+    HeaderTracker,
+    TextSplitter,
+)
 
 __all__ = [
     "DEFAULT_CORPUS_DIR",
@@ -61,6 +65,7 @@ __all__ = [
     "EmbeddingStore",
     "FallbackSynthesizer",
     "HashingEmbedder",
+    "HeaderTracker",
     "HybridRetriever",
     "IngestReport",
     "IngestResult",
@@ -68,6 +73,7 @@ __all__ = [
     "RAGService",
     "SearchResult",
     "SentenceTransformerEmbedder",
+    "TextSplitter",
     "WorkMeta",
     "build_prompt",
     "chunk_text",

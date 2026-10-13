@@ -10,6 +10,7 @@ from __future__ import annotations
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+import mayaastrolib.vedic.ashtakavarga as vav
 import swisseph as swe
 from mayaastrolib.chart import Chart
 from mayaastrolib.datetime import Datetime
@@ -82,6 +83,18 @@ class TransitPlanet(BaseModel):
     is_favorable_gochar: bool = Field(
         ..., description="Whether transit is in an auspicious house from Moon per Phaladeepika"
     )
+    kakshya_lord: str | None = Field(
+        None, description="Ruling planet of current 3°45' Ashtakavarga division"
+    )
+    kakshya_index: int | None = Field(
+        None, description="Kakshya index 0-7 (Saturn, Jupiter, Mars, Sun, Venus, Mercury, Moon, Lagna)"
+    )
+    kakshya_range: str | None = Field(
+        None, description="Arc range within sign, e.g. '00°00' - 03°45''"
+    )
+    kakshya_has_bindu: bool | None = Field(
+        None, description="Whether current Kakshya lord contributes a bindu in natal BAV (auspicious sub-transit)"
+    )
 
 
 class SadeSatiInfo(BaseModel):
@@ -110,6 +123,10 @@ class TransitReport(BaseModel):
     double_transit_houses: list[int] = Field(
         default_factory=list,
         description="Houses simultaneously aspected by Transit Jupiter & Transit Saturn",
+    )
+    kakshya_summary: list[dict] = Field(
+        default_factory=list,
+        description="Kakshya transit breakdown for 7 classical planets",
     )
 
     def to_table(self) -> str:
@@ -182,6 +199,22 @@ class TransitReport(BaseModel):
                 f"{h_lagna:<12} {h_moon:<12} {sav_bav:<9} {g_eval:<10}"
             )
         lines.append("=" * 86)
+
+        if self.kakshya_summary:
+            lines.append(" GOCHARA KAKSHYAS (ASHTAKAVARGA SUB-TRANSITS)")
+            lines.append("-" * 86)
+            lines.append(
+                f"{'Planet':<10} {'Sign':<12} {'Kakshya Lord':<14} {'Range':<18} {'Bindu':<8} Status"
+            )
+            lines.append("-" * 86)
+            for k in self.kakshya_summary:
+                b_str = "1 (Yes)" if k.get("has_bindu") else "0 (No)"
+                lines.append(
+                    f"{k['planet']:<10} {k['sign']:<12} {k['kakshya_lord']:<14} "
+                    f"{k['degree_range']:<18} {b_str:<8} {k['status']}"
+                )
+            lines.append("=" * 86)
+
         return "\n".join(lines)
 
 
@@ -254,6 +287,14 @@ def calculate_transits(
     sav_list = natal_chart.ashtakavarga.sarvashtakavarga if natal_chart.ashtakavarga else None
     bav_dict = natal_chart.ashtakavarga.bhinnashtakavarga if natal_chart.ashtakavarga else {}
 
+    signs_for_prastara = {
+        p.name: ZODIAC_SIGNS.index(p.sign)
+        for p in natal_chart.planets
+        if p.name in vav.ASHTAKAVARGA_PLANETS
+    }
+    signs_for_prastara[vav.ASCENDANT] = natal_asc_idx
+    kakshya_summary_list: list[dict] = []
+
     for name in ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"]:
         raw = m_chart.get(name)
         lon = (raw.lon - ayan_offset) % 360.0
@@ -277,6 +318,33 @@ def calculate_transits(
         bav_val = bav_dict.get(name, [])[sign_idx] if name in bav_dict else None
         is_fav = h_moon in FAVORABLE_GOCHAR_HOUSES.get(name, [])
 
+        # Kakshya transit analysis (VedAstro Gochara Kakshas)
+        kak_lord = None
+        kak_active = None
+        kak_idx = None
+        kak_range = None
+        if name in vav.ASHTAKAVARGA_PLANETS and signs_for_prastara:
+            try:
+                prastara = vav.bhinnashtakavarga_prastara(name, signs_for_prastara)
+                kak_lord, kak_active = vav.kakshya_transit_active(prastara, lon)
+                kak_idx = int(deg_in_sign / vav.KAKSHYA_WIDTH_DEG)
+                if kak_idx > 7:
+                    kak_idx = 7
+                s_deg = kak_idx * 3.75
+                e_deg = (kak_idx + 1) * 3.75
+                kak_range = f"{int(s_deg):02d}°{int((s_deg % 1) * 60):02d}' - {int(e_deg):02d}°{int((e_deg % 1) * 60):02d}'"
+                kakshya_summary_list.append({
+                    "planet": name,
+                    "sign": sign,
+                    "kakshya_lord": kak_lord,
+                    "kakshya_index": kak_idx,
+                    "degree_range": kak_range,
+                    "has_bindu": kak_active,
+                    "status": "Auspicious (Bindu present)" if kak_active else "Afflicted / Delay (0 bindu)",
+                })
+            except Exception:
+                pass
+
         transit_planets.append(
             TransitPlanet(
                 name=name,
@@ -293,6 +361,10 @@ def calculate_transits(
                 sav_bindus=sav_val,
                 bav_bindus=bav_val,
                 is_favorable_gochar=is_fav,
+                kakshya_lord=kak_lord,
+                kakshya_index=kak_idx,
+                kakshya_range=kak_range,
+                kakshya_has_bindu=kak_active,
             )
         )
 
@@ -414,4 +486,5 @@ def calculate_transits(
         sade_sati=sade_sati_info,
         jupiter_gochar=jupiter_gochar,
         double_transit_houses=double_transit_houses,
+        kakshya_summary=kakshya_summary_list,
     )

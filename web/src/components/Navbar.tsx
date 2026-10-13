@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { Sparkles, Moon, Compass, Clock, BookOpen, Activity } from "lucide-react";
+import { Sparkles, Moon, Compass, Clock, BookOpen, Activity, Heart, Sun } from "lucide-react";
 
-export type TabId = "chart" | "transits" | "dasha" | "panchanga" | "consult";
+export type TabId = "chart" | "transits" | "dasha" | "panchanga" | "compatibility" | "muhurtha" | "consult";
 
 interface Props {
   activeTab: TabId;
@@ -17,6 +17,8 @@ export const Navbar: React.FC<Props> = ({ activeTab, onTabChange, apiStatus }) =
     { id: "transits" as TabId, label: "Transits (Gochar)", icon: Compass },
     { id: "dasha" as TabId, label: "Vimshottari Dasha", icon: Clock },
     { id: "panchanga" as TabId, label: "Daily Panchanga", icon: Moon },
+    { id: "compatibility" as TabId, label: "Kundali Matching", icon: Heart },
+    { id: "muhurtha" as TabId, label: "Muhurtha & Horas", icon: Sun },
     { id: "consult" as TabId, label: "AI Consultation", icon: BookOpen },
   ];
 

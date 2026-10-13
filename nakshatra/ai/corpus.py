@@ -17,9 +17,9 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-
 from pydantic import BaseModel, Field
 
+from nakshatra.ai.splitter import TextSplitter
 from nakshatra.core import NAKSHATRAS, VEDIC_PLANETS
 
 MIN_CHUNK_CHARS = 300
@@ -151,43 +151,30 @@ def tag_topics(text: str) -> list[str]:
     return sorted(topics)
 
 
-def _split_into_pieces(body: str, min_chars: int = MIN_CHUNK_CHARS,
-                       max_chars: int = MAX_CHUNK_CHARS) -> list[str]:
+def _split_into_pieces(
+    body: str,
+    min_chars: int = MIN_CHUNK_CHARS,
+    max_chars: int = MAX_CHUNK_CHARS,
+    splitter: TextSplitter | None = None,
+) -> list[str]:
     """Split verse/paragraph text into pieces bounded by min/max characters.
 
-    Greedily merges paragraphs up to max_chars; hard-splits oversized paragraphs
-    at word boundaries. Short final pieces are kept intact (citation precision).
+    Uses TextSplitter with protected pattern preservation (tables, math, code,
+    formulas) and smart word boundary splitting.
     """
-    pieces: list[str] = []
-    current: list[str] = []
-    current_len = 0
+    stripped = body.strip()
+    if not stripped:
+        return []
+    if len(stripped) <= max_chars:
+        return [stripped]
 
-    for para in body.split("\n"):
-        para = para.strip()
-        if not para:
-            continue
-        if current and current_len + len(para) + 1 > max_chars:
-            pieces.append(" ".join(current))
-            current = []
-            current_len = 0
-        if len(para) > max_chars:
-            words = para.split()
-            while words:
-                word_batch: list[str] = []
-                batch_len = 0
-                while words and batch_len + len(words[0]) + 1 <= max_chars:
-                    word = words.pop(0)
-                    word_batch.append(word)
-                    batch_len += len(word) + 1
-                if word_batch:
-                    pieces.append(" ".join(word_batch))
-            continue
-        current.append(para)
-        current_len += len(para) + 1
-
-    if current:
-        pieces.append(" ".join(current))
-    return [p for p in pieces if p]
+    active_splitter = splitter or TextSplitter(
+        chunk_size=max_chars,
+        chunk_overlap=80,
+    )
+    pieces = active_splitter.split_pieces(stripped)
+    result = [p.strip() for p in pieces if p.strip()]
+    return result if result else [stripped]
 
 
 def chunk_text(
@@ -196,6 +183,7 @@ def chunk_text(
     source_file: str,
     min_chars: int = MIN_CHUNK_CHARS,
     max_chars: int = MAX_CHUNK_CHARS,
+    splitter: TextSplitter | None = None,
 ) -> tuple[list[CorpusChunk], dict[str, int]]:
     """Chunk a corpus text into citable pieces using the two-tier strategy.
 
@@ -217,7 +205,7 @@ def chunk_text(
         buf = []
         if not body:
             return
-        pieces = _split_into_pieces(body, min_chars, max_chars)
+        pieces = _split_into_pieces(body, min_chars, max_chars, splitter=splitter)
         for piece in pieces:
             chunk = CorpusChunk(
                 work=work,

@@ -279,6 +279,103 @@ class TestSystemEndpoints:
         body = r.json()
         assert body["name"] == "Nakshatra"
         assert "POST /transits" in body["endpoints"]
+        assert "POST /match/compatibility" in body["endpoints"]
+        assert "POST /muhurtha" in body["endpoints"]
         assert "GET /panchanga" in body["endpoints"]
         assert "GET /yogas" in body["endpoints"]
+
+
+class TestCompatibilityEndpoint:
+    """Tests for POST /match/compatibility."""
+
+    def test_post_compatibility_json(self, client: TestClient, chart_payload: dict):
+        groom_payload = {
+            "year": 1995,
+            "month": 11,
+            "day": 28,
+            "hour": 8,
+            "minute": 30,
+            "second": 0,
+            "latitude": 28.6139,
+            "longitude": 77.2090,
+            "timezone": "Asia/Kolkata",
+        }
+        r = client.post(
+            "/match/compatibility",
+            json={
+                "bride": chart_payload,
+                "groom": groom_payload,
+                "bride_name": "Sita",
+                "groom_name": "Rama",
+            },
+        )
+        assert r.status_code == 200
+        body = r.json()
+        assert body["success"] is True
+        data = body["data"]
+        assert data["bride_name"] == "Sita"
+        assert data["groom_name"] == "Rama"
+        assert 0 <= data["ashtakoota"]["total_score"] <= 36
+        assert data["ashtakoota"]["verdict"] in ("Uttama", "Madhyama", "Adhama")
+        assert "kuja_dosha" in data
+
+    def test_post_compatibility_table(self, client: TestClient, chart_payload: dict):
+        groom_payload = {
+            "year": 1995,
+            "month": 11,
+            "day": 28,
+            "hour": 8,
+            "minute": 30,
+            "second": 0,
+            "latitude": 28.6139,
+            "longitude": 77.2090,
+            "timezone": "Asia/Kolkata",
+        }
+        r = client.post(
+            "/match/compatibility?format=table",
+            json={
+                "bride": chart_payload,
+                "groom": groom_payload,
+            },
+        )
+        assert r.status_code == 200
+        assert r.headers["content-type"].startswith("text/plain")
+        assert "VEDIC ASHTAKOOTA COMPATIBILITY REPORT" in r.text
+
+
+class TestMuhurthaEndpoint:
+    """Tests for POST and GET /muhurtha."""
+
+    def test_post_muhurtha_json(self, client: TestClient):
+        r = client.post(
+            "/muhurtha",
+            json={
+                "year": 2026,
+                "month": 10,
+                "day": 14,
+                "hour": 12,
+                "minute": 0,
+                "second": 0,
+                "latitude": 28.6139,
+                "longitude": 77.2090,
+                "timezone": "Asia/Kolkata",
+            },
+        )
+        assert r.status_code == 200
+        body = r.json()
+        assert body["success"] is True
+        data = body["data"]
+        assert 0 <= data["muhurtha_score"] <= 100
+        assert len(data["day_horas"]) == 12
+        assert len(data["night_horas"]) == 12
+        assert len(data["day_choghadiyas"]) == 8
+
+    def test_get_muhurtha_table(self, client: TestClient):
+        r = client.get(
+            "/muhurtha?year=2026&month=10&day=14&hour=12&minute=0&latitude=28.6139&longitude=77.2090&timezone=Asia/Kolkata&format=table"
+        )
+        assert r.status_code == 200
+        assert r.headers["content-type"].startswith("text/plain")
+        assert "VEDIC MUHURTHA & ELECTION REPORT" in r.text
+
 

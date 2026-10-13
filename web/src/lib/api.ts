@@ -1,6 +1,8 @@
 import {
   BirthDataInput,
   ChartData,
+  CompatibilityReport,
+  MuhurthaReport,
   PanchangaData,
   RAGAnswer,
   SearchReference,
@@ -286,4 +288,81 @@ export async function askConsultationStream(
       }
     }
   }
+}
+
+export async function fetchCompatibility(
+  bride: BirthDataInput,
+  groom: BirthDataInput,
+  brideName?: string,
+  groomName?: string
+): Promise<CompatibilityReport> {
+  const baseUrl = getApiBaseUrl();
+  const res = await fetch(`${baseUrl}/match/compatibility`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      bride: {
+        year: bride.year,
+        month: bride.month,
+        day: bride.day,
+        hour: bride.hour,
+        minute: bride.minute,
+        second: bride.second ?? 0,
+        latitude: bride.latitude,
+        longitude: bride.longitude,
+        timezone: bride.timezone,
+        place_name: bride.place_name,
+        ayanamsa: bride.ayanamsa || "jhora_lahiri",
+        house_system: bride.house_system || "WholeSign",
+      },
+      groom: {
+        year: groom.year,
+        month: groom.month,
+        day: groom.day,
+        hour: groom.hour,
+        minute: groom.minute,
+        second: groom.second ?? 0,
+        latitude: groom.latitude,
+        longitude: groom.longitude,
+        timezone: groom.timezone,
+        place_name: groom.place_name,
+        ayanamsa: groom.ayanamsa || "jhora_lahiri",
+        house_system: groom.house_system || "WholeSign",
+      },
+      bride_name: brideName,
+      groom_name: groomName,
+    }),
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Failed to calculate compatibility: ${res.status} ${errText}`);
+  }
+  const json = await res.json();
+  return json.data;
+}
+
+export async function fetchMuhurtha(input: BirthDataInput): Promise<MuhurthaReport> {
+  const baseUrl = getApiBaseUrl();
+  const res = await fetch(`${baseUrl}/muhurtha`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      year: input.year,
+      month: input.month,
+      day: input.day,
+      hour: input.hour,
+      minute: input.minute,
+      second: input.second ?? 0,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      timezone: input.timezone,
+      ayanamsa: input.ayanamsa || "jhora_lahiri",
+    }),
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Failed to calculate Muhurtha: ${res.status} ${errText}`);
+  }
+  const json = await res.json();
+  return json.data;
 }

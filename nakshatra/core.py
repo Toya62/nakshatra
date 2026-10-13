@@ -172,10 +172,12 @@ class ShadbalaPlanet(BaseModel):
 
 
 class AshtakavargaData(BaseModel):
-    """Ashtakavarga bindu totals."""
+    """Ashtakavarga bindu totals and classical Shodhita reductions."""
     sarvashtakavarga: list[int]
     grand_total: int
     bhinnashtakavarga: dict[str, list[int]]
+    shodhita_sarvashtakavarga: list[int] | None = None
+    shodhita_bhinnashtakavarga: dict[str, list[int]] | None = None
 
 
 class UpagrahaPosition(BaseModel):
@@ -861,10 +863,27 @@ def calculate_chart(
     ashtakavarga_data = None
     if include_ashtakavarga:
         av_res = vav.ashtakavarga(chart, ayanamsa=base_ayanamsa)
+        shodhita_sav = None
+        shodhita_bav = None
+        try:
+            p_signs_map = {
+                p: ZODIAC_SIGNS.index(chart.get(p).sign)
+                for p in vav.ASHTAKAVARGA_PLANETS
+            }
+            shodhita_res = vav.shodhita_sarvashtakavarga(
+                p_signs_map,
+                lagna_sign=ZODIAC_SIGNS.index(ascendant.sign),
+            )
+            shodhita_sav = shodhita_res.get("per_rasi")
+            shodhita_bav = shodhita_res.get("by_planet")
+        except Exception:
+            pass
         ashtakavarga_data = AshtakavargaData(
             sarvashtakavarga=av_res["per_rasi"],
             grand_total=av_res["grand_total"],
             bhinnashtakavarga=av_res["by_planet"],
+            shodhita_sarvashtakavarga=shodhita_sav,
+            shodhita_bhinnashtakavarga=shodhita_bav,
         )
 
     # 11. Shadbala

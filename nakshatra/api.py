@@ -22,12 +22,20 @@ from nakshatra.ai.corpus import IngestResult
 from nakshatra.ai.embeddings import SearchResult
 from nakshatra.ai.service import RAGService
 from nakshatra.ai.synthesize import Answer
+from nakshatra.compatibility import (
+    CompatibilityReport,
+    calculate_compatibility,
+)
 from nakshatra.core import (
     Ayanamsa,
     BirthData,
     ChartData,
     HouseSystem,
     calculate_chart,
+)
+from nakshatra.muhurtha import (
+    MuhurthaReport,
+    calculate_muhurtha,
 )
 from nakshatra.panchanga import PanchangaData, calculate_panchanga
 from nakshatra.transits import TransitReport, calculate_transits
@@ -139,6 +147,42 @@ class YogaResponse(BaseModel):
     success: bool = True
     total: int
     data: list[YogaResult]
+    meta: dict = Field(default_factory=dict)
+
+
+class CompatibilityRequest(BaseModel):
+    """Relationship compatibility request."""
+    bride: ChartRequest
+    groom: ChartRequest
+    bride_name: str | None = Field(None, description="Bride name for report")
+    groom_name: str | None = Field(None, description="Groom name for report")
+
+
+class CompatibilityResponse(BaseModel):
+    """Relationship compatibility response."""
+    success: bool = True
+    data: CompatibilityReport
+    meta: dict = Field(default_factory=dict)
+
+
+class MuhurthaRequest(BaseModel):
+    """Vedic Muhurtha election request."""
+    year: int = Field(..., ge=1, le=3000, description="Year")
+    month: int = Field(..., ge=1, le=12, description="Month")
+    day: int = Field(..., ge=1, le=31, description="Day")
+    hour: int = Field(..., ge=0, le=23, description="Hour (0-23)")
+    minute: int = Field(..., ge=0, le=59, description="Minute")
+    second: int = Field(0, ge=0, le=59, description="Second")
+    latitude: float = Field(..., ge=-90, le=90, description="Latitude")
+    longitude: float = Field(..., ge=-180, le=180, description="Longitude")
+    timezone: str = Field(..., description="IANA timezone (e.g. 'Asia/Kolkata')")
+    ayanamsa: Ayanamsa = Field(Ayanamsa.JHORA_LAHIRI, description="Ayanamsa system")
+
+
+class MuhurthaResponse(BaseModel):
+    """Vedic Muhurtha election response."""
+    success: bool = True
+    data: MuhurthaReport
     meta: dict = Field(default_factory=dict)
 
 
@@ -527,6 +571,93 @@ async def create_yogas_endpoint(
         raise HTTPException(status_code=500, detail=f"Calculation error: {str(e)}")
 
 
+@app.post("/match/compatibility", response_model=CompatibilityResponse, tags=["Compatibility"])
+async def calculate_compatibility_endpoint(
+    request: CompatibilityRequest,
+    format: str = Query("json", description="Output format: json, table"),
+) -> CompatibilityResponse | Response:
+    """Calculate 36-Point Ashtakoota and Kuja Dosha compatibility between Bride and Groom."""
+    try:
+        b_chart = _build_chart(request.bride)
+        g_chart = _build_chart(request.groom)
+        report = calculate_compatibility(
+            b_chart,
+            g_chart,
+            bride_name=request.bride_name,
+            groom_name=request.groom_name,
+        )
+        if format == "table":
+            return Response(content=report.to_table(), media_type="text/plain; charset=utf-8")
+        return CompatibilityResponse(
+            data=report,
+            meta={
+                "ayanamsa": request.bride.ayanamsa.value,
+                "total_score": report.ashtakoota.total_score,
+                "verdict": report.ashtakoota.verdict,
+            },
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Compatibility calculation error: {str(e)}")
+
+
+@app.post("/muhurtha", response_model=MuhurthaResponse, tags=["Muhurtha"])
+async def calculate_muhurtha_endpoint(
+    request: MuhurthaRequest,
+    format: str = Query("json", description="Output format: json, table"),
+) -> MuhurthaResponse | Response:
+    """Calculate Vedic Muhurtha, Horas, Choghadiyas, and Siddhi Yogas for a given time and place."""
+    try:
+        dt = datetime(
+            request.year, request.month, request.day,
+            request.hour, request.minute, request.second,
+        )
+        report = calculate_muhurtha(
+            dt,
+            request.latitude,
+            request.longitude,
+            request.timezone,
+            ayanamsa=request.ayanamsa,
+        )
+        if format == "table":
+            return Response(content=report.to_table(), media_type="text/plain; charset=utf-8")
+        return MuhurthaResponse(
+            data=report,
+            meta={
+                "score": report.muhurtha_score,
+                "verdict": report.verdict,
+                "ayanamsa": request.ayanamsa.value,
+            },
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Muhurtha calculation error: {str(e)}")
+
+
+@app.get("/muhurtha", response_model=MuhurthaResponse, tags=["Muhurtha"])
+async def get_muhurtha_endpoint(
+    year: int = Query(..., ge=1, le=3000),
+    month: int = Query(..., ge=1, le=12),
+    day: int = Query(..., ge=1, le=31),
+    hour: int = Query(..., ge=0, le=23),
+    minute: int = Query(..., ge=0, le=59),
+    second: int = Query(0, ge=0, le=59),
+    latitude: float = Query(..., ge=-90, le=90),
+    longitude: float = Query(..., ge=-180, le=180),
+    timezone: str = Query(...),
+    ayanamsa: Ayanamsa = Query(Ayanamsa.JHORA_LAHIRI),
+    format: str = Query("json", description="Output format: json, table"),
+) -> MuhurthaResponse | Response:
+    """Calculate Vedic Muhurtha via GET query parameters."""
+    req = MuhurthaRequest(
+        year=year, month=month, day=day, hour=hour, minute=minute, second=second,
+        latitude=latitude, longitude=longitude, timezone=timezone, ayanamsa=ayanamsa,
+    )
+    return await calculate_muhurtha_endpoint(req, format=format)
+
+
 @app.post("/rag/ingest", response_model=RAGIngestResponse, tags=["RAG"])
 async def rag_ingest(request: RAGIngestRequest) -> RAGIngestResponse:
     """
@@ -697,7 +828,10 @@ async def root() -> dict:
             "POST /panchanga": "Calculate 5-limb Panchanga (JSON body); ?format=json|table",
             "GET /yogas": "Detect Vedic Yogas (query params); ?format=json|table|markdown",
             "POST /yogas": "Detect Vedic Yogas (JSON body); ?format=json|table|markdown",
-            "POST /transits": "Calculate Gochar transits against a natal chart (JSON body)",
+            "POST /transits": "Calculate Gochar transits against a natal chart with Ashtakavarga Kakshas (JSON body)",
+            "POST /match/compatibility": "Calculate 36-point Ashtakoota and Kuja Dosha relationship matching (JSON body)",
+            "POST /muhurtha": "Calculate Vedic Muhurtha, Horas, Choghadiyas, and Siddhi Yogas (JSON body)",
+            "GET /muhurtha": "Calculate Vedic Muhurtha (query params)",
             "POST /rag/ingest": "Ingest a corpus directory into a searchable index",
             "POST /rag/ask": "Answer a consultation question with cited corpus references",
             "GET /health": "Health check",

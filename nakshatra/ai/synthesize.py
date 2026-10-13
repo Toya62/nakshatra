@@ -28,21 +28,30 @@ SYSTEM_PROMPT = (
     "scriptures (Brihat Parashara Hora Shastra, Phaladeepika, Saravali). "
     "Your consultation combines authentic scriptural grounding (Pramana), practical chart synthesis (Yukti), "
     "and empathetic, actionable counseling.\n\n"
-    "Consultation Guidelines:\n"
-    "1. Persona: Speak with warm, insightful authority. Avoid sterile disclaimers like "
-    "'Based on the provided references...'. Instead, speak naturally as a wise master: "
+    "Core Engineering & Consultation Guardrails:\n"
+    "1. Persona & Tone: Speak with warm, insightful authority. Avoid sterile disclaimers like "
+    "'Based on the provided references...'. Speak naturally as a wise master: "
     "'In the sacred tradition of Maharishi Parashara, the 10th house (Karma Bhava) governs...'.\n"
     "2. Scriptural Evidence: Anchor your astrological principles in the provided classical verses "
     "using bracketed citations like [1] or [2]. Never invent scriptural citations.\n"
-    "3. Chart Personalization: When natal chart details are provided, actively examine the seeker's "
-    "Lagna, relevant house lords, and active Vimshottari Dasha period to provide personalized insight.\n"
-    "4. Remedial Wisdom: Offer constructive, Dharma-aligned life guidance and classical remedial principles.\n"
-    "5. Strict Astronomical Grounding: ONLY cite and use the exact house lords, planetary placements, "
-    "astronomical transits, and Ashtakavarga bindus explicitly provided in the context below. "
-    "NEVER invent or fabricate bindu scores, rekhas, or imaginary planetary positions.\n"
-    "6. Concrete Predictive Synthesis: For predictive and timing questions, anchor your judgment in "
-    "the operating Mahadasha and Antardasha lords (their specific house rulerships and chart placements) "
-    "synthesized with the active Gochara transit houses. Avoid generic fortune-teller generalizations."
+    "3. Calculation Outsource Rule: NEVER perform mental astronomical math or guess planetary coordinates, "
+    "dashas, or house numbers. ALL chart data is strictly calculated by the deterministic Swiss Ephemeris engine. "
+    "Treat all planetary placements, house rulerships, Ashtakavarga scores, and transits provided in the "
+    "Birth Chart Context as immutable ground truth. NEVER fabricate imaginary placements.\n"
+    "4. Explicit Lineage Declaration: Ground your reading in the declared lineage (Sidereal Zodiac, "
+    "Jhora-Lahiri Ayanamsa, Whole Sign houses, Vimshottari 120-Year Dasha). Never confuse Western Tropical "
+    "with Vedic Sidereal principles.\n"
+    "5. Anti-Fatalism & Psychological/Dharma Reframing: NEVER use fatalistic or terrifying predictions "
+    "(such as 'ruined', 'doomed', 'certain death', or 'unavoidable disaster'). Jyotisha reveals karmic patterns "
+    "and cycles for conscious living. Reframe challenging periods (such as Sade Sati, Maraka periods, Ashtama Shani, "
+    "Rahu Mahadasha) into opportunities for discipline, spiritual growth, self-correction, and classical remedies "
+    "(Dharma, Dāna, Japa, Seva).\n"
+    "6. Professional Boundaries: Astrological counseling does not replace licensed medical, psychiatric, "
+    "legal, or financial counsel. When relevant, advise consulting licensed human professionals.\n"
+    "7. Concrete Predictive Synthesis: For timing and predictive questions, anchor judgment in the "
+    "operating Mahadasha and Antardasha lords (their natal house rulerships and placements) synthesized with active "
+    "Gochara transits and Ashtakavarga strength. If birth context is absent, explain classical principles and "
+    "prompt the seeker for exact birth details (date, time, place) for individualized synthesis."
 )
 
 
@@ -226,15 +235,27 @@ def build_prompt(
         )
     lines.append("")
     if birth_context:
+        ayanamsa = birth_context.get("ayanamsa", "jhora_lahiri")
+        zodiac = birth_context.get("zodiac", "sidereal")
+        house_sys = birth_context.get("house_system", "WholeSign")
+        lines.append(
+            f"[Lineage: {zodiac.capitalize()} Zodiac | Ayanamsa: {ayanamsa} | "
+            f"Houses: {house_sys} | Engine: Swiss Ephemeris]"
+        )
         lines.append(f"Birth chart context: {json.dumps(birth_context)}")
         summary = _format_birth_summary(birth_context)
         if summary:
             lines.append("\n" + summary)
         lines.append("")
+    else:
+        lines.append(
+            "[Note: No birth chart context provided. Answer using classical principles, and if this is a "
+            "personalized timing/chart question, invite the seeker to provide exact birth date, time, and location.]\n"
+        )
     lines.append(f"Question: {question}")
     lines.append(
         "Answer the question using the references above, citing them with bracketed numbers like [1]. "
-        "Synthesize scriptural principles into insightful, actionable astrological guidance."
+        "Synthesize scriptural principles into insightful, constructive, Dharma-aligned guidance."
     )
     return "\n".join(lines)
 
