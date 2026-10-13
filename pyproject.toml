@@ -19,6 +19,7 @@ dependencies = [
     "numpy>=1.24.0",
     "rank-bm25>=0.2.2",
     "python-dotenv>=0.27.0",
+    "mcp>=2.3.0",
 ]
 
 [project.optional-dependencies]
@@ -41,6 +42,7 @@ streamlit = [
 [project.scripts]
 nakshatra = "nakshatra.__main__:main"
 nakshatra-api = "nakshatra.api:app"
+nakshatra-mcp = "nakshatra.mcp_server:main"
 
 [build-system]
 requires = ["setuptools>=68.0", "wheel"]
