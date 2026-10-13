@@ -195,6 +195,8 @@ class TestLLMSynthesizer:
         assert "References:" in build_prompt("Q", [])
 
     def test_google_live_when_key_present(self):
+        if not os.environ.get("NAKSHATRA_LIVE"):
+            pytest.skip("Live test (set NAKSHATRA_LIVE=1 to run)")
         google_key = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")
         if not google_key or not _module_available("google.genai"):
             pytest.skip("No Google API key or google-genai package")

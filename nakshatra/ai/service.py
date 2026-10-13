@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import importlib.util
 import os
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Literal
 
@@ -176,3 +177,19 @@ class RAGService:
             question, results, birth_context=birth_context
         )
         return answer, results
+
+    def ask_stream(
+        self,
+        question: str,
+        index_dir: str | Path = DEFAULT_INDEX_DIR,
+        top_k: int = 5,
+        birth_context: dict | None = None,
+    ) -> tuple[Iterator[str], list[SearchResult], BaseSynthesizer]:
+        """Retrieve references and stream synthesized answer tokens."""
+        retriever = self.load(index_dir)
+        results = retriever.search(question, top_k=top_k)
+        synthesizer = self._get_synthesizer()
+        stream = synthesizer.synthesize_stream(
+            question, results, birth_context=birth_context
+        )
+        return stream, results, synthesizer

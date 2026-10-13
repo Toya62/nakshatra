@@ -7,6 +7,7 @@ or formatted text.
 
 from __future__ import annotations
 
+import json
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import datetime
@@ -14,7 +15,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import PlainTextResponse, Response
+from fastapi.responses import PlainTextResponse, Response, StreamingResponse
 from pydantic import BaseModel, Field, field_validator
 
 from nakshatra.ai.corpus import IngestResult
@@ -567,6 +568,12 @@ async def rag_ask(request: RAGAskRequest) -> RAGAskResponse:
         if request.birth is not None:
             chart = _build_chart(request.birth)
             birth_context = chart.model_dump()
+            try:
+                from nakshatra.transits import calculate_transits
+                transits = calculate_transits(chart)
+                birth_context["transits"] = transits.model_dump()
+            except Exception:
+                pass
         answer, references = _rag_service.ask(
             request.question,
             index_dir=request.index_dir,
@@ -588,6 +595,84 @@ async def rag_ask(request: RAGAskRequest) -> RAGAskResponse:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"RAG error: {str(e)}")
+
+
+@app.post("/rag/ask/stream", tags=["RAG"])
+async def rag_ask_stream(request: RAGAskRequest) -> StreamingResponse:
+    """
+    Stream consultation answer token-by-token via Server-Sent Events (SSE).
+    """
+    birth_context = None
+    if request.birth is not None:
+        chart = _build_chart(request.birth)
+        birth_context = chart.model_dump()
+        try:
+            from nakshatra.transits import calculate_transits
+            transits = calculate_transits(chart)
+            birth_context["transits"] = transits.model_dump()
+        except Exception:
+            pass
+
+    async def event_generator() -> AsyncIterator[str]:
+        try:
+            stream, references, synthesizer = _rag_service.ask_stream(
+                request.question,
+                index_dir=request.index_dir,
+                top_k=request.top_k,
+                birth_context=birth_context,
+            )
+            ref_data = [
+                {
+                    "work": r.chunk.work,
+                    "chapter": r.chunk.chapter,
+                    "verse": r.chunk.verse,
+                    "text": r.chunk.text,
+                    "score": r.score,
+                }
+                for r in references
+            ]
+            model_name = getattr(synthesizer, "model", "synthesizer")
+            init_payload = json.dumps({"type": "init", "model": model_name, "references": ref_data})
+            yield f"data: {init_payload}\n\n"
+
+            accumulated_tokens: list[str] = []
+            for token in stream:
+                accumulated_tokens.append(token)
+                token_payload = json.dumps({"type": "token", "token": token})
+                yield f"data: {token_payload}\n\n"
+
+            full_text = "".join(accumulated_tokens)
+            from nakshatra.ai.synthesize import extract_citations
+            citations = extract_citations(full_text, references)
+            citation_data = [
+                {
+                    "work": c.work,
+                    "chapter": c.chapter,
+                    "verse": c.verse,
+                    "text": c.text,
+                }
+                for c in citations
+            ]
+            final_model = getattr(synthesizer, "model", model_name)
+            done_payload = json.dumps({
+                "type": "done",
+                "citations": citation_data,
+                "model": final_model,
+            })
+            yield f"data: {done_payload}\n\n"
+        except Exception as e:
+            err_payload = json.dumps({"type": "error", "error": str(e)})
+            yield f"data: {err_payload}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @app.get("/", tags=["System"])

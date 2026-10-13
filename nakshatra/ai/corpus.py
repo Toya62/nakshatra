@@ -50,6 +50,11 @@ VERSE_HEADER_PATTERNS: list[re.Pattern[str]] = [
         r"^\s*\[?\s*(?:verse|shloka|sloka|sutra)\s*(?P<verse>\d+)\s*[:.\-–—]?\s*\]?\s*(?P<text>.*)$",
         re.IGNORECASE,
     ),
+    # "Rule 12:" / "Aphorism 12:" / "Principle 12:" (for rule-by-rule texts like Majumdar)
+    re.compile(
+        r"^\s*\[?\s*(?:rule|aphorism|principle)\s*(?P<verse>\d+)\s*[:.\-–—]?\s*\]?\s*(?P<text>.*)$",
+        re.IGNORECASE,
+    ),
     # "3.12:" decimal chapter.verse numbering (short lines only to avoid
     # false positives on decimals in prose; chapter 1-99, verse 1-999)
     re.compile(
@@ -113,7 +118,7 @@ class IngestResult(BaseModel):
 def _match_verse_header(line: str) -> re.Match[str] | None:
     """Try verse header patterns; decimal/hyphen limited to short lines."""
     for i, pattern in enumerate(VERSE_HEADER_PATTERNS):
-        if i >= 2 and len(line) > 100:
+        if i >= 3 and len(line) > 100:
             continue
         match = pattern.match(line)
         if match:
