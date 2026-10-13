@@ -185,5 +185,5 @@ demo.app.include_router(api_app.router)
 app = demo.app
 
 if __name__ == "__main__":
-    demo.launch(ssr_mode=False)
+    demo.launch(ssr_mode=False, theme=gr.themes.Default())
 
