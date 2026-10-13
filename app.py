@@ -180,9 +180,10 @@ with gr.Blocks(title="Nakshatra - Vedic Astrology AI Engine") as demo:
             """
         )
 
-# Mount Gradio onto FastAPI root
-app = gr.mount_gradio_app(api_app, demo, path="/")
+# Attach all Nakshatra FastAPI routes onto Gradio's internal FastAPI app
+demo.app.include_router(api_app.router)
+app = demo.app
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 7860))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    demo.launch()
+
