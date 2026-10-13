@@ -1,0 +1,17 @@
+.git
+.gitignore
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.mypy_cache
+.ruff_cache
+web/node_modules
+web/.next
+tests
+.agents
+.kilo
+*.log
+my_chart.json
