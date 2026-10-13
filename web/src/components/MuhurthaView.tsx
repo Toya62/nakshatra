@@ -31,11 +31,11 @@ export const MuhurthaView: React.FC<Props> = ({
   defaultTz = "Asia/Kolkata",
 }) => {
   const [input, setInput] = useState<BirthDataInput>({
-    year: new Date().getFullYear(),
-    month: new Date().getMonth() + 1,
-    day: new Date().getDate(),
-    hour: new Date().getHours(),
-    minute: new Date().getMinutes(),
+    year: 2026,
+    month: 10,
+    day: 14,
+    hour: 12,
+    minute: 0,
     second: 0,
     latitude: defaultLat,
     longitude: defaultLon,
@@ -61,8 +61,21 @@ export const MuhurthaView: React.FC<Props> = ({
   };
 
   useEffect(() => {
-    loadMuhurtha(input);
-  }, []);
+    const now = new Date();
+    const clientInput: BirthDataInput = {
+      year: now.getFullYear(),
+      month: now.getMonth() + 1,
+      day: now.getDate(),
+      hour: now.getHours(),
+      minute: now.getMinutes(),
+      second: 0,
+      latitude: defaultLat,
+      longitude: defaultLon,
+      timezone: defaultTz,
+    };
+    setInput(clientInput);
+    loadMuhurtha(clientInput);
+  }, [defaultLat, defaultLon, defaultTz]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
