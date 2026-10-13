@@ -1,3 +1,15 @@
+---
+title: Nakshatra
+emoji: 🪐
+colorFrom: indigo
+colorTo: yellow
+sdk: gradio
+sdk_version: 6.30.0
+app_file: app.py
+pinned: false
+license: mit
+---
+
 # Nakshatra - Vedic Astrology AI Engine
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
