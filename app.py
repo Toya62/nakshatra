@@ -7,6 +7,11 @@ Serves interactive Gradio Web UI while mounting full FastAPI backend:
 """
 
 import os
+import sys
+
+# Ensure local nakshatra package is resolvable
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 import uvicorn
 import gradio as gr
 
