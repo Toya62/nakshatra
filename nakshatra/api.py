@@ -11,6 +11,7 @@ import json
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import datetime
+from typing import Any
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
@@ -44,6 +45,7 @@ from nakshatra.muhurtha import (
     calculate_muhurtha,
 )
 from nakshatra.panchanga import PanchangaData, calculate_panchanga
+from nakshatra.privacy import PrivacyMiddleware, get_privacy_statement
 from nakshatra.transits import TransitReport, calculate_transits
 from nakshatra.yogas import (
     YogaResult,
@@ -269,8 +271,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(PrivacyMiddleware)
 
 _rag_service = RAGService()
+
+
+@app.get("/privacy", tags=["System"])
+async def privacy_policy() -> dict[str, Any]:
+    """Return explicit GDPR data handling and zero-log guarantee."""
+    return get_privacy_statement()
 
 
 def _format_chart(chart: ChartData, fmt: str) -> Response:
@@ -339,7 +348,6 @@ async def geocode_timezone(
         return resolve_timezone_offset(tz, year, month, day, hour, minute)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid timezone or date: {str(e)}")
-
 
 
 @app.post("/chart", response_model=ChartResponse, tags=["Chart"])
