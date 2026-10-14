@@ -13,6 +13,11 @@ export interface BirthDataInput {
   house_system?: string;
 }
 
+export function getBirthKey(b?: BirthDataInput | null): string {
+  if (!b) return "no-chart";
+  return `${b.year}-${b.month}-${b.day}_${b.hour}:${b.minute}:${b.second ?? 0}_${Number(b.latitude).toFixed(4)},${Number(b.longitude).toFixed(4)}_${b.timezone || ""}_${b.ayanamsa || "jhora_lahiri"}_${b.house_system || "WholeSign"}`;
+}
+
 export interface PlanetPosition {
   name: string;
   longitude: number;
@@ -343,5 +348,67 @@ export interface DevanagariNomenclature {
   planets: Record<string, string>;
   signs: Record<string, string>;
   nakshatras: string[];
+}
+
+export interface DomainPrediction {
+  domain: "career" | "relationship" | "wealth" | "spiritual_dharma" | "health";
+  promise_tier: "Exceptional" | "Favorable" | "Mixed" | "Challenging" | "Obstructed";
+  primary_houses: number[];
+  primary_lords: string[];
+  karakas: string[];
+  promise_summary: string;
+  varga_confirmation: string;
+  dasha_timing: string;
+  active_transits: string[];
+  active_yogas: string[];
+  classical_citations: string[];
+  remedies: string[];
+  key_verdict: string;
+  score: number;
+}
+
+export interface ParashariRemedy {
+  deity: string;
+  beej_mantra: string;
+  mantra_count: string;
+  gemstone: string;
+  substitute_gem: string;
+  metal: string;
+  gem_finger: string;
+  gem_caution: string;
+  charity_items: string[];
+  charity_day: string;
+  fasting_day: string;
+  spiritual_practice: string;
+}
+
+export interface LalKitabUpaya {
+  household_remedy: string;
+  symbolic_action: string;
+  forbidden_actions: string[];
+  creature_service: string;
+  duration_days: number;
+}
+
+export interface PlanetRemedy {
+  planet: string;
+  house: number;
+  sign: string;
+  dignity: string;
+  affliction_reasons: string[];
+  severity: "High" | "Moderate" | "Mild";
+  parashari: ParashariRemedy;
+  lal_kitab: LalKitabUpaya;
+}
+
+export interface RemediesReport {
+  natal_lagna: string;
+  natal_moon: string;
+  active_dasha: string;
+  sade_sati_status: string;
+  total_afflictions: number;
+  afflicted_planets: PlanetRemedy[];
+  general_guidelines: string[];
+  lal_kitab_precautions: string[];
 }
 

@@ -1,104 +1,128 @@
 "use client";
 
 import React from "react";
-import { Sparkles, Moon, Compass, Clock, BookOpen, Activity, Heart, Sun } from "lucide-react";
+import { Activity, Menu, X } from "lucide-react";
 
-export type TabId = "chart" | "transits" | "dasha" | "panchanga" | "compatibility" | "muhurtha" | "consult";
+// Re-export TabId from Sidebar so existing imports still work
+export type { TabId } from "@/components/Sidebar";
 
 interface Props {
-  activeTab: TabId;
-  onTabChange: (tab: TabId) => void;
   apiStatus: "connected" | "offline" | "checking";
+  mobileMenuOpen: boolean;
+  onToggleMobile: () => void;
 }
 
-export const Navbar: React.FC<Props> = ({ activeTab, onTabChange, apiStatus }) => {
-  const tabs = [
-    { id: "chart" as TabId, label: "Birth Chart", icon: Sparkles },
-    { id: "transits" as TabId, label: "Transits (Gochar)", icon: Compass },
-    { id: "dasha" as TabId, label: "Vimshottari Dasha", icon: Clock },
-    { id: "panchanga" as TabId, label: "Daily Panchanga", icon: Moon },
-    { id: "compatibility" as TabId, label: "Kundali Matching", icon: Heart },
-    { id: "muhurtha" as TabId, label: "Muhurtha & Horas", icon: Sun },
-    { id: "consult" as TabId, label: "AI Consultation", icon: BookOpen },
-  ];
-
+export const Navbar: React.FC<Props> = ({
+  apiStatus,
+  mobileMenuOpen,
+  onToggleMobile,
+}) => {
   return (
     <header
+      className="app-header"
       style={{
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: "16px 28px",
-        background: "rgba(10, 13, 24, 0.8)",
-        backdropFilter: "blur(18px)",
-        borderBottom: "1px solid rgba(229, 185, 76, 0.18)",
+        padding: "0 var(--space-6)",
+        background: "var(--bg-base)",
+        borderBottom: "1px solid var(--border-subtle)",
         position: "sticky",
         top: 0,
-        zIndex: 50,
+        zIndex: 100,
+        backdropFilter: "blur(18px)",
+        WebkitBackdropFilter: "blur(18px)",
+        gap: "var(--space-3)",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+      {/* Left — hamburger (mobile) + wordmark */}
+      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+        {/* Hamburger — visible only on mobile via CSS */}
+        <button
+          onClick={onToggleMobile}
+          aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"}
+          aria-expanded={mobileMenuOpen}
+          aria-controls="app-sidebar"
+          style={{
+            background: "transparent",
+            border: "none",
+            color: "var(--text-mid)",
+            cursor: "pointer",
+            padding: "6px",
+            borderRadius: "var(--radius-sm)",
+            display: "none", /* shown via media query below */
+          }}
+          className="hamburger-btn"
+        >
+          {mobileMenuOpen
+            ? <X size={20} aria-hidden="true" />
+            : <Menu size={20} aria-hidden="true" />}
+        </button>
+
+        {/* Logo mark */}
         <div
           style={{
-            width: "36px",
-            height: "36px",
-            borderRadius: "10px",
-            background: "linear-gradient(135deg, #e5b94c 0%, #a855f7 100%)",
+            width: "32px",
+            height: "32px",
+            borderRadius: "9px",
+            background: "linear-gradient(135deg, #e5b94c 0%, #7c3aed 100%)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            boxShadow: "0 0 15px rgba(229, 185, 76, 0.4)",
+            flexShrink: 0,
+            boxShadow: "var(--gold-glow)",
           }}
+          aria-hidden="true"
         >
-          <Sparkles size={20} color="#07090e" />
+          {/* Nakshatra glyph — ✦ */}
+          <span
+            style={{
+              color: "#fff",
+              fontSize: "14px",
+              fontWeight: 700,
+              lineHeight: 1,
+              fontFamily: "var(--font-serif)",
+            }}
+          >
+            ✦
+          </span>
         </div>
+
         <div>
-          <h1 className="title-serif gold-gradient-text" style={{ fontSize: "1.3rem", fontWeight: "800", lineHeight: 1.1 }}>
+          <h1
+            className="serif-display gold-gradient-text"
+            style={{ fontSize: "1.2rem", fontWeight: 700, lineHeight: 1, letterSpacing: "0.1em" }}
+          >
             NAKSHATRA
           </h1>
-          <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", letterSpacing: "0.08em" }}>
-            VEDIC ASTROLOGY AI ENGINE
+          <p
+            style={{
+              fontSize: "var(--type-micro)",
+              color: "var(--text-low)",
+              letterSpacing: "0.09em",
+              marginTop: "2px",
+            }}
+          >
+            VEDIC ASTROLOGY ENGINE
           </p>
         </div>
       </div>
 
-      <nav style={{ display: "flex", gap: "6px" }}>
-        {tabs.map((t) => {
-          const Icon = t.icon;
-          const isActive = activeTab === t.id;
-          return (
-            <button
-              key={t.id}
-              onClick={() => onTabChange(t.id)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "8px 16px",
-                borderRadius: "10px",
-                border: isActive ? "1px solid rgba(229, 185, 76, 0.5)" : "1px solid transparent",
-                background: isActive ? "rgba(229, 185, 76, 0.12)" : "transparent",
-                color: isActive ? "#fbe285" : "var(--text-muted)",
-                cursor: "pointer",
-                fontWeight: isActive ? 600 : 500,
-                fontSize: "0.88rem",
-                transition: "all 0.2s ease",
-              }}
-            >
-              <Icon size={16} color={isActive ? "#e5b94c" : "currentColor"} />
-              {t.label}
-            </button>
-          );
-        })}
-      </nav>
-
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+      {/* Right — API status */}
+      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
         <div
-          className={`badge ${apiStatus === "connected" ? "badge-emerald" : apiStatus === "checking" ? "badge-cyan" : "badge-rose"}`}
-          style={{ gap: "6px" }}
+          className={`badge ${
+            apiStatus === "connected"
+              ? "badge-emerald"
+              : apiStatus === "checking"
+              ? "badge-cyan"
+              : "badge-rose"
+          }`}
+          style={{ gap: "5px", fontSize: "var(--type-micro)" }}
+          title={`Backend API: ${apiStatus}`}
         >
-          <Activity size={12} />
-          <span>API: {apiStatus}</span>
+          <Activity size={11} aria-hidden="true" />
+          <span>{apiStatus === "checking" ? "connecting…" : apiStatus}</span>
         </div>
       </div>
     </header>

@@ -3,10 +3,102 @@
 import React, { useState, useEffect } from "react";
 import { BirthDataInput, YogaResult } from "@/lib/types";
 import { fetchYogas } from "@/lib/api";
-import { Award } from "lucide-react";
+import { Award, ChevronDown, ChevronUp } from "lucide-react";
 
 interface Props {
   birth: BirthDataInput;
+}
+
+function YogaCard({ yoga }: { yoga: YogaResult }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div
+      style={{
+        background: "rgba(0,0,0,0.2)",
+        border: "1px solid var(--border-card)",
+        borderRadius: "var(--radius-md)",
+        overflow: "hidden",
+        transition: "border-color 0.18s",
+      }}
+    >
+      {/* Accordion trigger */}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "var(--space-3) var(--space-4)",
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+          gap: "var(--space-3)",
+          textAlign: "left",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", minWidth: 0 }}>
+          <span
+            style={{
+              fontWeight: 700,
+              fontSize: "var(--type-body)",
+              color: "var(--gold-bright)",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {yoga.name}
+          </span>
+          <span className="badge badge-cyan" style={{ fontSize: "var(--type-micro)", flexShrink: 0 }}>
+            {yoga.category}
+          </span>
+        </div>
+        {open
+          ? <ChevronUp size={14} color="var(--text-low)" aria-hidden="true" />
+          : <ChevronDown size={14} color="var(--text-low)" aria-hidden="true" />}
+      </button>
+
+      {/* Expanded body */}
+      {open && (
+        <div
+          style={{
+            padding: "0 var(--space-4) var(--space-4)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-2)",
+          }}
+        >
+          <p
+            style={{
+              fontSize: "var(--type-label)",
+              color: "var(--text-mid)",
+              lineHeight: 1.55,
+            }}
+          >
+            {yoga.description}
+          </p>
+
+          {(yoga.planets_involved.length > 0 || yoga.houses_involved.length > 0) && (
+            <div style={{ display: "flex", gap: "var(--space-1)", flexWrap: "wrap", paddingTop: "var(--space-1)" }}>
+              {yoga.planets_involved.map((p, i) => (
+                <span key={`p-${i}`} className="badge badge-gold" style={{ fontSize: "var(--type-micro)" }}>
+                  {p}
+                </span>
+              ))}
+              {yoga.houses_involved.map((h, i) => (
+                <span key={`h-${i}`} className="badge badge-emerald" style={{ fontSize: "var(--type-micro)" }}>
+                  H{h}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export const YogasView: React.FC<Props> = ({ birth }) => {
@@ -18,97 +110,61 @@ export const YogasView: React.FC<Props> = ({ birth }) => {
     let cancelled = false;
     setLoading(true);
     fetchYogas(birth)
-      .then((data) => {
-        if (!cancelled) setYogas(data);
-      })
-      .catch((e: unknown) => {
-        if (!cancelled) setError((e as Error).message);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
+      .then((data) => { if (!cancelled) setYogas(data); })
+      .catch((e: unknown) => { if (!cancelled) setError((e as Error).message); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [birth]);
 
-  if (loading) {
-    return (
-      <div className="glass-panel" style={{ padding: "30px", textAlign: "center", color: "var(--accent-gold)" }}>
-        Scanning classical Parashara Yogas...
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="glass-panel" style={{ padding: "20px", color: "var(--accent-rose)" }}>
-        Could not load yogas: {error}
-      </div>
-    );
-  }
-
-  if (yogas.length === 0) {
-    return (
-      <div className="glass-panel" style={{ padding: "30px", textAlign: "center", color: "var(--text-muted)" }}>
-        No major classical yogas detected in this chart.
-      </div>
-    );
-  }
-
   return (
-    <div className="glass-panel" style={{ padding: "20px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-        <h4 className="title-serif gold-gradient-text" style={{ fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "8px" }}>
-          <Award size={18} color="#e5b94c" />
-          Detected Classical Yogas ({yogas.length})
+    <div className="card" style={{ padding: "var(--space-5)" }}>
+      {/* Header */}
+      <div className="section-header">
+        <h4 className="section-title" style={{ fontSize: "var(--type-heading)" }}>
+          <Award size={15} color="var(--gold-vivid)" aria-hidden="true" />
+          Classical Yogas
+          {!loading && yogas.length > 0 && (
+            <span className="badge badge-gold" style={{ fontSize: "var(--type-micro)", marginLeft: "var(--space-2)" }}>
+              {yogas.length} found
+            </span>
+          )}
         </h4>
-        <span className="badge badge-gold">Parashara Rules Engine</span>
+        <span className="badge badge-cyan" style={{ fontSize: "var(--type-micro)" }}>
+          Parashara Engine
+        </span>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "14px" }}>
-        {yogas.map((y, idx) => (
-          <div
-            key={idx}
-            style={{
-              background: "rgba(0,0,0,0.25)",
-              border: "1px solid rgba(229, 185, 76, 0.2)",
-              borderRadius: "10px",
-              padding: "16px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "8px",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <h5 style={{ fontSize: "1.02rem", fontWeight: 700, color: "#fbe285" }}>
-                {y.name}
-              </h5>
-              <span className="badge badge-cyan" style={{ fontSize: "0.7rem" }}>
-                {y.category}
-              </span>
-            </div>
+      {/* Loading skeleton */}
+      {loading && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="skeleton" style={{ height: "44px", borderRadius: "var(--radius-md)" }} />
+          ))}
+        </div>
+      )}
 
-            <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", lineHeight: 1.45 }}>
-              {y.description}
-            </p>
+      {/* Error */}
+      {!loading && error && (
+        <p style={{ fontSize: "var(--type-label)", color: "var(--rose)" }}>
+          Could not load yogas: {error}
+        </p>
+      )}
 
-            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "auto", paddingTop: "8px" }}>
-              {y.planets_involved.map((p, pIdx) => (
-                <span key={`${p}-${pIdx}`} className="badge badge-gold" style={{ fontSize: "0.68rem" }}>
-                  {p}
-                </span>
-              ))}
-              {y.houses_involved.map((h, hIdx) => (
-                <span key={`${h}-${hIdx}`} className="badge badge-emerald" style={{ fontSize: "0.68rem" }}>
-                  H{h}
-                </span>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* Empty */}
+      {!loading && !error && yogas.length === 0 && (
+        <p style={{ fontSize: "var(--type-label)", color: "var(--text-low)", textAlign: "center", padding: "var(--space-6) 0" }}>
+          No major classical yogas detected in this chart.
+        </p>
+      )}
+
+      {/* Yoga list — accordion */}
+      {!loading && !error && yogas.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+          {yogas.map((y, idx) => (
+            <YogaCard key={`${y.name}-${idx}`} yoga={y} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

@@ -93,7 +93,7 @@ Recommendation: ${report.recommendation}
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
       {/* Header Banner */}
-      <div className="glass-panel" style={{ padding: "24px 28px" }}>
+      <div className="card" style={{ padding: "24px 28px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
           <div
             style={{
@@ -123,7 +123,7 @@ Recommendation: ${report.recommendation}
       <form onSubmit={handleCalculate} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))", gap: "20px" }}>
           {/* Bride Card */}
-          <div className="glass-panel" style={{ padding: "20px" }}>
+          <div className="card" style={{ padding: "20px" }}>
             <h3 style={{ fontSize: "1.05rem", color: "#ec4899", fontWeight: 700, marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
               <span>Bride&apos;s Profile (Kanya)</span>
             </h3>
@@ -255,7 +255,7 @@ Recommendation: ${report.recommendation}
           </div>
 
           {/* Groom Card */}
-          <div className="glass-panel" style={{ padding: "20px" }}>
+          <div className="card" style={{ padding: "20px" }}>
             <h3 style={{ fontSize: "1.05rem", color: "#38bdf8", fontWeight: 700, marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
               <span>Groom&apos;s Profile (Vara)</span>
             </h3>
@@ -411,7 +411,7 @@ Recommendation: ${report.recommendation}
       </form>
 
       {error && (
-        <div className="glass-panel" style={{ padding: "16px", color: "var(--accent-rose)", borderColor: "var(--accent-rose)" }}>
+        <div className="card" style={{ padding: "16px", color: "var(--accent-rose)", borderColor: "var(--accent-rose)" }}>
           {error}
         </div>
       )}
@@ -421,7 +421,7 @@ Recommendation: ${report.recommendation}
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           {/* Main Score Banner */}
           <div
-            className="glass-panel"
+            className="card"
             style={{
               padding: "24px 28px",
               display: "flex",
@@ -497,7 +497,7 @@ Recommendation: ${report.recommendation}
 
           {/* Couple Moon Sign / Nakshatra Cards */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px" }}>
-            <div className="glass-panel" style={{ padding: "18px" }}>
+            <div className="card" style={{ padding: "18px" }}>
               <h4 style={{ color: "#ec4899", fontSize: "0.95rem", fontWeight: 700, marginBottom: "8px" }}>
                 {report.bride_name} (Bride)
               </h4>
@@ -506,7 +506,7 @@ Recommendation: ${report.recommendation}
               </p>
             </div>
 
-            <div className="glass-panel" style={{ padding: "18px" }}>
+            <div className="card" style={{ padding: "18px" }}>
               <h4 style={{ color: "#38bdf8", fontSize: "0.95rem", fontWeight: 700, marginBottom: "8px" }}>
                 {report.groom_name} (Groom)
               </h4>
@@ -517,7 +517,7 @@ Recommendation: ${report.recommendation}
           </div>
 
           {/* 8 Ashtakoota Breakdown Table */}
-          <div className="glass-panel" style={{ padding: "20px" }}>
+          <div className="card" style={{ padding: "20px" }}>
             <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "16px", color: "var(--text-bright)" }}>
               Ashtakoota Factor Breakdown (8 Pillars)
             </h3>
@@ -578,7 +578,7 @@ Recommendation: ${report.recommendation}
           </div>
 
           {/* Kuja Dosha (Manglik) Analysis */}
-          <div className="glass-panel" style={{ padding: "22px" }}>
+          <div className="card" style={{ padding: "22px" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
               <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-bright)", display: "flex", alignItems: "center", gap: "8px" }}>
                 <ShieldCheck size={18} color="#e5b94c" />
@@ -625,7 +625,7 @@ Recommendation: ${report.recommendation}
           </div>
 
           {/* Extended Kutas (Collapsible) */}
-          <div className="glass-panel" style={{ padding: "18px" }}>
+          <div className="card" style={{ padding: "18px" }}>
             <button
               onClick={() => setShowExtended(!showExtended)}
               style={{
@@ -679,7 +679,7 @@ Recommendation: ${report.recommendation}
 
           {/* Final Verdict Banner */}
           <div
-            className="glass-panel"
+            className="card"
             style={{
               padding: "20px 24px",
               background: "rgba(229,185,76,0.05)",

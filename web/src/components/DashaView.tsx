@@ -3,23 +3,29 @@
 import React, { useState } from "react";
 import { VimshottariData, BirthDataInput, ChartData } from "@/lib/types";
 import { TimelineView } from "@/components/TimelineView";
+import { EmptyState } from "@/components/EmptyState";
 import { Clock, ChevronDown, ChevronRight, Activity, Calendar } from "lucide-react";
 
 interface Props {
   dashas?: VimshottariData;
   birth?: BirthDataInput;
   chart?: ChartData | null;
+  onNavigateToChart?: () => void;
 }
 
-export const DashaView: React.FC<Props> = ({ dashas, birth, chart }) => {
+export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToChart }) => {
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
   const [activeMode, setActiveMode] = useState<"timeline" | "cards">("timeline");
 
   if (!dashas) {
     return (
-      <div className="glass-panel" style={{ padding: "40px", textAlign: "center", color: "var(--text-muted)" }}>
-        No Dasha information available. Calculate chart first.
-      </div>
+      <EmptyState
+        icon={Clock}
+        title="Vimshottari Dasha Timeline"
+        description="Calculate your birth chart to unlock your personalized 120-year planetary dasha periods, current Mahadasha, Antardasha, and sub-cycle progression."
+        actionLabel={onNavigateToChart ? "Go to Birth Chart" : undefined}
+        onAction={onNavigateToChart}
+      />
     );
   }
 
@@ -41,41 +47,25 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart }) => {
   const pdProgress = dashas.current_pd ? computeProgress(dashas.current_pd.start, dashas.current_pd.end) : 0;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
       {/* Top View Selector Bar */}
       {birth && (
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--space-2)" }}>
           <button
             onClick={() => setActiveMode("timeline")}
-            className={`badge ${activeMode === "timeline" ? "badge-gold" : "badge-cyan"}`}
-            style={{
-              cursor: "pointer",
-              padding: "7px 16px",
-              fontSize: "0.85rem",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              background: activeMode === "timeline" ? "rgba(229,185,76,0.3)" : "rgba(255,255,255,0.05)",
-            }}
+            className={`chip${activeMode === "timeline" ? " active" : ""}`}
+            aria-pressed={activeMode === "timeline"}
           >
-            <Calendar size={15} />
-            Visual 120-Yr Timeline & BS Calendar
+            <Calendar size={14} aria-hidden="true" />
+            Visual 120-Yr Timeline &amp; BS Calendar
           </button>
           <button
             onClick={() => setActiveMode("cards")}
-            className={`badge ${activeMode === "cards" ? "badge-gold" : "badge-cyan"}`}
-            style={{
-              cursor: "pointer",
-              padding: "7px 16px",
-              fontSize: "0.85rem",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              background: activeMode === "cards" ? "rgba(229,185,76,0.3)" : "rgba(255,255,255,0.05)",
-            }}
+            className={`chip${activeMode === "cards" ? " active" : ""}`}
+            aria-pressed={activeMode === "cards"}
           >
-            <Activity size={15} />
-            Classical Progress & Tree View
+            <Activity size={14} aria-hidden="true" />
+            Classical Progress &amp; Tree View
           </button>
         </div>
       )}
@@ -89,19 +79,19 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart }) => {
       {(!birth || activeMode === "cards") && (
         <>
           {/* Header Overview Card */}
-          <div className="glass-panel" style={{ padding: "20px 24px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+          <div className="card" style={{ padding: "var(--space-5)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-4)", flexWrap: "wrap", gap: "var(--space-2)" }}>
               <div>
-                <h3 className="title-serif gold-gradient-text" style={{ fontSize: "1.2rem", display: "flex", alignItems: "center", gap: "8px" }}>
-                  <Clock size={20} color="#e5b94c" />
+                <h3 style={{ fontSize: "var(--type-heading)", fontWeight: 700, display: "flex", alignItems: "center", gap: "var(--space-2)", color: "var(--text-high)" }}>
+                  <Clock size={18} color="var(--gold-vivid)" aria-hidden="true" />
                   Vimshottari Dasha Engine (120-Year Cycle)
                 </h3>
-                <p style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>
+                <p style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", marginTop: "2px" }}>
                   Sub-second astronomical precision calibrated against natal Moon
                 </p>
               </div>
 
-              <div style={{ display: "flex", gap: "10px" }}>
+              <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
                 <span className="badge badge-gold">
                   Birth: {dashas.birth_nakshatra} ({dashas.birth_nakshatra_lord})
                 </span>
@@ -112,21 +102,21 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart }) => {
             </div>
 
             {/* Current Periods Progress Grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "16px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "var(--space-4)" }}>
               {/* MD */}
               {dashas.current_md && (
-                <div style={{ background: "rgba(0,0,0,0.25)", padding: "16px", borderRadius: "10px", border: "1px solid rgba(229,185,76,0.2)" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-                    <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", letterSpacing: "0.05em" }}>MAHADASHA (MD)</span>
-                    <span style={{ fontSize: "0.8rem", color: "#fbe285", fontWeight: 700 }}>{mdProgress.toFixed(1)}%</span>
+                <div style={{ background: "rgba(0,0,0,0.3)", padding: "var(--space-4)", borderRadius: "var(--radius-sm)", border: "1px solid var(--gold-border)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--space-1)" }}>
+                    <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", letterSpacing: "0.05em" }}>MAHADASHA (MD)</span>
+                    <span style={{ fontSize: "var(--type-label)", color: "var(--gold-bright)", fontWeight: 700 }}>{mdProgress.toFixed(1)}%</span>
                   </div>
-                  <h4 style={{ fontSize: "1.2rem", fontWeight: 700, color: "#fbe285", marginBottom: "8px" }}>
+                  <h4 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--gold-bright)", marginBottom: "var(--space-2)" }}>
                     {dashas.current_md.lord}
                   </h4>
-                  <div style={{ width: "100%", height: "6px", background: "rgba(255,255,255,0.1)", borderRadius: "3px", overflow: "hidden", marginBottom: "8px" }}>
+                  <div style={{ width: "100%", height: "6px", background: "rgba(255,255,255,0.1)", borderRadius: "3px", overflow: "hidden", marginBottom: "var(--space-2)" }}>
                     <div style={{ width: `${mdProgress}%`, height: "100%", background: "linear-gradient(90deg, #e5b94c, #fbe285)" }} />
                   </div>
-                  <p style={{ fontSize: "0.75rem", color: "var(--text-dim)", fontFamily: "var(--font-mono)" }}>
+                  <p style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", fontFamily: "var(--font-mono)" }}>
                     {dashas.current_md.start.slice(0, 10)} → {dashas.current_md.end.slice(0, 10)}
                   </p>
                 </div>
@@ -134,18 +124,18 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart }) => {
 
               {/* AD */}
               {dashas.current_ad && (
-                <div style={{ background: "rgba(0,0,0,0.25)", padding: "16px", borderRadius: "10px", border: "1px solid rgba(56,189,248,0.2)" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-                    <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", letterSpacing: "0.05em" }}>ANTARDASHA (AD)</span>
-                    <span style={{ fontSize: "0.8rem", color: "#7dd3fc", fontWeight: 700 }}>{adProgress.toFixed(1)}%</span>
+                <div style={{ background: "rgba(0,0,0,0.3)", padding: "var(--space-4)", borderRadius: "var(--radius-sm)", border: "1px solid rgba(56,189,248,0.25)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--space-1)" }}>
+                    <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", letterSpacing: "0.05em" }}>ANTARDASHA (AD)</span>
+                    <span style={{ fontSize: "var(--type-label)", color: "var(--cyan-vivid)", fontWeight: 700 }}>{adProgress.toFixed(1)}%</span>
                   </div>
-                  <h4 style={{ fontSize: "1.2rem", fontWeight: 700, color: "#7dd3fc", marginBottom: "8px" }}>
+                  <h4 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--cyan-vivid)", marginBottom: "var(--space-2)" }}>
                     {dashas.current_ad.lord}
                   </h4>
-                  <div style={{ width: "100%", height: "6px", background: "rgba(255,255,255,0.1)", borderRadius: "3px", overflow: "hidden", marginBottom: "8px" }}>
+                  <div style={{ width: "100%", height: "6px", background: "rgba(255,255,255,0.1)", borderRadius: "3px", overflow: "hidden", marginBottom: "var(--space-2)" }}>
                     <div style={{ width: `${adProgress}%`, height: "100%", background: "linear-gradient(90deg, #0284c7, #38bdf8)" }} />
                   </div>
-                  <p style={{ fontSize: "0.75rem", color: "var(--text-dim)", fontFamily: "var(--font-mono)" }}>
+                  <p style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", fontFamily: "var(--font-mono)" }}>
                     {dashas.current_ad.start.slice(0, 10)} → {dashas.current_ad.end.slice(0, 10)}
                   </p>
                 </div>
@@ -153,18 +143,18 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart }) => {
 
               {/* PD */}
               {dashas.current_pd && (
-                <div style={{ background: "rgba(0,0,0,0.25)", padding: "16px", borderRadius: "10px", border: "1px solid rgba(168,85,247,0.2)" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-                    <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", letterSpacing: "0.05em" }}>PRATYANTARDASHA (PD)</span>
-                    <span style={{ fontSize: "0.8rem", color: "#c084fc", fontWeight: 700 }}>{pdProgress.toFixed(1)}%</span>
+                <div style={{ background: "rgba(0,0,0,0.3)", padding: "var(--space-4)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--space-1)" }}>
+                    <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", letterSpacing: "0.05em" }}>PRATYANTARDASHA (PD)</span>
+                    <span style={{ fontSize: "var(--type-label)", color: "var(--text-high)", fontWeight: 700 }}>{pdProgress.toFixed(1)}%</span>
                   </div>
-                  <h4 style={{ fontSize: "1.2rem", fontWeight: 700, color: "#c084fc", marginBottom: "8px" }}>
+                  <h4 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--text-high)", marginBottom: "var(--space-2)" }}>
                     {dashas.current_pd.lord}
                   </h4>
-                  <div style={{ width: "100%", height: "6px", background: "rgba(255,255,255,0.1)", borderRadius: "3px", overflow: "hidden", marginBottom: "8px" }}>
-                    <div style={{ width: `${pdProgress}%`, height: "100%", background: "linear-gradient(90deg, #7e22ce, #a855f7)" }} />
+                  <div style={{ width: "100%", height: "6px", background: "rgba(255,255,255,0.1)", borderRadius: "3px", overflow: "hidden", marginBottom: "var(--space-2)" }}>
+                    <div style={{ width: `${pdProgress}%`, height: "100%", background: "var(--gold-vivid)" }} />
                   </div>
-                  <p style={{ fontSize: "0.75rem", color: "var(--text-dim)", fontFamily: "var(--font-mono)" }}>
+                  <p style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", fontFamily: "var(--font-mono)" }}>
                     {dashas.current_pd.start.slice(0, 10)} → {dashas.current_pd.end.slice(0, 10)}
                   </p>
                 </div>
@@ -173,12 +163,12 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart }) => {
           </div>
 
           {/* Mahadasha Timeline Accordion */}
-          <div className="glass-panel" style={{ padding: "20px" }}>
-            <h4 className="title-serif gold-gradient-text" style={{ fontSize: "1.05rem", marginBottom: "14px" }}>
+          <div className="card" style={{ padding: "var(--space-5)" }}>
+            <h4 style={{ fontSize: "var(--type-heading)", fontWeight: 700, marginBottom: "var(--space-3)", color: "var(--text-high)" }}>
               Lifelong Mahadasha Timeline Tree
             </h4>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
               {dashas.mahadashas.map((md, idx) => {
                 const itemKey = `${md.lord}-${md.start}-${idx}`;
                 const isCurrent = dashas.current_md?.lord === md.lord;
@@ -188,49 +178,58 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart }) => {
                   <div
                     key={itemKey}
                     style={{
-                      background: isCurrent ? "rgba(229,185,76,0.08)" : "rgba(255,255,255,0.02)",
-                      border: isCurrent ? "1px solid rgba(229,185,76,0.3)" : "1px solid rgba(255,255,255,0.06)",
-                      borderRadius: "8px",
+                      background: isCurrent ? "var(--gold-dim)" : "rgba(255,255,255,0.02)",
+                      border: isCurrent ? "1px solid var(--gold-border)" : "1px solid var(--border-subtle)",
+                      borderRadius: "var(--radius-sm)",
                       overflow: "hidden",
                     }}
                   >
                     <div
                       onClick={() => setExpandedKey(isExpanded ? null : itemKey)}
                       style={{
-                        padding: "12px 16px",
+                        padding: "var(--space-3) var(--space-4)",
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
                         cursor: "pointer",
                       }}
+                      role="button"
+                      aria-expanded={isExpanded}
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setExpandedKey(isExpanded ? null : itemKey);
+                        }
+                      }}
                     >
-                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                        {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                        <span style={{ fontWeight: 600, color: isCurrent ? "#fbe285" : "#f1f5f9" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+                        {isExpanded ? <ChevronDown size={15} aria-hidden="true" /> : <ChevronRight size={15} aria-hidden="true" />}
+                        <span style={{ fontWeight: 600, color: isCurrent ? "var(--gold-bright)" : "var(--text-high)" }}>
                           {md.lord} Mahadasha
                         </span>
-                        {isCurrent && <span className="badge badge-gold" style={{ fontSize: "0.7rem" }}>Active Now</span>}
+                        {isCurrent && <span className="badge badge-gold">Active Now</span>}
                       </div>
 
-                      <span style={{ fontSize: "0.82rem", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
+                      <span style={{ fontSize: "var(--type-label)", color: "var(--text-mid)", fontFamily: "var(--font-mono)" }}>
                         {md.start.slice(0, 10)} → {md.end.slice(0, 10)} ({md.duration_years ? `${md.duration_years.toFixed(1)} yrs` : ""})
                       </span>
                     </div>
 
                     {isExpanded && md.subs && (
-                      <div style={{ padding: "0 16px 14px 42px", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "8px" }}>
+                      <div style={{ padding: "0 var(--space-4) var(--space-3) var(--space-6)", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "var(--space-2)" }}>
                         {md.subs.map((ad, adIdx) => (
                           <div
                             key={`${ad.lord}-${ad.start}-${adIdx}`}
                             style={{
-                              background: "rgba(0,0,0,0.3)",
-                              padding: "8px 12px",
-                              borderRadius: "6px",
-                              border: "1px solid rgba(255,255,255,0.04)",
+                              background: "rgba(0,0,0,0.35)",
+                              padding: "var(--space-2) var(--space-3)",
+                              borderRadius: "var(--radius-sm)",
+                              border: "1px solid var(--border-subtle)",
                             }}
                           >
-                            <div style={{ fontWeight: 600, fontSize: "0.85rem", color: "#38bdf8" }}>{ad.lord}</div>
-                            <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", fontFamily: "var(--font-mono)" }}>
+                            <div style={{ fontWeight: 600, fontSize: "var(--type-label)", color: "var(--cyan-vivid)" }}>{ad.lord}</div>
+                            <div style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", fontFamily: "var(--font-mono)" }}>
                               {ad.start.slice(0, 10)} → {ad.end.slice(0, 10)}
                             </div>
                           </div>

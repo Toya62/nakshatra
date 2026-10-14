@@ -19,7 +19,9 @@ const GRAHA_COLORS: Record<string, { bg: string; border: string; text: string }>
   Venus: { bg: "rgba(236, 72, 153, 0.25)", border: "#ec4899", text: "#f472b6" },
   Saturn: { bg: "rgba(99, 102, 241, 0.28)", border: "#6366f1", text: "#818cf8" },
   Rahu: { bg: "rgba(168, 85, 247, 0.25)", border: "#a855f7", text: "#c084fc" },
+  "North Node": { bg: "rgba(168, 85, 247, 0.25)", border: "#a855f7", text: "#c084fc" },
   Ketu: { bg: "rgba(148, 163, 184, 0.25)", border: "#94a3b8", text: "#cbd5e1" },
+  "South Node": { bg: "rgba(148, 163, 184, 0.25)", border: "#94a3b8", text: "#cbd5e1" },
 };
 
 const ZODIAC_SIGNS = [
@@ -117,8 +119,9 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
   }, [chart, birth.year]);
 
   const translateGraha = (name: string): string => {
-    if (!useDevanagari || !nomenclature?.planets) return name;
-    return nomenclature.planets[name] || name;
+    const normalized = name === "North Node" ? "Rahu" : name === "South Node" ? "Ketu" : name;
+    if (!useDevanagari || !nomenclature?.planets) return normalized;
+    return nomenclature.planets[normalized] || nomenclature.planets[name] || normalized;
   };
 
   const translateSign = (name: string): string => {
@@ -129,7 +132,7 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "22px" }}>
       {/* Top Banner & Control Bar */}
-      <div className="glass-panel" style={{ padding: "20px 24px" }}>
+      <div className="card" style={{ padding: "20px 24px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px" }}>
@@ -257,7 +260,7 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
       </div>
 
       {/* 120-Year Interactive Horizontal Life Timeline */}
-      <div className="glass-panel" style={{ padding: "24px" }}>
+      <div className="card" style={{ padding: "24px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
           <h3 className="title-serif" style={{ fontSize: "1.1rem", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "8px" }}>
             <Compass size={18} color="#e5b94c" />
@@ -268,74 +271,79 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
           </span>
         </div>
 
-        {/* The Ribbon Bar */}
-        <div
-          style={{
-            position: "relative",
-            width: "100%",
-            height: "76px",
-            background: "rgba(0,0,0,0.45)",
-            borderRadius: "12px",
-            overflow: "hidden",
-            border: "1px solid rgba(255,255,255,0.12)",
-            display: "flex",
-          }}
-        >
-          {mahadashas.map((md, idx) => {
-            const startMs = new Date(md.start.replace("Z", "")).getTime();
-            const endMs = new Date(md.end.replace("Z", "")).getTime();
-            const widthPct = Math.max(1, ((endMs - startMs) / totalTimelineSpanMs) * 100);
-            const style = GRAHA_COLORS[md.lord] || { bg: "rgba(255,255,255,0.1)", border: "#fff", text: "#fff" };
-            const isSelected = selectedMd?.lord === md.lord && selectedMd?.start === md.start;
+        {/* The Ribbon Bar Wrapper */}
+        <div style={{ position: "relative", marginTop: "24px", marginBottom: "8px" }}>
+          <div
+            style={{
+              position: "relative",
+              width: "100%",
+              height: "76px",
+              background: "rgba(0,0,0,0.45)",
+              borderRadius: "12px",
+              overflow: "hidden",
+              border: "1px solid rgba(255,255,255,0.12)",
+              display: "flex",
+            }}
+          >
+            {mahadashas.map((md, idx) => {
+              const startMs = new Date(md.start.replace("Z", "")).getTime();
+              const endMs = new Date(md.end.replace("Z", "")).getTime();
+              const widthPct = Math.max(1, ((endMs - startMs) / totalTimelineSpanMs) * 100);
+              const style = GRAHA_COLORS[md.lord] || { bg: "rgba(255,255,255,0.1)", border: "#fff", text: "#fff" };
+              const isSelected = selectedMd?.lord === md.lord && selectedMd?.start === md.start;
 
-            return (
-              <button
-                key={`${md.lord}-${idx}`}
-                onClick={() => {
-                  setSelectedMd(md);
-                  setSelectedAd(md.subs && md.subs.length > 0 ? md.subs[0] : null);
-                }}
-                title={`${md.lord} Mahadasha (${md.start.slice(0, 10)} to ${md.end.slice(0, 10)})`}
-                style={{
-                  width: `${widthPct}%`,
-                  height: "100%",
-                  background: isSelected ? style.border : style.bg,
-                  borderRight: "1px solid rgba(0,0,0,0.5)",
-                  borderTop: isSelected ? `4px solid #fff` : "none",
-                  cursor: "pointer",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: "4px",
-                  transition: "all 0.15s ease",
-                  outline: "none",
-                }}
-              >
-                <span
+              return (
+                <button
+                  key={`${md.lord}-${idx}`}
+                  onClick={() => {
+                    setSelectedMd(md);
+                    const activeSub = md.subs?.find(
+                      (s) => dashas?.current_md?.lord === md.lord && dashas?.current_ad?.lord === s.lord
+                    );
+                    setSelectedAd(activeSub || (md.subs && md.subs.length > 0 ? md.subs[0] : null));
+                  }}
+                  title={`${md.lord} Mahadasha (${md.start.slice(0, 10)} to ${md.end.slice(0, 10)})`}
                   style={{
-                    fontSize: "0.82rem",
-                    fontWeight: 700,
-                    color: isSelected ? "#07090e" : style.text,
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
+                    width: `${widthPct}%`,
+                    height: "100%",
+                    background: isSelected ? style.border : style.bg,
+                    borderRight: "1px solid rgba(0,0,0,0.5)",
+                    borderTop: isSelected ? `4px solid #fff` : "none",
+                    cursor: "pointer",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "4px",
+                    transition: "all 0.15s ease",
+                    outline: "none",
                   }}
                 >
-                  {translateGraha(md.lord)}
-                </span>
-                <span
-                  style={{
-                    fontSize: "0.68rem",
-                    color: isSelected ? "#07090e" : "var(--text-dim)",
-                    fontFamily: "var(--font-mono)",
-                  }}
-                >
-                  {md.start.slice(0, 4)}
-                </span>
-              </button>
-            );
-          })}
+                  <span
+                    style={{
+                      fontSize: "0.82rem",
+                      fontWeight: 700,
+                      color: isSelected ? "#07090e" : style.text,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {translateGraha(md.lord)}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "0.68rem",
+                      color: isSelected ? "#07090e" : "var(--text-dim)",
+                      fontFamily: "var(--font-mono)",
+                    }}
+                  >
+                    {md.start.slice(0, 4)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
 
           {/* Current Age "You Are Here" Marker */}
           {(() => {
@@ -346,28 +354,29 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
                 <div
                   style={{
                     position: "absolute",
-                    top: 0,
+                    top: "-20px",
                     bottom: 0,
                     left: `${leftPct}%`,
-                    width: "3px",
-                    background: "#ffffff",
-                    boxShadow: "0 0 12px #ffffff, 0 0 20px #e5b94c",
+                    width: "2px",
+                    background: "var(--gold-bright)",
+                    boxShadow: "0 0 8px rgba(251,226,133,0.8)",
                     pointerEvents: "none",
-                    zIndex: 10,
+                    zIndex: 20,
                   }}
                 >
                   <div
                     style={{
                       position: "absolute",
-                      top: "-18px",
-                      left: "-22px",
-                      background: "#e5b94c",
+                      top: 0,
+                      left: "-16px",
+                      background: "var(--gold-vivid)",
                       color: "#07090e",
                       fontSize: "0.62rem",
                       fontWeight: 800,
                       padding: "1px 5px",
                       borderRadius: "4px",
                       whiteSpace: "nowrap",
+                      boxShadow: "0 2px 6px rgba(0,0,0,0.5)",
                     }}
                   >
                     NOW
@@ -409,42 +418,44 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
 
       {/* Selected Mahadasha Deep Dive: Antardashas Grid */}
       {selectedMd && (
-        <div className="glass-panel" style={{ padding: "24px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px", flexWrap: "wrap", gap: "10px" }}>
+        <div className="card" style={{ padding: "var(--space-6)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-4)", flexWrap: "wrap", gap: "var(--space-3)" }}>
             <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
                 <span
                   style={{
                     width: "12px",
                     height: "12px",
                     borderRadius: "50%",
-                    background: GRAHA_COLORS[selectedMd.lord]?.border || "#e5b94c",
+                    background: (GRAHA_COLORS[selectedMd.lord] || GRAHA_COLORS[translateGraha(selectedMd.lord)])?.border || "var(--gold-vivid)",
                   }}
+                  aria-hidden="true"
                 />
-                <h3 className="title-serif" style={{ fontSize: "1.2rem", color: "#fbe285" }}>
+                <h3 style={{ fontSize: "var(--type-heading)", fontWeight: 700, color: "var(--gold-bright)" }}>
                   {translateGraha(selectedMd.lord)} Mahadasha Breakdown
                 </h3>
               </div>
-              <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "2px" }}>
+              <p style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", marginTop: "2px", fontFamily: "var(--font-mono)" }}>
                 Epoch: {selectedMd.start.slice(0, 10)} → {selectedMd.end.slice(0, 10)}
               </p>
             </div>
 
-            <div className="badge badge-gold" style={{ fontSize: "0.8rem" }}>
+            <div className="badge badge-gold" style={{ fontSize: "var(--type-micro)" }}>
               9 Sub-Antardasha Cycles (Bhuktis)
             </div>
           </div>
 
-          {/* Antardashas Cards Grid */}
+          {/* Antardashas Cards Grid - Balanced responsive cards */}
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-              gap: "12px",
+              gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+              gap: "var(--space-3)",
             }}
           >
             {(selectedMd.subs || []).map((ad, idx) => {
-              const adStyle = GRAHA_COLORS[ad.lord] || { bg: "rgba(255,255,255,0.05)", border: "#fff", text: "#fff" };
+              const adName = translateGraha(ad.lord);
+              const adStyle = GRAHA_COLORS[ad.lord] || GRAHA_COLORS[adName] || { bg: "rgba(255,255,255,0.05)", border: "#fff", text: "#fff" };
               const isSelectedAd = selectedAd?.lord === ad.lord && selectedAd?.start === ad.start;
               const isCurrent =
                 dashas?.current_md?.lord === selectedMd.lord &&
@@ -455,56 +466,60 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
                   key={`${ad.lord}-${idx}`}
                   onClick={() => setSelectedAd(ad)}
                   style={{
-                    background: isSelectedAd ? "rgba(229,185,76,0.18)" : "rgba(0,0,0,0.3)",
-                    border: isCurrent
-                      ? "1px solid #10b981"
-                      : isSelectedAd
-                      ? "1px solid #e5b94c"
-                      : "1px solid rgba(255,255,255,0.08)",
-                    borderRadius: "10px",
-                    padding: "14px",
+                    background: isSelectedAd ? "var(--gold-dim)" : "rgba(0,0,0,0.3)",
+                    border: isSelectedAd
+                      ? "1px solid var(--gold-vivid)"
+                      : isCurrent
+                      ? "1px solid var(--emerald)"
+                      : "1px solid var(--border-subtle)",
+                    boxShadow: isSelectedAd
+                      ? "0 0 16px rgba(229,185,76,0.18)"
+                      : isCurrent
+                      ? "0 0 14px rgba(16,185,129,0.18)"
+                      : "none",
+                    borderRadius: "var(--radius-md)",
+                    padding: "var(--space-3) var(--space-4)",
                     cursor: "pointer",
                     position: "relative",
-                    transition: "all 0.15s ease",
+                    transition: "all 0.18s ease",
+                  }}
+                  role="button"
+                  aria-pressed={isSelectedAd}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setSelectedAd(ad);
+                    }
                   }}
                 >
-                  {isCurrent && (
-                    <span
-                      style={{
-                        position: "absolute",
-                        top: "8px",
-                        right: "8px",
-                        background: "#10b981",
-                        color: "#07090e",
-                        fontSize: "0.62rem",
-                        fontWeight: 800,
-                        padding: "2px 6px",
-                        borderRadius: "10px",
-                      }}
-                    >
-                      ACTIVE
-                    </span>
-                  )}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-2)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+                      <span
+                        style={{
+                          width: "9px",
+                          height: "9px",
+                          borderRadius: "50%",
+                          background: adStyle.border,
+                        }}
+                        aria-hidden="true"
+                      />
+                      <strong style={{ fontSize: "var(--type-heading)", color: adStyle.text, fontWeight: 700 }}>
+                        {adName}
+                      </strong>
+                    </div>
 
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
-                    <span
-                      style={{
-                        width: "8px",
-                        height: "8px",
-                        borderRadius: "50%",
-                        background: adStyle.border,
-                      }}
-                    />
-                    <strong style={{ fontSize: "0.95rem", color: adStyle.text }}>
-                      {translateGraha(ad.lord)}
-                    </strong>
+                    {isCurrent && (
+                      <span className="badge badge-emerald" style={{ fontSize: "0.64rem", padding: "2px 6px" }}>
+                        ACTIVE
+                      </span>
+                    )}
                   </div>
 
-                  <div style={{ fontSize: "0.74rem", color: "var(--text-dim)", fontFamily: "var(--font-mono)" }}>
-                    {ad.start.slice(0, 10)}
-                  </div>
-                  <div style={{ fontSize: "0.74rem", color: "var(--text-dim)", fontFamily: "var(--font-mono)" }}>
-                    ↓ {ad.end.slice(0, 10)}
+                  <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", fontSize: "var(--type-micro)", color: "var(--text-mid)", fontFamily: "var(--font-mono)", whiteSpace: "nowrap" }}>
+                    <span>{ad.start.slice(0, 10)}</span>
+                    <span style={{ color: "var(--text-low)" }}>→</span>
+                    <span>{ad.end.slice(0, 10)}</span>
                   </div>
                 </div>
               );
@@ -513,37 +528,79 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
 
           {/* Selected Antardasha Pratyantar Inspector */}
           {selectedAd && selectedAd.subs && selectedAd.subs.length > 0 && (
-            <div style={{ marginTop: "24px", paddingTop: "18px", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-              <h4 style={{ fontSize: "0.95rem", color: "#7dd3fc", marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
-                <Eye size={16} />
-                Pratyantardasha (PD) Micro-Periods for {translateGraha(selectedMd.lord)} - {translateGraha(selectedAd.lord)}:
-              </h4>
+            <div style={{ marginTop: "var(--space-5)", paddingTop: "var(--space-4)", borderTop: "1px solid var(--border-subtle)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-3)", flexWrap: "wrap", gap: "var(--space-2)" }}>
+                <h4 style={{ fontSize: "var(--type-heading)", color: "var(--cyan-vivid)", display: "flex", alignItems: "center", gap: "var(--space-2)", fontWeight: 700 }}>
+                  <Eye size={16} aria-hidden="true" />
+                  Pratyantardasha (PD) Micro-Periods for {translateGraha(selectedMd.lord)} - {translateGraha(selectedAd.lord)}
+                </h4>
+                <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)" }}>
+                  9 Sub-Sub Cycles (Sookshma)
+                </span>
+              </div>
 
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
-                  gap: "10px",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+                  gap: "var(--space-2)",
                 }}
               >
-                {selectedAd.subs.map((pd, pidx) => (
-                  <div
-                    key={`${pd.lord}-${pidx}`}
-                    style={{
-                      background: "rgba(0,0,0,0.25)",
-                      padding: "10px 12px",
-                      borderRadius: "8px",
-                      border: "1px solid rgba(255,255,255,0.06)",
-                    }}
-                  >
-                    <div style={{ fontWeight: 600, fontSize: "0.85rem", color: "var(--text-main)" }}>
-                      {translateGraha(pd.lord)}
+                {selectedAd.subs.map((pd, pidx) => {
+                  const pdName = translateGraha(pd.lord);
+                  const pdStyle = GRAHA_COLORS[pd.lord] || GRAHA_COLORS[pdName] || { bg: "rgba(255,255,255,0.05)", border: "#fff", text: "#fff" };
+                  const isCurrentPd =
+                    dashas?.current_md?.lord === selectedMd.lord &&
+                    dashas?.current_ad?.lord === selectedAd.lord &&
+                    dashas?.current_pd?.lord === pd.lord;
+
+                  return (
+                    <div
+                      key={`${pd.lord}-${pidx}`}
+                      style={{
+                        background: isCurrentPd ? "var(--emerald-dim)" : "rgba(0,0,0,0.25)",
+                        padding: "var(--space-3) var(--space-4)",
+                        borderRadius: "var(--radius-sm)",
+                        border: isCurrentPd ? "1px solid var(--emerald)" : "1px solid var(--border-subtle)",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: "var(--space-2)",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+                        <span
+                          style={{
+                            width: "7px",
+                            height: "7px",
+                            borderRadius: "50%",
+                            background: pdStyle.border,
+                          }}
+                          aria-hidden="true"
+                        />
+                        <span style={{ fontWeight: 600, fontSize: "var(--type-label)", color: "var(--text-high)" }}>
+                          {pdName}
+                        </span>
+                        {isCurrentPd && (
+                          <span className="badge badge-emerald" style={{ fontSize: "0.6rem", padding: "1px 5px" }}>
+                            NOW
+                          </span>
+                        )}
+                      </div>
+
+                      <div
+                        style={{
+                          fontSize: "var(--type-micro)",
+                          color: isCurrentPd ? "var(--emerald)" : "var(--text-mid)",
+                          fontFamily: "var(--font-mono)",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {pd.start.slice(0, 10)} → {pd.end.slice(0, 10)}
+                      </div>
                     </div>
-                    <div style={{ fontSize: "0.7rem", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
-                      {pd.start.slice(0, 10)} → {pd.end.slice(0, 10)}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

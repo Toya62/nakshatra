@@ -344,6 +344,30 @@ class ChartData(BaseModel):
             transit_longitude=transit_longitude,
         )
 
+    def get_predictions(
+        self,
+        domain: str | None = None,
+        transits: TransitReport | None = None,
+    ) -> Any:
+        """
+        Evaluate deterministic 5-step classical Vedic predictions across life domains.
+        Returns dict of DomainPredictions or single DomainPrediction if domain specified.
+        """
+        from nakshatra.predictor import evaluate_all_domains, evaluate_domain
+
+        if domain:
+            return evaluate_domain(domain, self, transits=transits)
+        return evaluate_all_domains(self, transits=transits)
+
+    def get_remedies(self, transits: TransitReport | None = None) -> Any:
+        """
+        Calculate dual-system classical remedies (Parashari + Lal Kitab Upayas)
+        tailored to natal chart afflictions, dasha lords, and Gochar transits.
+        """
+        from nakshatra.remedies import calculate_remedies
+
+        return calculate_remedies(self, transits=transits)
+
     def save(self, filepath: str, format: str | None = None) -> str:
         """
         Save chart data directly to file.

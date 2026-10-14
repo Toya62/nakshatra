@@ -8,143 +8,211 @@ interface Props {
   chart: ChartData;
 }
 
+// Classical benefic / malefic classification
+const BENEFICS  = new Set(["Jupiter", "Venus", "Moon", "Mercury"]);
+const MALEFICS  = new Set(["Sun", "Mars", "Saturn", "Rahu", "Ketu"]);
+
+function planetColor(name: string, isAsc: boolean): string {
+  if (isAsc) return "var(--gold-bright)";
+  if (BENEFICS.has(name))  return "#6ee7b7"; // emerald tint
+  if (MALEFICS.has(name))  return "#fda4af"; // rose tint
+  return "var(--text-high)";
+}
+
 export const PlanetsTable: React.FC<Props> = ({ chart }) => {
   const bodies = [
     {
       name: "Ascendant (Lagna)",
       sign: chart.ascendant.sign,
       degree: chart.ascendant.degree_in_sign,
-      longitude: chart.ascendant.longitude,
       nakshatra: chart.ascendant.nakshatra,
       pada: chart.ascendant.pada,
       lord: chart.ascendant.nakshatra_lord,
       house: 1,
       retrograde: false,
-      speed: 0,
       isAsc: true,
     },
     ...chart.planets.map((p) => ({
       name: p.name,
       sign: p.sign,
       degree: p.degree_in_sign,
-      longitude: p.longitude,
       nakshatra: p.nakshatra,
       pada: p.pada,
       lord: p.nakshatra_lord,
       house: p.house,
       retrograde: p.retrograde,
-      speed: p.speed,
       isAsc: false,
     })),
     {
-      name: "Rahu (North Node)",
+      name: "Rahu",
       sign: chart.rahu.sign,
       degree: chart.rahu.degree_in_sign,
-      longitude: chart.rahu.longitude,
       nakshatra: chart.rahu.nakshatra,
       pada: chart.rahu.pada,
       lord: chart.rahu.nakshatra_lord,
       house: chart.rahu.house,
       retrograde: true,
-      speed: chart.rahu.speed,
       isAsc: false,
     },
     {
-      name: "Ketu (South Node)",
+      name: "Ketu",
       sign: chart.ketu.sign,
       degree: chart.ketu.degree_in_sign,
-      longitude: chart.ketu.longitude,
       nakshatra: chart.ketu.nakshatra,
       pada: chart.ketu.pada,
       lord: chart.ketu.nakshatra_lord,
       house: chart.ketu.house,
       retrograde: true,
-      speed: chart.ketu.speed,
       isAsc: false,
     },
   ];
 
-  const downloadFile = (content: string, fileName: string, type: string) => {
-    const blob = new Blob([content], { type });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+  const handleDownloadJSON = () => {
+    const blob = new Blob([JSON.stringify(chart, null, 2)], { type: "application/json" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
     a.href = url;
-    a.download = fileName;
+    a.download = "nakshatra_chart.json";
     a.click();
     URL.revokeObjectURL(url);
   };
 
-  const handleDownloadJSON = () => {
-    downloadFile(JSON.stringify(chart, null, 2), "nakshatra_chart.json", "application/json");
-  };
-
   return (
-    <div className="glass-panel" style={{ padding: "20px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-        <h4 className="title-serif gold-gradient-text" style={{ fontSize: "1.05rem", display: "flex", alignItems: "center", gap: "8px" }}>
-          <Table size={16} /> Planetary Ephemeris (Nirayana)
+    <div className="card" style={{ padding: "var(--space-5)" }}>
+      {/* Header */}
+      <div className="section-header">
+        <h4 className="section-title" style={{ fontSize: "var(--type-heading)" }}>
+          <Table size={15} color="var(--gold-vivid)" aria-hidden="true" />
+          Planetary Ephemeris
+          <span
+            className="badge badge-gold"
+            style={{ fontSize: "var(--type-micro)", marginLeft: "var(--space-2)" }}
+          >
+            Nirayana
+          </span>
         </h4>
-
-        <div style={{ display: "flex", gap: "8px" }}>
-          <button onClick={handleDownloadJSON} className="btn-secondary" style={{ fontSize: "0.8rem", padding: "6px 12px" }}>
-            <Download size={13} /> JSON
-          </button>
-        </div>
+        <button
+          onClick={handleDownloadJSON}
+          className="btn-ghost"
+          style={{ fontSize: "var(--type-label)", padding: "5px 10px" }}
+          title="Download chart as JSON"
+        >
+          <Download size={13} aria-hidden="true" />
+          JSON
+        </button>
       </div>
 
+      {/* Table */}
       <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem", textAlign: "left" }}>
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            fontSize: "var(--type-label)",
+            textAlign: "left",
+          }}
+          aria-label="Planetary positions"
+        >
           <thead>
-            <tr style={{ borderBottom: "1px solid rgba(229, 185, 76, 0.2)", color: "var(--text-muted)", fontSize: "0.78rem", letterSpacing: "0.05em" }}>
-              <th style={{ padding: "10px 8px" }}>GRAHA</th>
-              <th style={{ padding: "10px 8px" }}>RASI (SIGN)</th>
-              <th style={{ padding: "10px 8px" }}>DEGREE</th>
-              <th style={{ padding: "10px 8px" }}>BHAVA</th>
-              <th style={{ padding: "10px 8px" }}>NAKSHATRA</th>
-              <th style={{ padding: "10px 8px" }}>PADA</th>
-              <th style={{ padding: "10px 8px" }}>LORD</th>
-              <th style={{ padding: "10px 8px" }}>MOTION</th>
+            <tr
+              style={{
+                borderBottom: "1px solid var(--gold-border)",
+                color: "var(--text-low)",
+                fontSize: "var(--type-micro)",
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+              }}
+            >
+              {["Graha", "Rasi", "Degree", "Bhava", "Nakshatra", "Pada", "Lord", "Motion"].map((h) => (
+                <th key={h} style={{ padding: "8px 8px 10px", fontWeight: 600 }}>
+                  {h}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {bodies.map((b, idx) => (
-              <tr
-                key={`${b.name}-${idx}`}
-                style={{
-                  borderBottom: "1px solid rgba(255, 255, 255, 0.04)",
-                  background: b.isAsc ? "rgba(229, 185, 76, 0.05)" : "transparent",
-                }}
-              >
-                <td style={{ padding: "10px 8px", fontWeight: 600, color: b.isAsc ? "#fbe285" : "var(--text-main)" }}>
-                  {b.name}
-                </td>
-                <td style={{ padding: "10px 8px" }}>
-                  <span className="badge badge-cyan">{b.sign}</span>
-                </td>
-                <td style={{ padding: "10px 8px", fontFamily: "var(--font-mono)" }}>
-                  {b.degree.toFixed(2)}°
-                </td>
-                <td style={{ padding: "10px 8px", fontWeight: 600 }}>
-                  House {b.house}
-                </td>
-                <td style={{ padding: "10px 8px", color: "#f1f5f9" }}>
-                  {b.nakshatra}
-                </td>
-                <td style={{ padding: "10px 8px", fontFamily: "var(--font-mono)" }}>
-                  {b.pada}
-                </td>
-                <td style={{ padding: "10px 8px", color: "var(--text-muted)" }}>
-                  {b.lord}
-                </td>
-                <td style={{ padding: "10px 8px" }}>
-                  {b.retrograde ? (
-                    <span className="badge badge-rose">Retrograde (R)</span>
-                  ) : (
-                    <span className="badge badge-emerald">Direct</span>
-                  )}
-                </td>
-              </tr>
-            ))}
+            {bodies.map((b, idx) => {
+              const even = idx % 2 === 0;
+              return (
+                <tr
+                  key={`${b.name}-${idx}`}
+                  style={{
+                    borderBottom: "1px solid var(--border-subtle)",
+                    background: b.isAsc
+                      ? "var(--gold-dim)"
+                      : even
+                      ? "rgba(255,255,255,0.015)"
+                      : "transparent",
+                    transition: "background 0.15s",
+                  }}
+                >
+                  {/* Graha */}
+                  <td
+                    style={{
+                      padding: "9px 8px",
+                      fontWeight: 600,
+                      color: planetColor(b.name, b.isAsc),
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {b.name}
+                  </td>
+
+                  {/* Sign */}
+                  <td style={{ padding: "9px 8px" }}>
+                    <span className="badge badge-cyan">{b.sign}</span>
+                  </td>
+
+                  {/* Degree */}
+                  <td
+                    className="data-mono"
+                    style={{ padding: "9px 8px", color: "var(--text-mid)" }}
+                  >
+                    {b.degree.toFixed(2)}°
+                  </td>
+
+                  {/* House */}
+                  <td
+                    style={{
+                      padding: "9px 8px",
+                      fontWeight: 600,
+                      color: "var(--text-high)",
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "var(--type-data)",
+                    }}
+                  >
+                    H{b.house}
+                  </td>
+
+                  {/* Nakshatra */}
+                  <td style={{ padding: "9px 8px", color: "var(--text-high)", whiteSpace: "nowrap" }}>
+                    {b.nakshatra}
+                  </td>
+
+                  {/* Pada */}
+                  <td
+                    className="data-mono"
+                    style={{ padding: "9px 8px", color: "var(--text-mid)" }}
+                  >
+                    {b.pada}
+                  </td>
+
+                  {/* Lord */}
+                  <td style={{ padding: "9px 8px", color: "var(--text-mid)" }}>
+                    {b.lord}
+                  </td>
+
+                  {/* Motion */}
+                  <td style={{ padding: "9px 8px" }}>
+                    {b.retrograde ? (
+                      <span className="badge badge-rose">℞ Retro</span>
+                    ) : (
+                      <span className="badge badge-emerald">Direct</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

@@ -12,6 +12,8 @@ import {
   TimezoneOffsetInfo,
   TransitReport,
   YogaResult,
+  DomainPrediction,
+  RemediesReport,
 } from "./types";
 
 const getApiBaseUrl = (): string => {
@@ -413,6 +415,70 @@ export async function fetchNomenclature(): Promise<DevanagariNomenclature | null
   const res = await fetch(`${baseUrl}/calendar/nomenclature`);
   if (!res.ok) return null;
   return res.json();
+}
+
+export async function fetchPredictions(
+  input: BirthDataInput,
+  domain?: string,
+  includeTransits: boolean = true
+): Promise<Record<string, DomainPrediction>> {
+  const baseUrl = getApiBaseUrl();
+  const res = await fetch(`${baseUrl}/predict`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      year: input.year,
+      month: input.month,
+      day: input.day,
+      hour: input.hour,
+      minute: input.minute,
+      second: input.second || 0,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      timezone: input.timezone,
+      place_name: input.place_name,
+      ayanamsa: input.ayanamsa || "jhora_lahiri",
+      house_system: input.house_system || "WholeSign",
+      domain: domain || null,
+      include_transits: includeTransits,
+    }),
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to calculate prediction: ${res.statusText}`);
+  }
+  const json = await res.json();
+  return json.data;
+}
+
+export async function fetchRemedies(
+  input: BirthDataInput,
+  includeTransits: boolean = true
+): Promise<RemediesReport> {
+  const baseUrl = getApiBaseUrl();
+  const res = await fetch(`${baseUrl}/remedies`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      year: input.year,
+      month: input.month,
+      day: input.day,
+      hour: input.hour,
+      minute: input.minute,
+      second: input.second || 0,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      timezone: input.timezone,
+      place_name: input.place_name,
+      ayanamsa: input.ayanamsa || "jhora_lahiri",
+      house_system: input.house_system || "WholeSign",
+      include_transits: includeTransits,
+    }),
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to calculate remedies: ${res.statusText}`);
+  }
+  const json = await res.json();
+  return json.data;
 }
 
 

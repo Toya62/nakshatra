@@ -27,6 +27,7 @@ from nakshatra.ai.synthesize import (
     BaseSynthesizer,
     FallbackSynthesizer,
     LLMSynthesizer,
+    OllamaSynthesizer,
 )
 
 try:
@@ -56,12 +57,24 @@ def _default_embedder() -> BaseEmbedder | None:
 
 
 def _default_synthesizer() -> BaseSynthesizer:
-    """LLM synthesizer when an API key and SDK are available."""
-    if os.environ.get("OPENAI_API_KEY") and _module_available("openai"):
-        return LLMSynthesizer(provider="openai", model="gpt-4o-mini")
+    """LLM synthesizer priority: Gemini -> OpenAI -> Ollama -> Fallback."""
     google_key = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")
     if google_key and _module_available("google.genai"):
         return LLMSynthesizer(provider="google", model="gemini-3.8-flash", api_key=google_key)
+
+    if os.environ.get("OPENAI_API_KEY") and _module_available("openai"):
+        return LLMSynthesizer(provider="openai", model="gpt-4o-mini")
+
+    if (
+        os.environ.get("USE_OLLAMA")
+        or os.environ.get("OLLAMA_HOST")
+        or os.environ.get("OLLAMA_MODEL")
+    ) and _module_available("openai"):
+        return OllamaSynthesizer(
+            model=os.environ.get("OLLAMA_MODEL", "qwen2.5:3b"),
+            base_url=os.environ.get("OLLAMA_HOST", "http://localhost:11434/v1"),
+        )
+
     return FallbackSynthesizer()
 
 

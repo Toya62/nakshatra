@@ -45,6 +45,24 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Sync internal state when initialData prop changes
+  useEffect(() => {
+    if (!initialData) return;
+    setYear(initialData.year);
+    setMonth(initialData.month);
+    setDay(initialData.day);
+    setHour(initialData.hour);
+    setMinute(initialData.minute);
+    setSecond(initialData.second ?? 0);
+    setLat(initialData.latitude);
+    setLon(initialData.longitude);
+    setTz(initialData.timezone);
+    setPlace(initialData.place_name || "");
+    setQuery(initialData.place_name || "");
+    if (initialData.ayanamsa) setAyanamsa(initialData.ayanamsa);
+    if (initialData.house_system) setHouseSystem(initialData.house_system);
+  }, [initialData]);
+
   // Auto-resolve timezone offset whenever date or timezone changes
   useEffect(() => {
     let active = true;
@@ -127,22 +145,22 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
   };
 
   return (
-    <form onSubmit={handleSubmit} className="glass-panel" style={{ padding: "24px", position: "relative" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px", flexWrap: "wrap", gap: "10px" }}>
-        <h3 className="title-serif gold-gradient-text" style={{ fontSize: "1.15rem", display: "flex", alignItems: "center", gap: "8px" }}>
-          <Sparkles size={18} color="#e5b94c" />
+    <form onSubmit={handleSubmit} className="card" style={{ padding: "var(--space-6)", position: "relative" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-4)", flexWrap: "wrap", gap: "var(--space-3)" }}>
+        <h3 style={{ fontSize: "var(--type-heading)", fontWeight: 700, display: "flex", alignItems: "center", gap: "var(--space-2)", color: "var(--text-high)" }}>
+          <Sparkles size={16} color="var(--gold-vivid)" aria-hidden="true" />
           Birth Coordinates & Epoch
         </h3>
 
         {/* Preset quick buttons */}
-        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
           {PRESETS.map((p) => (
             <button
               key={p.name}
               type="button"
               onClick={() => handlePreset(p)}
-              className="badge badge-gold"
-              style={{ cursor: "pointer", background: place === p.name ? "rgba(229,185,76,0.3)" : "rgba(255,255,255,0.05)" }}
+              className={`chip${place === p.name ? " active" : ""}`}
+              aria-label={`Preset location ${p.name.split(",")[0]}`}
             >
               {p.name.split(",")[0]}
             </button>
@@ -150,35 +168,88 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "var(--space-4)" }}>
         {/* Date */}
         <div>
-          <label style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px", marginBottom: "6px" }}>
-            <Calendar size={13} /> Date of Birth (YYYY-MM-DD)
+          <label style={{ fontSize: "var(--type-label)", color: "var(--text-mid)", display: "flex", alignItems: "center", gap: "var(--space-1)", marginBottom: "var(--space-1)" }}>
+            <Calendar size={13} aria-hidden="true" /> Date of Birth (YYYY-MM-DD)
           </label>
-          <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr", gap: "6px" }}>
-            <input type="number" min={1900} max={2100} value={year} onChange={(e) => setYear(Number(e.target.value))} placeholder="YYYY" required />
-            <input type="number" min={1} max={12} value={month} onChange={(e) => setMonth(Number(e.target.value))} placeholder="MM" required />
-            <input type="number" min={1} max={31} value={day} onChange={(e) => setDay(Number(e.target.value))} placeholder="DD" required />
+          <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr", gap: "var(--space-1)" }}>
+            <input
+              type="number"
+              min={1900}
+              max={2100}
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+              placeholder="YYYY"
+              aria-label="Birth year"
+              required
+            />
+            <input
+              type="number"
+              min={1}
+              max={12}
+              value={month}
+              onChange={(e) => setMonth(Number(e.target.value))}
+              placeholder="MM"
+              aria-label="Birth month"
+              required
+            />
+            <input
+              type="number"
+              min={1}
+              max={31}
+              value={day}
+              onChange={(e) => setDay(Number(e.target.value))}
+              placeholder="DD"
+              aria-label="Birth day"
+              required
+            />
           </div>
         </div>
 
         {/* Time */}
         <div>
-          <label style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px", marginBottom: "6px" }}>
-            <Clock size={13} /> Time (24h: HH:MM:SS)
+          <label style={{ fontSize: "var(--type-label)", color: "var(--text-mid)", display: "flex", alignItems: "center", gap: "var(--space-1)", marginBottom: "var(--space-1)" }}>
+            <Clock size={13} aria-hidden="true" /> Time (24h: HH:MM:SS)
           </label>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "6px" }}>
-            <input type="number" min={0} max={23} value={hour} onChange={(e) => setHour(Number(e.target.value))} placeholder="HH" required />
-            <input type="number" min={0} max={59} value={minute} onChange={(e) => setMinute(Number(e.target.value))} placeholder="MM" required />
-            <input type="number" min={0} max={59} value={second} onChange={(e) => setSecond(Number(e.target.value))} placeholder="SS" />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "var(--space-1)" }}>
+            <input
+              type="number"
+              min={0}
+              max={23}
+              value={hour}
+              onChange={(e) => setHour(Number(e.target.value))}
+              placeholder="HH"
+              aria-label="Birth hour"
+              required
+            />
+            <input
+              type="number"
+              min={0}
+              max={59}
+              value={minute}
+              onChange={(e) => setMinute(Number(e.target.value))}
+              placeholder="MM"
+              aria-label="Birth minute"
+              required
+            />
+            <input
+              type="number"
+              min={0}
+              max={59}
+              value={second}
+              onChange={(e) => setSecond(Number(e.target.value))}
+              placeholder="SS"
+              aria-label="Birth second"
+            />
           </div>
         </div>
 
         {/* Place Search Autocomplete */}
         <div ref={dropdownRef} style={{ position: "relative" }}>
-          <label style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px", marginBottom: "6px" }}>
-            <MapPin size={13} /> Place of Birth (Auto-Geocoded)
+          <label style={{ fontSize: "var(--type-label)", color: "var(--text-mid)", display: "flex", alignItems: "center", gap: "var(--space-1)", marginBottom: "var(--space-1)" }}>
+            <MapPin size={13} aria-hidden="true" /> Place of Birth (Auto-Geocoded)
           </label>
           <div style={{ position: "relative" }}>
             <input
@@ -189,15 +260,16 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
                 if (suggestions.length > 0) setShowSuggestions(true);
               }}
               placeholder="Type city or spiritual center..."
-              style={{ width: "100%", paddingRight: "30px" }}
+              aria-label="Place of birth search"
+              style={{ width: "100%", paddingRight: "32px" }}
             />
-            <Globe size={14} color="#e5b94c" style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", opacity: 0.7 }} />
+            <Globe size={14} color="var(--gold-vivid)" style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", opacity: 0.8 }} aria-hidden="true" />
           </div>
 
           {/* Autocomplete Suggestions Menu */}
           {showSuggestions && suggestions.length > 0 && (
             <div
-              className="glass-panel"
+              className="card"
               style={{
                 position: "absolute",
                 top: "100%",
@@ -207,10 +279,10 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
                 zIndex: 50,
                 maxHeight: "220px",
                 overflowY: "auto",
-                background: "rgba(20, 24, 38, 0.98)",
-                border: "1px solid rgba(229, 185, 76, 0.3)",
-                borderRadius: "8px",
+                background: "rgba(14, 18, 30, 0.98)",
+                border: "1px solid var(--gold-border)",
                 boxShadow: "0 12px 28px rgba(0,0,0,0.6)",
+                padding: "var(--space-1)",
               }}
             >
               {suggestions.map((p, idx) => (
@@ -218,25 +290,27 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
                   key={`${p.name}-${idx}`}
                   onClick={() => handleSelectPlace(p)}
                   style={{
-                    padding: "10px 14px",
+                    padding: "var(--space-2) var(--space-3)",
                     cursor: "pointer",
-                    borderBottom: "1px solid rgba(255,255,255,0.05)",
-                    fontSize: "0.85rem",
+                    borderRadius: "var(--radius-sm)",
+                    fontSize: "var(--type-body)",
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
                     transition: "background 0.15s ease",
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(229,185,76,0.15)")}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--gold-dim)")}
                   onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                 >
                   <div>
-                    <div style={{ fontWeight: 500, color: "#fff" }}>{p.city}, <span style={{ color: "var(--text-muted)" }}>{p.country}</span></div>
-                    <div style={{ fontSize: "0.72rem", color: "#e5b94c" }}>
+                    <div style={{ fontWeight: 500, color: "var(--text-high)" }}>
+                      {p.city}, <span style={{ color: "var(--text-mid)" }}>{p.country}</span>
+                    </div>
+                    <div style={{ fontSize: "var(--type-micro)", color: "var(--gold-vivid)" }}>
                       {p.latitude.toFixed(2)}°, {p.longitude.toFixed(2)}° • {p.timezone}
                     </div>
                   </div>
-                  {place === p.name && <Check size={14} color="#e5b94c" />}
+                  {place === p.name && <Check size={14} color="var(--gold-vivid)" />}
                 </div>
               ))}
             </div>
@@ -245,36 +319,69 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
 
         {/* Lat / Long & Resolved Timezone */}
         <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-            <label style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-              Coordinates & Civil Epoch
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-1)" }}>
+            <label style={{ fontSize: "var(--type-label)", color: "var(--text-mid)" }}>
+              Coordinates & Epoch
             </label>
             {tzInfo && (
-              <span style={{ fontSize: "0.72rem", color: tzInfo.is_dst ? "#ff9800" : "#7ec8e3", background: "rgba(255,255,255,0.06)", padding: "2px 6px", borderRadius: "4px" }}>
+              <span className={`badge ${tzInfo.is_dst ? "badge-amber" : "badge-cyan"}`}>
                 UTC {tzInfo.utc_offset_str} • {tzInfo.tz_abbreviation} {tzInfo.is_dst ? "(DST)" : ""}
               </span>
             )}
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1.2fr", gap: "6px" }}>
-            <input type="number" step="any" value={lat} onChange={(e) => setLat(Number(e.target.value))} placeholder="Lat" required />
-            <input type="number" step="any" value={lon} onChange={(e) => setLon(Number(e.target.value))} placeholder="Lon" required />
-            <input type="text" value={tz} onChange={(e) => setTz(e.target.value)} placeholder="IANA Timezone" required />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1.2fr", gap: "var(--space-1)" }}>
+            <input
+              type="number"
+              step="any"
+              value={lat}
+              onChange={(e) => setLat(Number(e.target.value))}
+              placeholder="Lat"
+              aria-label="Latitude coordinate"
+              required
+            />
+            <input
+              type="number"
+              step="any"
+              value={lon}
+              onChange={(e) => setLon(Number(e.target.value))}
+              placeholder="Lon"
+              aria-label="Longitude coordinate"
+              required
+            />
+            <input
+              type="text"
+              value={tz}
+              onChange={(e) => setTz(e.target.value)}
+              placeholder="IANA Timezone"
+              aria-label="IANA Timezone"
+              required
+            />
           </div>
         </div>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "18px", paddingTop: "14px", borderTop: "1px solid rgba(255,255,255,0.08)", flexWrap: "wrap", gap: "10px" }}>
-        <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
-          <Settings size={15} color="var(--text-muted)" />
-          <div style={{ display: "flex", gap: "8px" }}>
-            <select value={ayanamsa} onChange={(e) => setAyanamsa(e.target.value)} style={{ width: "auto" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "var(--space-4)", paddingTop: "var(--space-4)", borderTop: "1px solid var(--border-subtle)", flexWrap: "wrap", gap: "var(--space-3)" }}>
+        <div style={{ display: "flex", gap: "var(--space-3)", alignItems: "center", flexWrap: "wrap" }}>
+          <Settings size={15} color="var(--text-mid)" aria-hidden="true" />
+          <div style={{ display: "flex", gap: "var(--space-2)" }}>
+            <select
+              value={ayanamsa}
+              onChange={(e) => setAyanamsa(e.target.value)}
+              style={{ width: "auto" }}
+              aria-label="Ayanamsa calculation system"
+            >
               <option value="jhora_lahiri">JHora Lahiri (Calibrated)</option>
               <option value="lahiri">True Lahiri (Chitrapaksha)</option>
               <option value="raman">B.V. Raman</option>
               <option value="krishnamurti">KP (Krishnamurti)</option>
               <option value="tropical">Sayana (Tropical)</option>
             </select>
-            <select value={houseSystem} onChange={(e) => setHouseSystem(e.target.value)} style={{ width: "auto" }}>
+            <select
+              value={houseSystem}
+              onChange={(e) => setHouseSystem(e.target.value)}
+              style={{ width: "auto" }}
+              aria-label="House division system"
+            >
               <option value="WholeSign">Whole Sign (Vedic Default)</option>
               <option value="Placidus">Placidus</option>
               <option value="Equal">Equal House</option>
@@ -282,8 +389,8 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
           </div>
         </div>
 
-        <button type="submit" disabled={loading} className="btn-primary">
-          <Sparkles size={16} />
+        <button type="submit" disabled={loading} className="btn-primary" aria-label="Calculate birth chart">
+          <Sparkles size={16} aria-hidden="true" />
           {loading ? "Calculating Ephemeris..." : "Calculate Kundali"}
         </button>
       </div>

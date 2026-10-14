@@ -245,6 +245,26 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
         if yoga_names:
             lines.append(f"- Active Yogas: {', '.join(yoga_names[:5])}")
 
+    predictions = chart.get("predictions")
+    if isinstance(predictions, dict):
+        lines.append("- Classical Hierarchical Predictions (Deterministic Engine Ground Truth):")
+        for dom_key, pred in predictions.items():
+            if isinstance(pred, dict):
+                dom_label = str(pred.get("domain", dom_key)).upper()
+                tier = pred.get("promise_tier", "Evaluated")
+                verdict = pred.get("key_verdict", "")
+                p_sum = pred.get("promise_summary", "")
+                d_tim = pred.get("dasha_timing", "")
+                tr = ", ".join(pred.get("active_transits", []))
+                yo = ", ".join(pred.get("active_yogas", []))
+                lines.append(
+                    f"  • {dom_label} [{tier}]: {verdict}\n"
+                    f"    - Natal Promise: {p_sum}\n"
+                    f"    - Dasha Trigger: {d_tim}\n"
+                    f"    - Active Transits: {tr}\n"
+                    f"    - Active Yogas: {yo or 'Standard classical influence'}"
+                )
+
     return "\n".join(lines)
 
 
@@ -306,19 +326,26 @@ class LLMSynthesizer(BaseSynthesizer):
     """Generates answers via an LLM provider (optional [ai] extra).
 
     Providers:
-    - "openai": OpenAI-compatible API (also serves local models
-      via base_url)
+    - "openai": OpenAI-compatible API (also serves local models via base_url)
     - "google": Google GenAI API
+    - "ollama": Local offline inference via Ollama (OpenAI-compatible)
     """
 
     def __init__(
         self,
         provider: str = "openai",
-        model: str = "gpt-4o-mini",
+        model: str | None = None,
         api_key: str | None = None,
         base_url: str | None = None,
     ) -> None:
         self.provider = provider
+        if model is None:
+            if provider == "ollama":
+                model = os.environ.get("OLLAMA_MODEL", "qwen2.5:3b")
+            elif provider == "google":
+                model = "gemini-3.8-flash"
+            else:
+                model = "gpt-4o-mini"
         self.model = model
         self._api_key = api_key
         self._base_url = base_url
@@ -342,14 +369,15 @@ class LLMSynthesizer(BaseSynthesizer):
         except Exception as e:
             fb = FallbackSynthesizer()
             ans = fb.synthesize(question, results, birth_context)
+            notice_prefix = "Ollama" if self.provider == "ollama" else ("OpenAI" if self.provider == "openai" else "Gemini")
             ans.answer = (
-                f"*[Notice: Gemini service temporarily unavailable ({e}). "
+                f"*[Notice: {notice_prefix} service temporarily unavailable ({e}). "
                 "Retrieved classical scriptural citations:]*\n\n" + ans.answer
             )
             return ans
 
     def _complete(self, prompt: str) -> str:
-        if self.provider == "openai":
+        if self.provider in ("openai", "ollama"):
             return self._complete_openai(prompt)
         if self.provider == "google":
             return self._complete_google(prompt)
@@ -361,12 +389,25 @@ class LLMSynthesizer(BaseSynthesizer):
                 from openai import OpenAI
             except ImportError as e:
                 raise ImportError(
-                    "The openai package is required for the openai "
+                    "The openai package is required for the openai/ollama "
                     "provider. Install it with: pip install 'nakshatra[ai]'"
                 ) from e
+            if self.provider == "ollama":
+                base_url = (
+                    self._base_url
+                    or os.environ.get("OLLAMA_BASE_URL")
+                    or os.environ.get("OLLAMA_HOST")
+                    or "http://localhost:11434/v1"
+                )
+                if not base_url.endswith("/v1"):
+                    base_url = f"{base_url.rstrip('/')}/v1"
+                api_key = self._api_key or os.environ.get("OLLAMA_API_KEY") or "ollama"
+            else:
+                base_url = self._base_url
+                api_key = self._api_key or os.environ.get("OPENAI_API_KEY")
             self._client = OpenAI(
-                api_key=self._api_key or os.environ.get("OPENAI_API_KEY"),
-                base_url=self._base_url,
+                api_key=api_key,
+                base_url=base_url,
             )
         return self._client
 
@@ -384,6 +425,7 @@ class LLMSynthesizer(BaseSynthesizer):
 
     def _complete_google(self, prompt: str) -> str:
         rotation_models = [
+            "gemini-3.8-flash",
             "gemini-3.7-flash",
             "gemini-3.6-flash",
             "gemini-3.5-flash",
@@ -428,6 +470,8 @@ class LLMSynthesizer(BaseSynthesizer):
                     or "RESOURCE_EXHAUSTED" in err_str
                     or "503" in err_str
                     or "UNAVAILABLE" in err_str
+                    or "404" in err_str
+                    or "NOT_FOUND" in err_str
                 ):
                     continue
                 raise
@@ -445,7 +489,7 @@ class LLMSynthesizer(BaseSynthesizer):
         prompt = build_prompt(question, results, birth_context)
         if self.provider == "google":
             yield from self._stream_google(prompt)
-        elif self.provider == "openai":
+        elif self.provider in ("openai", "ollama"):
             yield from self._stream_openai(prompt)
         else:
             yield self._complete(prompt)
@@ -467,6 +511,7 @@ class LLMSynthesizer(BaseSynthesizer):
 
     def _stream_google(self, prompt: str) -> Iterator[str]:
         rotation_models = [
+            "gemini-3.8-flash",
             "gemini-3.7-flash",
             "gemini-3.6-flash",
             "gemini-3.5-flash",
@@ -510,12 +555,31 @@ class LLMSynthesizer(BaseSynthesizer):
                     or "RESOURCE_EXHAUSTED" in err_str
                     or "503" in err_str
                     or "UNAVAILABLE" in err_str
+                    or "404" in err_str
+                    or "NOT_FOUND" in err_str
                 ):
                     continue
                 raise
 
         if last_err:
             raise last_err
+
+
+class OllamaSynthesizer(LLMSynthesizer):
+    """Local offline LLM synthesis via Ollama (qwen2.5:3b)."""
+
+    def __init__(
+        self,
+        model: str = "qwen2.5:3b",
+        base_url: str = "http://localhost:11434/v1",
+        api_key: str = "ollama",
+    ) -> None:
+        super().__init__(
+            provider="ollama",
+            model=model,
+            api_key=api_key,
+            base_url=base_url,
+        )
 
 
 class FallbackSynthesizer(BaseSynthesizer):

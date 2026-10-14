@@ -385,3 +385,35 @@ class TestMuhurthaEndpoint:
         assert r.status_code == 200
         assert r.headers["content-type"].startswith("text/plain")
         assert "VEDIC MUHURTHA & ELECTION REPORT" in r.text
+
+
+class TestPredictEndpoint:
+    """Tests for POST /predict hierarchical Vedic prediction endpoint."""
+
+    def test_post_predict_all_domains(self, client: TestClient, chart_payload: dict):
+        r = client.post("/predict", json=chart_payload)
+        assert r.status_code == 200
+        body = r.json()
+        assert body["success"] is True
+        data = body["data"]
+        for domain in ("career", "relationship", "wealth", "spiritual_dharma", "health"):
+            assert domain in data
+            pred = data[domain]
+            assert "promise_tier" in pred
+            assert "key_verdict" in pred
+            assert "classical_citations" in pred
+            assert len(pred["classical_citations"]) >= 2
+            assert "remedies" in pred
+            assert len(pred["remedies"]) >= 2
+
+    def test_post_predict_single_domain(self, client: TestClient, chart_payload: dict):
+        payload = {**chart_payload, "domain": "career"}
+        r = client.post("/predict", json=payload)
+        assert r.status_code == 200
+        body = r.json()
+        assert body["success"] is True
+        assert "career" in body["data"]
+        assert len(body["data"]) == 1
+        career = body["data"]["career"]
+        assert career["domain"] == "career"
+        assert career["promise_tier"] in ("Exceptional", "Favorable", "Mixed", "Challenging", "Obstructed")

@@ -214,6 +214,44 @@ class MuhurthaResponse(BaseModel):
     meta: dict = Field(default_factory=dict)
 
 
+class PredictRequest(ChartRequest):
+    """Hierarchical Vedic prediction request."""
+
+    domain: str | None = Field(
+        None,
+        description="Domain filter: career, relationship, wealth, spiritual_dharma, health. If omitted, returns all domains.",
+    )
+    include_transits: bool = Field(
+        True,
+        description="Whether to overlay astronomical Gochar transits onto prediction.",
+    )
+
+
+class PredictResponse(BaseModel):
+    """Hierarchical Vedic prediction response."""
+
+    success: bool = True
+    data: dict[str, Any]
+    meta: dict = Field(default_factory=dict)
+
+
+class RemediesRequest(ChartRequest):
+    """Dual-system remedies request."""
+
+    include_transits: bool = Field(
+        True,
+        description="Whether to overlay Gochar transits onto remedy assessment.",
+    )
+
+
+class RemediesResponse(BaseModel):
+    """Dual-system remedies calculation response."""
+
+    success: bool = True
+    data: dict[str, Any]
+    meta: dict = Field(default_factory=dict)
+
+
 class HealthResponse(BaseModel):
     """Health check response."""
 
@@ -705,6 +743,77 @@ async def create_yogas_endpoint(
         raise HTTPException(status_code=500, detail=f"Calculation error: {str(e)}")
 
 
+@app.post("/predict", response_model=PredictResponse, tags=["Prediction"])
+async def predict_endpoint(request: PredictRequest) -> PredictResponse:
+    """
+    Deterministic 5-step classical Vedic predictive synthesis across core life domains.
+    Evaluates Natal Promise (D1), Varga Confirmations (D9/D10), Vimshottari Dasha triggers,
+    astronomical Gochar transits (Double Transits, Sade Sati), and active Yogas.
+    """
+    try:
+        chart = _build_chart(request)
+        transits = None
+        if request.include_transits:
+            try:
+                from nakshatra.transits import calculate_transits
+
+                transits = calculate_transits(chart)
+            except Exception:
+                pass
+
+        if request.domain:
+            pred = chart.get_predictions(domain=request.domain, transits=transits)
+            data = {request.domain: pred.model_dump()}
+        else:
+            preds = chart.get_predictions(transits=transits)
+            data = {k: v.model_dump() for k, v in preds.items()}
+
+        return PredictResponse(
+            data=data,
+            meta={
+                "ayanamsa": chart.ayanamsa.value,
+                "domain": request.domain or "all",
+                "transits_included": transits is not None,
+            },
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Prediction calculation error: {str(e)}")
+
+
+@app.post("/remedies", response_model=RemediesResponse, tags=["Remedies"])
+async def remedies_endpoint(request: RemediesRequest) -> RemediesResponse:
+    """
+    Calculate dual-system classical remedies (Parashari + Lal Kitab Upayas)
+    for afflicted, debilitated, combust, or dusthana-placed grahas in natal chart.
+    """
+    try:
+        chart = _build_chart(request)
+        transits = None
+        if request.include_transits:
+            try:
+                from nakshatra.transits import calculate_transits
+
+                transits = calculate_transits(chart)
+            except Exception:
+                pass
+
+        report = chart.get_remedies(transits=transits)
+        return RemediesResponse(
+            data=report.model_dump(),
+            meta={
+                "ayanamsa": chart.ayanamsa.value,
+                "transits_included": transits is not None,
+                "total_afflictions": report.total_afflictions,
+            },
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Remedies calculation error: {str(e)}")
+
+
 @app.post("/match/compatibility", response_model=CompatibilityResponse, tags=["Compatibility"])
 async def calculate_compatibility_endpoint(
     request: CompatibilityRequest,
@@ -845,11 +954,17 @@ async def rag_ask(request: RAGAskRequest) -> RAGAskResponse:
         if request.birth is not None:
             chart = _build_chart(request.birth)
             birth_context = chart.model_dump()
+            transits = None
             try:
                 from nakshatra.transits import calculate_transits
 
                 transits = calculate_transits(chart)
                 birth_context["transits"] = transits.model_dump()
+            except Exception:
+                pass
+            try:
+                preds = chart.get_predictions(transits=transits)
+                birth_context["predictions"] = {k: v.model_dump() for k, v in preds.items()}
             except Exception:
                 pass
         answer, references = _rag_service.ask(
@@ -884,11 +999,17 @@ async def rag_ask_stream(request: RAGAskRequest) -> StreamingResponse:
     if request.birth is not None:
         chart = _build_chart(request.birth)
         birth_context = chart.model_dump()
+        transits = None
         try:
             from nakshatra.transits import calculate_transits
 
             transits = calculate_transits(chart)
             birth_context["transits"] = transits.model_dump()
+        except Exception:
+            pass
+        try:
+            preds = chart.get_predictions(transits=transits)
+            birth_context["predictions"] = {k: v.model_dump() for k, v in preds.items()}
         except Exception:
             pass
 

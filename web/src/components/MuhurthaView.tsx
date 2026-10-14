@@ -85,7 +85,7 @@ export const MuhurthaView: React.FC<Props> = ({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
       {/* Header Banner */}
-      <div className="glass-panel" style={{ padding: "24px 28px" }}>
+      <div className="card" style={{ padding: "24px 28px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
           <div
             style={{
@@ -112,7 +112,7 @@ export const MuhurthaView: React.FC<Props> = ({
       </div>
 
       {/* Time & Place Form */}
-      <form onSubmit={handleSubmit} className="glass-panel" style={{ padding: "20px" }}>
+      <form onSubmit={handleSubmit} className="card" style={{ padding: "20px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "14px", alignItems: "flex-end" }}>
           <div>
             <label style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>
@@ -246,7 +246,7 @@ export const MuhurthaView: React.FC<Props> = ({
       </form>
 
       {error && (
-        <div className="glass-panel" style={{ padding: "16px", color: "var(--accent-rose)", borderColor: "var(--accent-rose)" }}>
+        <div className="card" style={{ padding: "16px", color: "var(--accent-rose)", borderColor: "var(--accent-rose)" }}>
           {error}
         </div>
       )}
@@ -255,7 +255,7 @@ export const MuhurthaView: React.FC<Props> = ({
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           {/* Main Score & Solar Bounds Card */}
           <div
-            className="glass-panel"
+            className="card"
             style={{
               padding: "24px 28px",
               display: "flex",
@@ -319,7 +319,7 @@ export const MuhurthaView: React.FC<Props> = ({
 
           {/* Active Hora & Active Choghadiya */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-            <div className="glass-panel" style={{ padding: "20px", borderLeft: "4px solid #e5b94c" }}>
+            <div className="card" style={{ padding: "20px", borderLeft: "4px solid #e5b94c" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                 <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                   Active Planetary Hora
@@ -339,7 +339,7 @@ export const MuhurthaView: React.FC<Props> = ({
               </p>
             </div>
 
-            <div className="glass-panel" style={{ padding: "20px", borderLeft: "4px solid #38bdf8" }}>
+            <div className="card" style={{ padding: "20px", borderLeft: "4px solid #38bdf8" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                 <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                   Active Choghadiya
@@ -361,7 +361,7 @@ export const MuhurthaView: React.FC<Props> = ({
           </div>
 
           {/* Enterprise Suitability Matrix */}
-          <div className="glass-panel" style={{ padding: "20px" }}>
+          <div className="card" style={{ padding: "20px" }}>
             <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--text-bright)", marginBottom: "16px" }}>
               Enterprise Suitability Checklist
             </h3>
@@ -390,10 +390,10 @@ export const MuhurthaView: React.FC<Props> = ({
                   >
                     <Icon size={18} color={item.ok ? "#10b981" : "#f43f5e"} />
                     <div>
-                      <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--text-bright)" }}>
+                      <div style={{ fontSize: "var(--type-body)", fontWeight: 600, color: "var(--text-bright)" }}>
                         {item.label}
                       </div>
-                      <div style={{ fontSize: "0.72rem", color: item.ok ? "#10b981" : "#f43f5e", fontWeight: 500 }}>
+                      <div style={{ fontSize: "var(--type-micro)", color: item.ok ? "#10b981" : "#f43f5e", fontWeight: 600 }}>
                         {item.ok ? "Favorable" : "Avoid"}
                       </div>
                     </div>
@@ -404,21 +404,21 @@ export const MuhurthaView: React.FC<Props> = ({
           </div>
 
           {/* Special Timing Windows & Alerts */}
-          <div className="glass-panel" style={{ padding: "20px" }}>
-            <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--text-bright)", marginBottom: "16px" }}>
-              Auspicious & Inauspicious Timing Windows
+          <div className="card" style={{ padding: "20px" }}>
+            <h3 style={{ fontSize: "var(--type-section)", fontWeight: 700, color: "var(--text-bright)", marginBottom: "16px" }}>
+              Auspicious &amp; Inauspicious Timing Windows
             </h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "14px" }}>
               {/* Abhijit Muhurtha */}
               <div style={{ padding: "14px", borderRadius: "10px", background: "rgba(229,185,76,0.05)", border: "1px solid rgba(229,185,76,0.2)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
-                  <span style={{ fontWeight: 600, color: "#e5b94c", fontSize: "0.88rem" }}>Abhijit Muhurtha</span>
+                  <span style={{ fontWeight: 600, color: "#e5b94c", fontSize: "var(--type-body)" }}>Abhijit Muhurtha</span>
                   {report.abhijit_muhurtha.is_active && <span className="badge badge-emerald">ACTIVE NOW</span>}
                 </div>
-                <div style={{ fontSize: "0.85rem", color: "var(--text-bright)" }}>
+                <div style={{ fontSize: "var(--type-small)", color: "var(--text-bright)" }}>
                   {report.abhijit_muhurtha.start_time} - {report.abhijit_muhurtha.end_time}
                 </div>
-                <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "4px" }}>
+                <div style={{ fontSize: "var(--type-micro)", color: "var(--text-muted)", marginTop: "4px" }}>
                   {report.abhijit_muhurtha.notes}
                 </div>
               </div>
@@ -426,13 +426,13 @@ export const MuhurthaView: React.FC<Props> = ({
               {/* Brahma Muhurtha */}
               <div style={{ padding: "14px", borderRadius: "10px", background: "rgba(56,189,248,0.05)", border: "1px solid rgba(56,189,248,0.2)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
-                  <span style={{ fontWeight: 600, color: "#38bdf8", fontSize: "0.88rem" }}>Brahma Muhurtha</span>
+                  <span style={{ fontWeight: 600, color: "#38bdf8", fontSize: "var(--type-body)" }}>Brahma Muhurtha</span>
                   {report.brahma_muhurtha.is_active && <span className="badge badge-cyan">ACTIVE NOW</span>}
                 </div>
-                <div style={{ fontSize: "0.85rem", color: "var(--text-bright)" }}>
+                <div style={{ fontSize: "var(--type-small)", color: "var(--text-bright)" }}>
                   {report.brahma_muhurtha.start_time} - {report.brahma_muhurtha.end_time}
                 </div>
-                <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "4px" }}>
+                <div style={{ fontSize: "var(--type-micro)", color: "var(--text-muted)", marginTop: "4px" }}>
                   {report.brahma_muhurtha.notes}
                 </div>
               </div>
@@ -440,13 +440,13 @@ export const MuhurthaView: React.FC<Props> = ({
               {/* Rahu Kalam */}
               <div style={{ padding: "14px", borderRadius: "10px", background: "rgba(244,63,94,0.05)", border: "1px solid rgba(244,63,94,0.2)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
-                  <span style={{ fontWeight: 600, color: "#f43f5e", fontSize: "0.88rem" }}>Rahu Kalam (Avoid)</span>
+                  <span style={{ fontWeight: 600, color: "#f43f5e", fontSize: "var(--type-body)" }}>Rahu Kalam (Avoid)</span>
                   {report.rahu_kalam.is_active && <span className="badge badge-rose">ALERT: ACTIVE</span>}
                 </div>
-                <div style={{ fontSize: "0.85rem", color: "var(--text-bright)" }}>
+                <div style={{ fontSize: "var(--type-small)", color: "var(--text-bright)" }}>
                   {report.rahu_kalam.start_time} - {report.rahu_kalam.end_time}
                 </div>
-                <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "4px" }}>
+                <div style={{ fontSize: "var(--type-micro)", color: "var(--text-muted)", marginTop: "4px" }}>
                   {report.rahu_kalam.notes}
                 </div>
               </div>
@@ -454,13 +454,13 @@ export const MuhurthaView: React.FC<Props> = ({
               {/* Yamaganda */}
               <div style={{ padding: "14px", borderRadius: "10px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
-                  <span style={{ fontWeight: 600, color: "var(--text-bright)", fontSize: "0.88rem" }}>Yamaganda (Avoid)</span>
+                  <span style={{ fontWeight: 600, color: "var(--text-bright)", fontSize: "var(--type-body)" }}>Yamaganda (Avoid)</span>
                   {report.yamaganda.is_active && <span className="badge badge-rose">ACTIVE</span>}
                 </div>
-                <div style={{ fontSize: "0.85rem", color: "var(--text-bright)" }}>
+                <div style={{ fontSize: "var(--type-small)", color: "var(--text-bright)" }}>
                   {report.yamaganda.start_time} - {report.yamaganda.end_time}
                 </div>
-                <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "4px" }}>
+                <div style={{ fontSize: "var(--type-micro)", color: "var(--text-muted)", marginTop: "4px" }}>
                   {report.yamaganda.notes}
                 </div>
               </div>
@@ -468,7 +468,7 @@ export const MuhurthaView: React.FC<Props> = ({
           </div>
 
           {/* Timeline Switcher: Horas vs Choghadiyas */}
-          <div className="glass-panel" style={{ padding: "20px" }}>
+          <div className="card" style={{ padding: "20px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
               <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--text-bright)" }}>
                 Complete Day Timeline

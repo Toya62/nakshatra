@@ -1,0 +1,256 @@
+"use client";
+
+import React from "react";
+import {
+  Sparkles,
+  Moon,
+  Compass,
+  Clock,
+  BookOpen,
+  Heart,
+  Sun,
+  ChevronLeft,
+  ChevronRight,
+  Menu,
+  ShieldCheck,
+} from "lucide-react";
+
+export type TabId =
+  | "chart"
+  | "transits"
+  | "dasha"
+  | "panchanga"
+  | "compatibility"
+  | "muhurtha"
+  | "remedies"
+  | "consult";
+
+interface Props {
+  activeTab: TabId;
+  onTabChange: (tab: TabId) => void;
+  slim: boolean;
+  onToggleSlim: () => void;
+  mobileOpen: boolean;
+  onCloseMobile: () => void;
+}
+
+const TABS: { id: TabId; label: string; Icon: React.ElementType; hint?: string }[] = [
+  { id: "chart",         label: "Birth Chart",        Icon: Sparkles },
+  { id: "transits",      label: "Transits (Gochar)",  Icon: Compass  },
+  { id: "dasha",         label: "Vimshottari Dasha",  Icon: Clock    },
+  { id: "panchanga",     label: "Daily Panchanga",    Icon: Moon     },
+  { id: "compatibility", label: "Kundali Matching",   Icon: Heart    },
+  { id: "muhurtha",      label: "Muhurtha & Horas",   Icon: Sun      },
+  { id: "remedies",      label: "Remedies & Upayas",  Icon: ShieldCheck, hint: "Parashari & Lal Kitab" },
+];
+
+const CONSULT = { id: "consult" as TabId, label: "AI Consultation", Icon: BookOpen };
+
+export const Sidebar: React.FC<Props> = ({
+  activeTab,
+  onTabChange,
+  slim,
+  onToggleSlim,
+  mobileOpen,
+  onCloseMobile,
+}) => {
+  const handleTab = (id: TabId) => {
+    onTabChange(id);
+    onCloseMobile();
+  };
+
+  return (
+    <>
+      {/* Mobile backdrop */}
+      {mobileOpen && (
+        <div
+          className="sidebar-backdrop"
+          style={{ display: "block" }}
+          onClick={onCloseMobile}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside
+        className={`app-sidebar${mobileOpen ? " open" : ""}`}
+        aria-label="Primary navigation"
+        style={{
+          background: "var(--bg-base)",
+          borderRight: "1px solid var(--border-subtle)",
+          display: "flex",
+          flexDirection: "column",
+          overflowX: "hidden",
+          overflowY: "auto",
+          transition: "width 0.25s ease",
+          width: slim ? "var(--sidebar-w-slim)" : "var(--sidebar-w)",
+        }}
+      >
+        {/* Nav items */}
+        <nav
+          role="tablist"
+          aria-label="App sections"
+          style={{
+            flex: 1,
+            padding: "var(--space-3) var(--space-2)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-1)",
+          }}
+        >
+          {TABS.map(({ id, label, Icon }) => {
+            const active = activeTab === id;
+            return (
+              <button
+                key={id}
+                role="tab"
+                aria-selected={active}
+                aria-label={slim ? label : undefined}
+                title={slim ? label : undefined}
+                onClick={() => handleTab(id)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "var(--space-3)",
+                  padding: slim ? "10px 0" : "10px 12px",
+                  justifyContent: slim ? "center" : "flex-start",
+                  width: "100%",
+                  borderRadius: "var(--radius-md)",
+                  border: "none",
+                  borderLeft: active ? "2px solid var(--gold-vivid)" : "2px solid transparent",
+                  background: active ? "var(--gold-dim)" : "transparent",
+                  color: active ? "var(--gold-bright)" : "var(--text-mid)",
+                  fontFamily: "var(--font-sans)",
+                  fontSize: "var(--type-label)",
+                  fontWeight: active ? 600 : 500,
+                  cursor: "pointer",
+                  transition: "all 0.18s ease",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  flexShrink: 0,
+                }}
+                onMouseEnter={(e) => {
+                  if (!active) {
+                    e.currentTarget.style.background = "rgba(255,255,255,0.04)";
+                    e.currentTarget.style.color = "var(--text-high)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!active) {
+                    e.currentTarget.style.background = "transparent";
+                    e.currentTarget.style.color = "var(--text-mid)";
+                  }
+                }}
+              >
+                <Icon
+                  size={18}
+                  style={{ flexShrink: 0, color: active ? "var(--gold-vivid)" : "currentColor" }}
+                  aria-hidden="true"
+                />
+                {!slim && (
+                  <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {label}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+
+          {/* Divider before AI Consultation */}
+          <div
+            style={{
+              borderTop: "1px solid var(--border-subtle)",
+              margin: "var(--space-2) 0",
+            }}
+            role="separator"
+          />
+
+          {/* Consultation — bottom-aligned, gold-tinted */}
+          {(() => {
+            const { id, label, Icon } = CONSULT;
+            const active = activeTab === id;
+            return (
+              <button
+                role="tab"
+                aria-selected={active}
+                aria-label={slim ? label : undefined}
+                title={slim ? label : undefined}
+                onClick={() => handleTab(id)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "var(--space-3)",
+                  padding: slim ? "10px 0" : "10px 12px",
+                  justifyContent: slim ? "center" : "flex-start",
+                  width: "100%",
+                  borderRadius: "var(--radius-md)",
+                  border: "none",
+                  borderLeft: active ? "2px solid var(--gold-vivid)" : "2px solid transparent",
+                  background: active
+                    ? "var(--gold-dim)"
+                    : "rgba(229, 185, 76, 0.05)",
+                  color: active ? "var(--gold-bright)" : "var(--gold-vivid)",
+                  fontFamily: "var(--font-sans)",
+                  fontSize: "var(--type-label)",
+                  fontWeight: active ? 600 : 500,
+                  cursor: "pointer",
+                  transition: "all 0.18s ease",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  flexShrink: 0,
+                }}
+              >
+                <Icon size={18} style={{ flexShrink: 0 }} aria-hidden="true" />
+                {!slim && <span>{label}</span>}
+              </button>
+            );
+          })()}
+        </nav>
+
+        {/* Collapse toggle — desktop only */}
+        <button
+          onClick={onToggleSlim}
+          aria-label={slim ? "Expand sidebar" : "Collapse sidebar"}
+          title={slim ? "Expand sidebar" : "Collapse sidebar"}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+            padding: "12px 0",
+            borderTop: "1px solid var(--border-subtle)",
+            background: "transparent",
+            border: "none",
+            borderTopStyle: "solid",
+            borderTopWidth: "1px",
+            borderTopColor: "var(--border-subtle)",
+            color: "var(--text-low)",
+            cursor: "pointer",
+            transition: "color 0.18s ease",
+            flexShrink: 0,
+          }}
+          className="mobile-hide"
+          onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-mid)")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-low)")}
+        >
+          {slim ? <ChevronRight size={16} aria-hidden="true" /> : <ChevronLeft size={16} aria-hidden="true" />}
+        </button>
+      </aside>
+    </>
+  );
+};
+
+/** Hamburger button — rendered inside the header on mobile */
+export const HamburgerButton: React.FC<{
+  open: boolean;
+  onToggle: () => void;
+}> = ({ open, onToggle }) => (
+  <button
+    onClick={onToggle}
+    aria-label={open ? "Close navigation menu" : "Open navigation menu"}
+    aria-expanded={open}
+    className="btn-ghost mobile-only"
+    style={{ padding: "6px", display: "none" }}
+  >
+    <Menu size={20} aria-hidden="true" />
+  </button>
+);
