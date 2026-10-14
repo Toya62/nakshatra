@@ -7,16 +7,18 @@ sdk: gradio
 sdk_version: 6.30.0
 app_file: app.py
 pinned: false
-license: mit
+license: agpl-3.0
 ---
 
 # Nakshatra - Vedic Astrology AI Engine
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Next.js 16.4](https://img.shields.io/badge/Next.js-16.4_Turbopack-black.svg)](https://nextjs.org/)
 [![Engine: Swiss Ephemeris](https://img.shields.io/badge/engine-Swiss%20Ephemeris-blue.svg)](https://www.astro.com/swisseph/)
+[![Hugging Face Space](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Space%20Live-yellow)](https://toya62-nakshatra.hf.space)
 
-**Nakshatra** (नक्षत्र) is a high-precision Vedic astrology calculation engine providing birth charts, Vimshottari dashas, divisional charts, Ashtakavarga, and Shadbala as structured JSON via FastAPI REST API, CLI, and Python library. Powered by **Swiss Ephemeris** (`pyswisseph`) through `mayaastrolib` for sub-second, arcsecond-level astronomical accuracy.
+**Nakshatra** (नक्षत्र) is a high-precision, production-grade Vedic astrology calculation and AI consultation engine. Powered by **Swiss Ephemeris** (`pyswisseph`) through `mayaastrolib` for sub-second, arcsecond-level astronomical accuracy, it provides birth charts (Kundali), Vimshottari dashas, divisional charts (Shodashavarga), Ashtakavarga, Shadbala, and Gochar transits as structured JSON via FastAPI REST API, Next.js web application, Gradio UI, Model Context Protocol (MCP) server, CLI, and Python library.
 
 ---
 
@@ -31,11 +33,26 @@ license: mit
   - `krishnamurti`: K.P. (Krishnamurti Paddhati) ayanamsa.
   - `fagan_bradley`: Western sidereal standard.
 - **Multiple House Systems**: Whole Sign (traditional Vedic default), Placidus, Koch, Regiomontanus, Campanus, Equal, Porphyry.
-- **Vimshottari Dashas**:
+- **Vimshottari Dashas & 120-Year Visual Timeline**:
   - Birth balance calculation down to fractional years.
-  - Full 120-year sequence of Mahadashas (MD).
-  - Nested Antardashas (AD) and Pratyantardashas (PD) down to the exact second (`YYYY-MM-DD HH:MM:SS`).
-  - Active current period lookup (`current_md`, `current_ad`, `current_pd`).
+  - Full 120-year sequence of Mahadashas (MD), Antardashas (AD), and Pratyantardashas (PD) down to the exact second (`YYYY-MM-DD HH:MM:SS`).
+  - Interactive horizontal life ribbon with real-time age indicator ("NOW" cursor) and active period lookup.
+  - Overlaid Saturn Sade Sati 7.5-year windows calibrated to natal Moon.
+- **Nepali Bikram Sambat (BS) Calendar & Sanskrit Devanagari**:
+  - Bidirectional Gregorian (AD) ↔ Nepali Bikram Sambat (BS) date conversion via authentic Panchanga ephemeris tables (`nepali-datetime`).
+  - Canonical Sanskrit Devanagari nomenclature toggle across Grahas (सूर्य, चन्द्र, मङ्गल, etc.), Rasis (मेष, वृष, etc.), and Nakshatras (अश्विनी ... रेवती).
+- **Geocoding & Historical Timezone/DST Resolver**:
+  - Offline curated registry of 100+ global and spiritual centers (Kathmandu, Varanasi, Ujjain, Lumbini, Tirupati, etc.) with OpenStreetMap Nominatim fallback.
+  - Historical Civil UTC offset and Daylight Saving Time (DST) calculation via IANA / `zoneinfo`.
+- **Explainable "Why" Astrological Reason Inspector**:
+  - Transparent 3-pillar breakdown for AI consultations:
+    1. *Scriptural Pramana*: Full classical verses, works, chapters, and shloka citations.
+    2. *Natal Grounding (Yukti)*: Seekers exact planetary degrees, operating Mahadasha/Antardasha, Lagna, and Gochar transits.
+    3. *Ethical / Dharma Guardrail*: Anti-fatalistic counseling reframing and professional boundary guidance.
+- **GDPR Zero-Log Ephemeral Privacy Policy**:
+  - Strict in-memory processing: zero persistence of seeker names, questions, or exact birth coordinates.
+  - Automatic scrubbing of latitude, longitude, and personal identifiers from application logs (`PrivacySanitizerFilter`).
+  - Automatic injection of `X-Data-Policy: ephemeral-zero-retention` header.
 - **Shodashavarga (Divisional Charts)**:
   - All 16 vargas: D1 (Rasi), D2 (Hora), D3 (Drekkana), D4 (Chaturthamsa), D7 (Saptamsa), D9 (Navamsa), D10 (Dasamsa), D12 (Dvadasamsa), D16 (Shodasamsa), D20 (Vimsamsa), D24 (Chaturvimsamsa), D27 (Bhamsa), D30 (Trimsamsa), D40 (Khavedamsa), D45 (Akshavedamsa), D60 (Shastiamsa).
 - **Ashtakavarga**:
@@ -45,18 +62,16 @@ license: mit
   - Total virupas, total rupas, required strength threshold, and sufficiency status.
 - **Upagrahas (Shadow Planets)**:
   - Dhuma, Vyatipata, Parivesha, Indrachapa, and Upaketu with exact sidereal degree and house.
-- **Major Aspects**: Conjunction, sextile, square, trine, and opposition with orbs.
 - **Transits (Gochar)**:
-  - Current or user-specified transit date against the natal chart.
+  - Current or user-specified transit date against natal chart.
   - Transit houses from natal Lagna and natal Moon (Chandra Lagna).
   - Sade Sati (rising / peak / setting), Ashtama Shani, and Kantaka Shani detection.
   - Jupiter Gochar with Phaladeepika favorable-house evaluation.
   - Double Transit detection (houses simultaneously aspected by Jupiter and Saturn).
   - Sarvashtakavarga (SAV) and Bhinnashtakavarga (BAV) bindus per transit sign.
 - **Panchanga Engine**:
-  - The 5 limbs of Vedic time: Tithi (lunar phase & percentage left), Vara (Vedic weekday from sunrise), Nakshatra (lunar mansion & percentage left), Yoga (solilunar angular sum & percentage left), and Karana (half-tithi & movable/fixed tracking with Bhadra alert).
+  - 5 limbs of Vedic time: Tithi (lunar phase & percentage left), Vara (Vedic weekday from sunrise), Nakshatra (lunar mansion & percentage left), Yoga (solilunar angular sum & percentage left), and Karana (half-tithi & movable/fixed tracking with Bhadra alert).
   - Swiss Ephemeris sunrise and sunset calculations with pre-sunrise solar day rollback.
-  - Standalone API (`GET /panchanga`, `POST /panchanga`) and CLI `--panchanga`.
 - **Classical Yoga Detection**:
   - Rule-based detection engine over `ChartData`:
     - **Pancha Mahapurusha**: Ruchaka (Mars), Bhadra (Mercury), Hamsa (Jupiter), Malavya (Venus), Sasa (Saturn).
@@ -67,11 +82,17 @@ license: mit
     - **Surya Yogas**: Budhaditya, Vesi, Vasi, Ubhayachari.
     - **Viparita Raja Yogas**: Harsha, Sarala, Vimala.
     - **Raja & Dhana Yogas**: Amala Yoga, Kendra-Trikona conjunctions, wealth axis combinations.
-  - Standalone API (`GET /yogas`, `POST /yogas`) and CLI `--yogas`.
-- **Multi-Format Outputs**: ASCII tables, South Indian chart diagram (any varga), Markdown, CSV, and JSON.
-- **REST API**: FastAPI server with interactive Swagger UI at `/docs`.
-- **CLI**: Terminal tool `nakshatra` for quick chart, transit, panchanga, and yoga generation.
-- **AI-Ready**: Clean Pydantic models designed for LLM prompts and agent workflows.
+- **Model Context Protocol (MCP) Server**:
+  - Exposes 7 registered tools for Claude Desktop, Cursor, and agentic workflows:
+    - `calculate_birth_chart`
+    - `get_daily_panchanga`
+    - `match_kundali_compatibility`
+    - `get_muhurtha_election`
+    - `get_transits_gochar`
+    - `detect_vedic_yogas`
+    - `consult_scripture_rag`
+- **Multi-Format Outputs**: ASCII tables, South Indian chart diagram (any varga), North Indian diamond chart, Markdown, CSV, and JSON.
+- **REST API**: FastAPI server with interactive Swagger UI at `/docs` and OpenAPI 3.0 spec.
 
 ---
 
@@ -84,209 +105,115 @@ license: mit
 git clone https://github.com/Toya62/nakshatra.git
 cd nakshatra
 
+# Create and activate virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
 # Install in editable mode
 pip install -e .
 
-# Or with dev dependencies
-pip install -e ".[dev]"
+# Or with dev and AI extras
+pip install -e ".[dev,ai]"
 ```
 
 ### Run API Server
 
 ```bash
-# Start server
-nakshatra-api
-# or
-uvicorn nakshatra.api:app --reload
-
-# Interactive docs at http://localhost:8000/docs
+# Start FastAPI backend on port 8004
+uvicorn nakshatra.api:app --reload --port 8004
 ```
 
-### Calculate Chart via API
+### Run Frontend Web App
 
 ```bash
-curl -X POST http://localhost:8000/chart \
-  -H "Content-Type: application/json" \
-  -d '{
-    "year": 1997,
-    "month": 5,
-    "day": 22,
-    "hour": 4,
-    "minute": 53,
-    "latitude": 27.8667,
-    "longitude": 83.4833,
-    "timezone": "Asia/Kathmandu",
-    "place_name": "Palpa, Nepal",
-    "ayanamsa": "jhora_lahiri"
-  }'
+cd web
+npm install
+npm run dev
+# Open http://localhost:3000
 ```
 
-### Calculate Chart via CLI
+### Run MCP Server (Claude Desktop / Cursor)
 
 ```bash
-# Output as formatted ASCII table (default)
-nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --ayanamsa jhora_lahiri
-
-# Output as South Indian ASCII box chart diagram
-nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --format diagram
-
-# Output as Markdown report or CSV
-nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --format markdown
-nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --format csv
-
-# Output as pretty JSON
-nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --format json -p
-
-# Save output to specific file
-nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --format json -p -o chart.json
-
-# Auto-save to timestamped file (chart_YYYYMMDD_HHMMSS.<ext>)
-nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --format json -p -s
-nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --format markdown -s
-
-# Calculate planetary transits (Gochar) for the current date
-nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --transit
-
-# Calculate transits for a specific date (table or JSON output)
-nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --transit 2026-12-25
-nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu --transit 2026-12-25 --format json -p
+# Launch MCP stdio server
+python -m nakshatra.mcp_server
 ```
 
-### RAG Consultation
-
-```bash
-# Ingest a classical corpus into a searchable index
-# Layout: corpus/<work>/meta.json (work, translator, license) + .txt/.md files
-nakshatra ingest-corpus --dir corpus --out index
-
-# Ask a question (API)
-curl -X POST http://localhost:8000/rag/ask \
-  -H "Content-Type: application/json" \
-  -d '{"question": "What does my chart say about career?", "top_k": 5}'
-```
-
-Retrieval fuses BM25 lexical ranking with `all-MiniLM-L6-v2` dense
-embeddings (Reciprocal Rank Fusion) and expands queries via a Bhava/Karaka
-concept map (e.g., "marriage" → House 7, Venus, Jupiter, D9 Navamsa).
-Install the optional AI extras for semantic embeddings and LLM synthesis:
-
-```bash
-pip install 'nakshatra[ai]'   # sentence-transformers, google-genai, openai
-```
-
-Without the extras, the engine runs in zero-dependency BM25-only mode with
-verbatim cited references.
-
-### Python Library Usage
-
-```python
-from nakshatra import BirthData, calculate_chart, Ayanamsa, HouseSystem
-
-birth = BirthData(
-    year=1997, month=5, day=22, hour=4, minute=53,
-    latitude=27.8667, longitude=83.4833,
-    timezone="Asia/Kathmandu",
-    place_name="Palpa, Nepal"
-)
-
-# Calculate chart with JHora Lahiri calibration
-chart = calculate_chart(
-    birth=birth,
-    ayanamsa=Ayanamsa.JHORA_LAHIRI,
-    house_system=HouseSystem.WHOLE_SIGN
-)
-
-# Save directly to file (format inferred from file extension)
-chart.save("my_chart.json")      # JSON
-chart.save("my_chart.md")        # Markdown report
-chart.save("my_chart.csv")       # Planetary CSV
-chart.save("my_chart.txt")       # Formatted ASCII tables
-
-# Or get in-memory strings
-table_str = chart.to_table()      # Human-readable ASCII tables
-diagram_str = chart.to_diagram()  # South Indian ASCII chart box
-md_str = chart.to_markdown()      # GitHub-flavored Markdown
-csv_str = chart.to_csv()          # Planetary CSV
-json_str = chart.to_json()        # Formatted JSON
-dict_data = chart.to_dict()       # Python dictionary
-
-# Calculate transits (Gochar) for a specific date
-from datetime import datetime
-report = chart.get_transits(datetime(2026, 12, 25))
-print(report.to_table())          # Sade Sati, Jupiter Gochar, Double Transit
-report_json = report.model_dump_json()
+Add to `claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "nakshatra": {
+      "command": "/path/to/nakshatra/.venv/bin/python",
+      "args": ["-m", "nakshatra.mcp_server"]
+    }
+  }
+}
 ```
 
 ---
 
-## System Architecture
+## REST API Reference
 
-The complete Nakshatra architecture integrates high-precision astronomical computation with classical shloka retrieval and generative AI synthesis:
+| Endpoint | Method | Description |
+| :--- | :---: | :--- |
+| `/chart` | `POST` | Calculate Vedic chart, planets, houses, dashas, vargas, and Ashtakavarga |
+| `/transits` | `POST` | Calculate Gochara transits, Sade Sati status, and double transits |
+| `/panchanga` | `POST` | Compute 5 limbs of Vedic time (Tithi, Vara, Nakshatra, Yoga, Karana) |
+| `/yogas` | `POST` | Detect classical Parashara Raja, Dhana, and Mahapurusha yogas |
+| `/match/compatibility` | `POST` | 36-point Ashtakoota and Kuja Dosha (Manglik) analysis |
+| `/muhurtha` | `POST` | Planetary Horas, Choghadiya, Abhijit, and Rahu Kalam election scoring |
+| `/geocode/search` | `GET` | Autocomplete and resolve cities/coordinates (`?q=Kathmandu`) |
+| `/geocode/timezone` | `GET` | Resolve historical UTC/DST offset (`?tz=Asia/Kathmandu&year=1997...`) |
+| `/calendar/bs` | `GET` | Convert Gregorian (AD) to Nepali Bikram Sambat (BS) |
+| `/calendar/ad` | `GET` | Convert Nepali Bikram Sambat (BS) to Gregorian (AD) |
+| `/calendar/nomenclature` | `GET` | Canonical Sanskrit Devanagari terms for Grahas, Rasis, and Nakshatras |
+| `/rag/ask` | `POST` | Scripture-grounded consultation with shloka citations |
+| `/privacy` | `GET` | GDPR ephemeral zero-retention guarantee |
+| `/legal/licensing` | `GET` | Swiss Ephemeris AGPL-3.0 and classical corpus attribution notice |
+| `/health` | `GET` | System health check |
+
+---
+
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                              USER (Browser)                                 │
-│                       Streamlit / Next.js Frontend                          │
-└──────────────────────────────────────┬──────────────────────────────────────┘
-                                       │
-                                       ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         BACKEND (FastAPI / Streamlit)                       │
+│                             NAKSHATRA PLATFORM                              │
+├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│   ┌────────────────────┐  ┌─────────────────────┐  ┌────────────────────┐   │
-│   │    Chart Layer     │  │      RAG Layer      │  │     LLM Layer      │   │
-│   ├────────────────────┤  ├─────────────────────┤  ├────────────────────┤   │
-│   │ MayaAstroLib       │  │ FAISS Index         │  │ Gemini 3 / 2.5     │   │
-│   │ (Swiss Ephemeris)  │  │ + all-MiniLM-L6-v2  │  │ Flash (Primary)    │   │
-│   │                    │  │ (Local embeddings)  │  │                    │   │
-│   │ • D1–D60 Vargas    │  │                     │  │ OpenRouter         │   │
-│   │ • Vimshottari      │  │ Classical Corpus:   │  │ (Fallback)         │   │
-│   │   (MD/AD/PD)       │  │ • BPHS              │  │                    │   │
-│   │ • Ashtakavarga     │  │ • Phaladeepika      │  │ Temp: 0.3          │   │
-│   │ • Shadbala         │  │ • Brihat Jataka     │  │ Max tokens: 4096   │   │
-│   │ • Upagrahas        │  │ • Saravali          │  │                    │   │
-│   │ • Yogas & Transits │  │ • Crux (Rath)       │  │                    │   │
-│   └─────────┬──────────┘  └──────────┬──────────┘  └─────────┬──────────┘   │
-│             │                        │                       │              │
-│             └────────────────────────┼───────────────────────┘              │
-│                                      ▼                                      │
-│                        ┌───────────────────────────┐                        │
-│                        │   PROMPT ASSEMBLY LAYER   │                        │
-│                        │ (System + Context + Data) │                        │
-│                        └───────────────────────────┘                        │
+│  [FRONTEND APPS]                                                            │
+│  ├─ Next.js 16.4 Web App (Diamond / Grid Charts, 120-Yr Timeline, BS, Why)  │
+│  └─ Hugging Face Space Gradio 6.30 (ZeroGPU keepalive)                      │
+│                                                                             │
+│  [API & PROTOCOLS]                                                          │
+│  ├─ FastAPI REST API (CORS, Ephemeral Privacy Middleware, Rate Limits)       │
+│  └─ Model Context Protocol (MCP) Server (7 Astrological Tools)              │
+│                                                                             │
+│  [ASTRONOMICAL CORE]                                                        │
+│  ├─ Swiss Ephemeris Engine (pyswisseph / mayaastrolib)                     │
+│  ├─ Jagannatha Hora Concordance (jhora_lahiri Ayanamsa)                     │
+│  ├─ Vimshottari Dasha Engine (120-year cycle down to second)                │
+│  ├─ Gochara Transits & Sade Sati Resolver                                   │
+│  └─ Shodashavarga (D1 - D60), Ashtakavarga (337 SAV), Shadbala (6 Balas)     │
+│                                                                             │
+│  [SPECIALIZED ENGINES]                                                      │
+│  ├─ Geocoding & Historical Timezone/DST Resolver (zoneinfo + Nominatim)     │
+│  ├─ Nepali Bikram Sambat (BS) Calendar Converter (nepali-datetime)         │
+│  └─ 36-Point Ashtakoota & Muhurtha Election Engine                          │
+│                                                                             │
+│  [CLASSICAL RAG & SYNTHESIS]                                                │
+│  ├─ Two-Tier Verse Chunker (BPHS, Saravali, Phaladeepika, Brihat Jataka)    │
+│  ├─ Hybrid Vector Store (NumPy Cosine + BM25, RRF Fusion)                   │
+│  └─ Cited LLM Synthesis (OpenAI / Gemini 3.8 / Fallback)                   │
+│                                                                             │
+│  [TRUST & SAFETY GUARDRAILS]                                                │
+│  ├─ Explainable Reason Inspector (Pramana, Yukti, Dharma)                   │
+│  ├─ Anti-Fatalistic Psychological/Dharma Reframing                          │
+│  └─ GDPR Ephemeral Zero-Log Filter                                         │
+│                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
-
-### Layer Breakdown
-
-1. **Chart Calculation Layer (`nakshatra.core`)**:
-   - High-precision astronomical positions via Swiss Ephemeris (`mayaastrolib` / `pyswisseph`).
-   - True velocities, retrograde flags, dignities, and whole-sign house placements.
-   - Comprehensive divisional charts ($D1$ through $D60$).
-   - Vimshottari Dasha timeline with exact timestamp transitions down to Pratyantardasha (PD).
-   - Ashtakavarga (337 bindu grand total) and 6-fold Shadbala planetary strength metrics.
-
-2. **RAG Layer (Classical Vedic Shloka Retrieval)**:
-   - Hybrid retrieval: BM25 lexical ranking fused with `all-MiniLM-L6-v2` dense embeddings (NumPy cosine store) via Reciprocal Rank Fusion.
-   - Bhava/Karaka concept map expands queries (e.g., "marriage" → House 7, Venus, Jupiter, D9 Navamsa).
-   - Zero-dependency BM25-only fallback when sentence-transformers is unavailable.
-   - Authoritative classical corpus:
-     - *Brihat Parashara Hora Shastra* (BPHS)
-     - *Phaladeepika* (Mantreswara)
-     - *Brihat Jataka* (Varahamihira)
-     - *Saravali* (Kalyana Varma)
-     - *The Crux of Vedic Astrology* (Pt. Sanjay Rath)
-   - Context-aware retrieval triggered by active graha positions, house lords, and dasha rulers.
-
-3. **LLM & Prompt Assembly Layer**:
-   - Synthesizes exact astrological facts with classical shloka evidence.
-   - **Providers**: OpenAI (`gpt-4o-mini`) and Google Gemini via `google-genai`, selected by API key.
-   - Deterministic fallback: verbatim cited references when no LLM is configured.
-   - Prevents hallucinations by requiring bracketed `[n]` citations grounded in retrieved chunks.
-
-4. **Frontend Layer**:
-   - Interactive UI (Streamlit for rapid experimentation / Next.js for production SaaS).
-   - South Indian and North Indian chart layouts with transit overlays and interactive Dasha timeline.
 
 ---
 
@@ -304,7 +231,12 @@ The complete Nakshatra architecture integrates high-precision astronomical compu
 - [x] **RAG Corpus Ingestion**: Two-tier verse/paragraph chunker with license-gated works (BPHS, Phaladeepika, Saravali, Crux).
 - [x] **Hybrid Vector Store**: NumPy cosine store + BM25, RRF-fused, with Bhava/Karaka concept expansion.
 - [x] **LLM Integration**: OpenAI + Gemini cited synthesis with deterministic verbatim-reference fallback.
-- [ ] **Interactive Frontend**: Streamlit / Next.js web application.
+- [x] **Interactive Frontend**: Next.js 16.4 production application + Hugging Face Spaces Gradio Web UI.
+- [x] **Offline Geocoding & Historical Timezone Resolver**: 100+ global centers with DST resolution.
+- [x] **Explainable Astrological Reason Inspector**: Direct shloka citations (Pramana) and natal grounding (Yukti).
+- [x] **120-Year Life Timeline UI**: Proportional Vimshottari ribbon bar and Sade Sati overlays.
+- [x] **Nepali Bikram Sambat (BS) Calendar**: Bidirectional conversions and Devanagari Sanskrit nomenclature.
+- [x] **Model Context Protocol (MCP) Server**: 7 registered tools for Claude Desktop, Cursor, and agents.
 
 ---
 
@@ -316,6 +248,7 @@ Tested against reference charts exported from Jagannatha Hora:
 - **Nakshatras & Padas**: 100% exact match across all bodies.
 - **Ashtakavarga**: 100% exact match for Sun, Mars, Mercury, Jupiter, and Saturn; canonical 337 grand total.
 - **Vimshottari Dasha**: Mahadashas, Antardashas, and Pratyantardashas align to sub-day accuracy.
+- **Test Suite**: 227 automated tests passing across Python 3.10, 3.11, and 3.12.
 
 ---
 
@@ -334,7 +267,16 @@ mypy nakshatra
 
 ---
 
-## License
+## License & Attribution
 
-MIT License — see [LICENSE](LICENSE) for details.
-Ephemeris engine powered by Swiss Ephemeris (`pyswisseph`).
+This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)** — see [LICENSE](LICENSE) for details.
+
+### Special Notice Regarding Swiss Ephemeris (`pyswisseph`)
+The Swiss Ephemeris portion of this software is copyright © 1997-2026 by **Astrodienst AG**, Switzerland. It is dual-licensed under the **GNU AGPL v3** or a **commercial license** directly from Astrodienst AG ([astro.com/swisseph](https://www.astro.com/swisseph/)).
+- **Open-source & Free Software**: Permitted under GNU AGPL-3.0 copyleft terms.
+- **Proprietary Commercial SaaS / Closed-Source**: Requires purchasing a commercial Swiss Ephemeris license from Astrodienst AG.
+
+### Classical Corpus Attribution
+- **Brihat Parashara Hora Shastra (BPHS)**: Sanskrit verses in public domain; English commentary (R. Santhanam, 1984) referenced for educational study.
+- **Saravali & Phaladeepika**: Classical Sanskrit astrological treatises in the public domain.
+- **Modern Syntheses**: Referenced as fair use research excerpts for scriptural grounding.

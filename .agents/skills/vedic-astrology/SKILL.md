@@ -23,6 +23,7 @@ This skill operationalizes authentic Parashara Vedic Astrology with rigorous AI 
 2. **Interview First (先追问，再输出)**:
    - If exact birth data (Date, Time to minute, Location/City or Lat/Lon) is missing for a chart or timing question, interview the seeker to gather parameters.
    - Never substitute arbitrary default coordinates without seeker confirmation.
+   - If seeker provides a Nepali Bikram Sambat (BS) date (e.g., `२०५४ जेठ ०९`), convert to Gregorian (AD) via `nakshatra.calendar_bs.bs_to_ad` before ephemeris computation.
 
 3. **Declare Lineage First (先声明口径，再做结论)**:
    - Before synthesizing interpretations, declare the calculation lineage:
@@ -34,14 +35,17 @@ This skill operationalizes authentic Parashara Vedic Astrology with rigorous AI 
    - Frame challenging periods (Sade Sati, Ashtama Shani, Maraka periods, Rahu Dasha) as karmic developmental phases requiring discipline, mindfulness, and Dharma-aligned action.
    - Mandatory disclaimer: Astrology does not substitute for licensed medical, legal, psychiatric, or professional financial advice.
 
+5. **Ephemeral Zero-Log Privacy**:
+   - Never log or persist seeker names or exact coordinates to long-term storage or third-party trackers. All calculations run strictly in ephemeral memory.
+
 ## 4-Step Operational Workflow
 
-### Step 1: Structured Parameter Interview
+### Step 1: Structured Parameter Interview & Geocoding
 When a seeker requests a personal reading:
 - Collect:
-  1. Birth Date: Year, Month, Day (Gregorian/standard calendar).
+  1. Birth Date: Gregorian AD or Nepali Bikram Sambat BS (convert BS to AD if needed).
   2. Birth Time: Hour and Minute (24h or AM/PM; specify if recorded on birth certificate).
-  3. Birth Place: City, Country, or Coordinates (for exact local topocentric Ascendant).
+  3. Birth Place: City, Country, or Coordinates (resolve topocentric Lat/Lon and historical DST UTC offset via `nakshatra.geocoding`).
   4. Core Focus: Career (D10 Karma), Marriage/Partnership (D9 Navamsha), Health, Spiritual Growth.
 
 *See `references/interview.md` for conversational questionnaire patterns.*
@@ -62,10 +66,11 @@ Query the classical RAG index (`Brihat Parashara Hora Shastra`, `Phaladeepika`, 
 nakshatra rag ask "placement or yoga question" --birth chart.json
 ```
 
-### Step 4: Dharma-Aligned Synthesis (Yukti)
+### Step 4: Dharma-Aligned Synthesis & Reason Inspection (Yukti)
 Deliver the consultation following the structured layout:
-1. **Lineage & Astronomical Badge**: Ayanamsa, Lagna sign/degree, current Mahadasha/Antardasha.
+1. **Lineage & Astronomical Badge**: Ayanamsa, Lagna sign/degree, current Mahadasha/Antardasha, Bikram Sambat date (if relevant).
 2. **Chart Architecture**: Dominant planetary placements, house lord relationships, and strengths.
-3. **Scriptural Authority**: Classical verses cited with bracketed references `[1]`.
-4. **Timing & Gochara Context**: Operating Dasha lords synthesized with current transit houses.
+3. **Scriptural Authority (Pramana)**: Classical verses cited with bracketed references `[1]` and exact chapter/verse designations.
+4. **Timing & Gochara Context**: Operating Dasha lords synthesized with current transit houses and active Sade Sati windows.
 5. **Constructive Dharma Counseling**: Actionable guidance, mindfulness, and remedial principles (Dāna, Japa, Seva).
+6. **Explainability Inspector**: Offer seekers the "Why? Inspect Astrological Basis" breakdown detailing scriptural citations, natal grounding, and ethical guardrails.
