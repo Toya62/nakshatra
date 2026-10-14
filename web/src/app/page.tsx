@@ -165,7 +165,13 @@ export default function Home() {
         {activeTab === "transits" && <TransitsView birth={birthData} />}
 
         {/* Tab 3: Dasha Timeline */}
-        {activeTab === "dasha" && <DashaView dashas={chartData?.dashas} />}
+        {activeTab === "dasha" && (
+          <DashaView
+            dashas={chartData?.dashas}
+            birth={birthData}
+            chart={chartData}
+          />
+        )}
 
         {/* Tab 4: Panchanga */}
         {activeTab === "panchanga" && (

@@ -12,14 +12,13 @@ import sys
 # Ensure local nakshatra package is resolvable
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-import uvicorn
 import gradio as gr
 
 from nakshatra.api import app as api_app
-from nakshatra.core import BirthData, calculate_chart, Ayanamsa
+from nakshatra.calendar_bs import ad_to_bs, bs_to_ad
 from nakshatra.compatibility import calculate_compatibility
+from nakshatra.core import Ayanamsa, BirthData, calculate_chart
 from nakshatra.muhurtha import calculate_muhurtha
-from nakshatra.transits import calculate_transits
 
 # Hugging Face ZeroGPU compatibility hook
 try:
@@ -47,7 +46,13 @@ def calculate_chart_ui(year, month, day, hour, minute, lat, lon, tz, ayanamsa):
         )
         ay = Ayanamsa(ayanamsa) if ayanamsa in [a.value for a in Ayanamsa] else Ayanamsa.JHORA_LAHIRI
         chart = calculate_chart(b, ayanamsa=ay)
-        return chart.to_table()
+        bs = ad_to_bs(int(year), int(month), int(day))
+        header = (
+            f"Nepali Bikram Sambat (BS): {bs.formatted} | {bs.formatted_ne}\n"
+            f"Gregorian (AD): {year}-{month:02d}-{day:02d}\n"
+            f"{'='*60}\n\n"
+        )
+        return header + chart.to_table()
     except Exception as e:
         return f"Error calculating chart: {str(e)}"
 
@@ -81,6 +86,30 @@ def calculate_muhurtha_ui(year, month, day, hour, minute, lat, lon, tz):
         return res.to_markdown()
     except Exception as e:
         return f"Error calculating muhurtha: {str(e)}"
+
+
+def convert_calendar_ui(direction, year, month, day):
+    try:
+        y, m, d = int(year), int(month), int(day)
+        if "AD to BS" in direction:
+            res = ad_to_bs(y, m, d)
+            return (
+                f"### Gregorian (AD) → Bikram Sambat (BS)\n\n"
+                f"- **Bikram Sambat Year**: {res.year}\n"
+                f"- **Month**: {res.month_name_en} ({res.month_name_ne}) [Month #{res.month}]\n"
+                f"- **Day / Gate**: {res.day}\n"
+                f"- **Standard String**: `{res.formatted}`\n"
+                f"- **Devanagari Format**: `{res.formatted_ne}`\n"
+            )
+        else:
+            res_ad = bs_to_ad(y, m, d)
+            return (
+                f"### Bikram Sambat (BS) → Gregorian (AD)\n\n"
+                f"- **Gregorian Date**: `{res_ad.formatted}`\n"
+                f"- **Year**: {res_ad.year}, **Month**: {res_ad.month}, **Day**: {res_ad.day}\n"
+            )
+    except Exception as e:
+        return f"Conversion error: {str(e)}"
 
 
 with gr.Blocks(title="Nakshatra - Vedic Astrology AI Engine") as demo:
@@ -172,6 +201,30 @@ with gr.Blocks(title="Nakshatra - Vedic Astrology AI Engine") as demo:
             calculate_muhurtha_ui,
             inputs=[m_y, m_m, m_d, m_h, m_min, m_lat, m_lon, m_tz],
             outputs=[out_muh],
+        )
+
+    with gr.Tab("Nepali Bikram Sambat (BS) Calendar"):
+        gr.Markdown(
+            "### 🇳🇵 Exact Nepali Bikram Sambat (BS) ↔ Gregorian (AD) Converter\n"
+            "Calibrated against official Nepali Panchanga astronomical solar month boundaries."
+        )
+        with gr.Row():
+            cal_dir = gr.Radio(
+                choices=["AD to BS (Gregorian → Bikram Sambat)", "BS to AD (Bikram Sambat → Gregorian)"],
+                value="AD to BS (Gregorian → Bikram Sambat)",
+                label="Conversion Direction",
+            )
+        with gr.Row():
+            cal_y = gr.Number(value=1997, label="Year (e.g. 1997 AD or 2054 BS)")
+            cal_m = gr.Number(value=5, label="Month (1-12)")
+            cal_d = gr.Number(value=22, label="Day / Gate (1-32)")
+            btn_cal = gr.Button("Convert Date", variant="primary")
+
+        out_cal = gr.Markdown()
+        btn_cal.click(
+            convert_calendar_ui,
+            inputs=[cal_dir, cal_y, cal_m, cal_d],
+            outputs=[out_cal],
         )
 
     with gr.Tab("API & Perplexity / Claude Integration"):

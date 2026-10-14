@@ -1,7 +1,9 @@
 import {
   BirthDataInput,
+  BikramSambatDate,
   ChartData,
   CompatibilityReport,
+  DevanagariNomenclature,
   MuhurthaReport,
   PanchangaData,
   PlaceResult,
@@ -394,4 +396,23 @@ export async function fetchTimezoneOffset(
   }
   return res.json();
 }
+
+export async function fetchBikramSambat(
+  year: number,
+  month: number,
+  day: number
+): Promise<BikramSambatDate | null> {
+  const baseUrl = getApiBaseUrl();
+  const res = await fetch(`${baseUrl}/calendar/bs?year=${year}&month=${month}&day=${day}`);
+  if (!res.ok) return null;
+  return res.json();
+}
+
+export async function fetchNomenclature(): Promise<DevanagariNomenclature | null> {
+  const baseUrl = getApiBaseUrl();
+  const res = await fetch(`${baseUrl}/calendar/nomenclature`);
+  if (!res.ok) return null;
+  return res.json();
+}
+
 

@@ -329,3 +329,19 @@ export interface TimezoneOffsetInfo {
   tz_abbreviation: string;
 }
 
+export interface BikramSambatDate {
+  year: number;
+  month: number;
+  month_name_en: string;
+  month_name_ne: string;
+  day: number;
+  formatted: string;
+  formatted_ne: string;
+}
+
+export interface DevanagariNomenclature {
+  planets: Record<string, string>;
+  signs: Record<string, string>;
+  nakshatras: string[];
+}
+

@@ -23,6 +23,15 @@ from nakshatra.ai.corpus import IngestResult
 from nakshatra.ai.embeddings import SearchResult
 from nakshatra.ai.service import RAGService
 from nakshatra.ai.synthesize import Answer
+from nakshatra.calendar_bs import (
+    DEVANAGARI_NAKSHATRAS,
+    DEVANAGARI_PLANETS,
+    DEVANAGARI_SIGNS,
+    BikramSambatDate,
+    GregorianDate,
+    ad_to_bs,
+    bs_to_ad,
+)
 from nakshatra.compatibility import (
     CompatibilityReport,
     calculate_compatibility,
@@ -348,6 +357,36 @@ async def geocode_timezone(
         return resolve_timezone_offset(tz, year, month, day, hour, minute)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid timezone or date: {str(e)}")
+
+
+@app.get("/calendar/bs", response_model=BikramSambatDate, tags=["Calendar"])
+async def convert_ad_to_bs(
+    year: int = Query(..., ge=1, le=3000),
+    month: int = Query(..., ge=1, le=12),
+    day: int = Query(..., ge=1, le=31),
+) -> BikramSambatDate:
+    """Convert Gregorian (AD) calendar date to Nepali Bikram Sambat (BS)."""
+    return ad_to_bs(year, month, day)
+
+
+@app.get("/calendar/ad", response_model=GregorianDate, tags=["Calendar"])
+async def convert_bs_to_ad(
+    year: int = Query(..., ge=1900, le=2200),
+    month: int = Query(..., ge=1, le=12),
+    day: int = Query(..., ge=1, le=32),
+) -> GregorianDate:
+    """Convert Nepali Bikram Sambat (BS) date to Gregorian (AD) calendar date."""
+    return bs_to_ad(year, month, day)
+
+
+@app.get("/calendar/nomenclature", tags=["Calendar"])
+async def calendar_nomenclature() -> dict[str, Any]:
+    """Return canonical Sanskrit Devanagari nomenclature for Grahas, Rasis, and Nakshatras."""
+    return {
+        "planets": DEVANAGARI_PLANETS,
+        "signs": DEVANAGARI_SIGNS,
+        "nakshatras": DEVANAGARI_NAKSHATRAS,
+    }
 
 
 @app.post("/chart", response_model=ChartResponse, tags=["Chart"])

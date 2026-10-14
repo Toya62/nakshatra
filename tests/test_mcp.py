@@ -177,8 +177,17 @@ async def test_mcp_get_transits_gochar():
 
 
 @pytest.mark.asyncio
-async def test_mcp_consult_scripture_rag():
+async def test_mcp_consult_scripture_rag(monkeypatch):
     """Test consult_scripture_rag tool executes gracefully."""
+    from nakshatra.ai.synthesize import Answer
+
+    monkeypatch.setattr(
+        "nakshatra.ai.service.RAGService.ask",
+        lambda self, q, **kw: (
+            Answer(question=q, answer="Classical Jupiter in 1st house synthesis", model="mock", citations=[]),
+            [],
+        ),
+    )
     res = await server.call_tool(
         "consult_scripture_rag",
         {
@@ -189,3 +198,5 @@ async def test_mcp_consult_scripture_rag():
     text = res.content[0].text
     # Either returns consultation synthesis or graceful index notice
     assert len(text) > 0
+
+
