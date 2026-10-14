@@ -21,6 +21,16 @@ from nakshatra.compatibility import calculate_compatibility
 from nakshatra.muhurtha import calculate_muhurtha
 from nakshatra.transits import calculate_transits
 
+# Hugging Face ZeroGPU compatibility hook
+try:
+    import spaces
+
+    @spaces.GPU
+    def _hf_zerogpu_keepalive():
+        return True
+except Exception:
+    pass
+
 
 def calculate_chart_ui(year, month, day, hour, minute, lat, lon, tz, ayanamsa):
     try:
