@@ -58,6 +58,7 @@ VEDIC_ASPECTS: dict[str, list[int]] = {
 
 class TransitPlanet(BaseModel):
     """Single planet transit position relative to natal chart."""
+
     name: str
     sign: str
     sign_lord: str
@@ -84,21 +85,24 @@ class TransitPlanet(BaseModel):
         ..., description="Whether transit is in an auspicious house from Moon per Phaladeepika"
     )
     kakshya_lord: str | None = Field(
-        None, description="Ruling planet of current 3°45' Ashtakavarga division"
+        default=None, description="Ruling planet of current 3°45' Ashtakavarga division"
     )
     kakshya_index: int | None = Field(
-        None, description="Kakshya index 0-7 (Saturn, Jupiter, Mars, Sun, Venus, Mercury, Moon, Lagna)"
+        default=None,
+        description="Kakshya index 0-7 (Saturn, Jupiter, Mars, Sun, Venus, Mercury, Moon, Lagna)",
     )
     kakshya_range: str | None = Field(
-        None, description="Arc range within sign, e.g. '00°00' - 03°45''"
+        default=None, description="Arc range within sign, e.g. '00°00' - 03°45''"
     )
     kakshya_has_bindu: bool | None = Field(
-        None, description="Whether current Kakshya lord contributes a bindu in natal BAV (auspicious sub-transit)"
+        default=None,
+        description="Whether current Kakshya lord contributes a bindu in natal BAV (auspicious sub-transit)",
     )
 
 
 class SadeSatiInfo(BaseModel):
     """Saturn Sade Sati and special transit affliction status."""
+
     is_active: bool
     # Phases: "Rising (12th from Moon)", "Peak (Janma Shani / 1st from Moon)",
     # "Setting (2nd from Moon)"
@@ -112,6 +116,7 @@ class SadeSatiInfo(BaseModel):
 
 class TransitReport(BaseModel):
     """Complete transit analysis relative to natal chart."""
+
     transit_time: str
     natal_birth_time: str
     natal_lagna_sign: str
@@ -137,8 +142,7 @@ class TransitReport(BaseModel):
         lines.append("=" * 86)
         lines.append(f" Transit Timestamp   : {self.transit_time}")
         lines.append(
-            f" Natal Birth Lagna   : {self.natal_lagna_sign} "
-            f"| Natal Moon: {self.natal_moon_sign}"
+            f" Natal Birth Lagna   : {self.natal_lagna_sign} | Natal Moon: {self.natal_moon_sign}"
         )
         lines.append(f" Ayanamsa Used       : {self.ayanamsa.upper()}")
         lines.append("-" * 86)
@@ -149,8 +153,7 @@ class TransitReport(BaseModel):
             lines.append(f" SADE SATI ALERT     : ACTIVE - {ss.phase} (Saturn in {ss.saturn_sign})")
         elif ss.is_ashtama_shani:
             lines.append(
-                f" ASHTAMA SHANI ALERT : ACTIVE - "
-                f"Saturn in 8th from Moon ({ss.saturn_sign})"
+                f" ASHTAMA SHANI ALERT : ACTIVE - Saturn in 8th from Moon ({ss.saturn_sign})"
             )
         elif ss.is_kantaka_shani:
             lines.append(
@@ -243,16 +246,14 @@ def calculate_transits(
     t_td = t_dt.utcoffset()
     offset_sec = t_td.total_seconds() if t_td is not None else 0
     t_h = t_dt.hour + (t_dt.minute / 60.0) + (t_dt.second / 3600.0)
-    t_tz_str = f"{int(offset_sec//3600):+03d}:{int((abs(offset_sec)%3600)//60):02d}"
+    t_tz_str = f"{int(offset_sec // 3600):+03d}:{int((abs(offset_sec) % 3600) // 60):02d}"
 
     m_dt = Datetime([t_dt.year, t_dt.month, t_dt.day], t_h, t_tz_str)
     m_pos = GeoPos(t_lat, t_lon)
 
     # Use natal ayanamsa
     maya_ayanamsa = (
-        "lahiri"
-        if natal_chart.ayanamsa == Ayanamsa.JHORA_LAHIRI
-        else natal_chart.ayanamsa.value
+        "lahiri" if natal_chart.ayanamsa == Ayanamsa.JHORA_LAHIRI else natal_chart.ayanamsa.value
     )
     ayan_offset = (56.5318 / 3600.0) if natal_chart.ayanamsa == Ayanamsa.JHORA_LAHIRI else 0.0
 
@@ -333,15 +334,19 @@ def calculate_transits(
                 s_deg = kak_idx * 3.75
                 e_deg = (kak_idx + 1) * 3.75
                 kak_range = f"{int(s_deg):02d}°{int((s_deg % 1) * 60):02d}' - {int(e_deg):02d}°{int((e_deg % 1) * 60):02d}'"
-                kakshya_summary_list.append({
-                    "planet": name,
-                    "sign": sign,
-                    "kakshya_lord": kak_lord,
-                    "kakshya_index": kak_idx,
-                    "degree_range": kak_range,
-                    "has_bindu": kak_active,
-                    "status": "Auspicious (Bindu present)" if kak_active else "Afflicted / Delay (0 bindu)",
-                })
+                kakshya_summary_list.append(
+                    {
+                        "planet": name,
+                        "sign": sign,
+                        "kakshya_lord": kak_lord,
+                        "kakshya_index": kak_idx,
+                        "degree_range": kak_range,
+                        "has_bindu": kak_active,
+                        "status": "Auspicious (Bindu present)"
+                        if kak_active
+                        else "Afflicted / Delay (0 bindu)",
+                    }
+                )
             except Exception:
                 pass
 
@@ -476,8 +481,7 @@ def calculate_transits(
     return TransitReport(
         transit_time=t_dt.strftime("%Y-%m-%d %H:%M:%S"),
         natal_birth_time=(
-            f"{b.year:04d}-{b.month:02d}-{b.day:02d} "
-            f"{b.hour:02d}:{b.minute:02d}:{b.second:02d}"
+            f"{b.year:04d}-{b.month:02d}-{b.day:02d} {b.hour:02d}:{b.minute:02d}:{b.second:02d}"
         ),
         natal_lagna_sign=natal_chart.ascendant.sign,
         natal_moon_sign=natal_moon.sign,

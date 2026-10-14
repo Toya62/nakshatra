@@ -13,7 +13,9 @@ from __future__ import annotations
 import itertools
 import logging
 import re
-from typing import Callable, Generic, Pattern, TypeVar, Union
+from collections.abc import Callable
+from re import Pattern
+from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, Field, PrivateAttr
 
@@ -58,9 +60,9 @@ class HeaderTrackerHook(BaseModel):
 
     def __init__(
         self,
-        start_pattern: Union[str, Pattern[str]],
-        end_pattern: Union[str, Pattern[str]],
-        **kwargs,
+        start_pattern: str | Pattern[str],
+        end_pattern: str | Pattern[str],
+        **kwargs: Any,
     ):
         flags = 0 if kwargs.get("case_sensitive", True) else re.IGNORECASE
         if isinstance(start_pattern, str):
@@ -158,7 +160,9 @@ def header_column_mismatch(headers: str, next_unit: str) -> bool:
 class HeaderTracker(BaseModel):
     """Tracks active table and section headers during text chunking."""
 
-    header_hook_configs: list[HeaderTrackerHook] = Field(default_factory=lambda: list(DEFAULT_CONFIGS))
+    header_hook_configs: list[HeaderTrackerHook] = Field(
+        default_factory=lambda: list(DEFAULT_CONFIGS)
+    )
     active_headers: dict[int, str] = Field(default_factory=dict)
     ended_headers: set[int] = Field(default_factory=set)
     pending_extend: dict[int, bool] = Field(default_factory=dict)
@@ -190,9 +194,8 @@ class HeaderTracker(BaseModel):
                 del self.active_headers[config.priority]
                 self.pending_extend.pop(config.priority, None)
 
-        if (
-            _MARKDOWN_TABLE_PRIORITY in self.active_headers
-            and not self.pending_extend.get(_MARKDOWN_TABLE_PRIORITY)
+        if _MARKDOWN_TABLE_PRIORITY in self.active_headers and not self.pending_extend.get(
+            _MARKDOWN_TABLE_PRIORITY
         ):
             if _split_ends_with_paragraph_break(split):
                 self.pending_table_break = True
@@ -408,11 +411,13 @@ class TextSplitter(BaseModel, Generic[T]):
 
             self.header_hook.update(split)
             if self.header_hook.header_ended_this_unit and len(cur_chunk) > 0:
-                chunks.append((
-                    cur_chunk[0][0],
-                    cur_chunk[-1][1],
-                    "".join([c[2] for c in cur_chunk]),
-                ))
+                chunks.append(
+                    (
+                        cur_chunk[0][0],
+                        cur_chunk[-1][1],
+                        "".join([c[2] for c in cur_chunk]),
+                    )
+                )
                 cur_chunk = []
                 cur_len = 0
 
@@ -424,11 +429,13 @@ class TextSplitter(BaseModel, Generic[T]):
 
             if cur_len + split_len + cur_headers_len > self.chunk_size:
                 if len(cur_chunk) > 0:
-                    chunks.append((
-                        cur_chunk[0][0],
-                        cur_chunk[-1][1],
-                        "".join([c[2] for c in cur_chunk]),
-                    ))
+                    chunks.append(
+                        (
+                            cur_chunk[0][0],
+                            cur_chunk[-1][1],
+                            "".join([c[2] for c in cur_chunk]),
+                        )
+                    )
 
                 while cur_chunk and (
                     cur_len > self.chunk_overlap
@@ -455,10 +462,12 @@ class TextSplitter(BaseModel, Generic[T]):
             cur_start = cur_end
 
         if cur_chunk:
-            chunks.append((
-                cur_chunk[0][0],
-                cur_chunk[-1][1],
-                "".join([c[2] for c in cur_chunk]),
-            ))
+            chunks.append(
+                (
+                    cur_chunk[0][0],
+                    cur_chunk[-1][1],
+                    "".join([c[2] for c in cur_chunk]),
+                )
+            )
 
         return chunks

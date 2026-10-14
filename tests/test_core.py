@@ -71,10 +71,15 @@ class TestChartCalculation:
 
     def test_basic_chart(self):
         birth = BirthData(
-            year=1990, month=5, day=15, hour=14, minute=30,
-            latitude=40.7128, longitude=-74.0060,
+            year=1990,
+            month=5,
+            day=15,
+            hour=14,
+            minute=30,
+            latitude=40.7128,
+            longitude=-74.0060,
             timezone="America/New_York",
-            place_name="New York, NY"
+            place_name="New York, NY",
         )
 
         chart = calculate_chart(birth)
@@ -115,9 +120,14 @@ class TestChartCalculation:
 
     def test_chart_json_serialization(self):
         birth = BirthData(
-            year=1990, month=5, day=15, hour=14, minute=30,
-            latitude=40.7128, longitude=-74.0060,
-            timezone="America/New_York"
+            year=1990,
+            month=5,
+            day=15,
+            hour=14,
+            minute=30,
+            latitude=40.7128,
+            longitude=-74.0060,
+            timezone="America/New_York",
         )
 
         chart = calculate_chart(birth)
@@ -130,9 +140,14 @@ class TestChartCalculation:
 
     def test_chart_dict_serialization(self):
         birth = BirthData(
-            year=1990, month=5, day=15, hour=14, minute=30,
-            latitude=40.7128, longitude=-74.0060,
-            timezone="America/New_York"
+            year=1990,
+            month=5,
+            day=15,
+            hour=14,
+            minute=30,
+            latitude=40.7128,
+            longitude=-74.0060,
+            timezone="America/New_York",
         )
 
         chart = calculate_chart(birth)
@@ -147,9 +162,14 @@ class TestChartCalculation:
 
     def test_different_ayanamsas(self):
         birth = BirthData(
-            year=1990, month=5, day=15, hour=14, minute=30,
-            latitude=40.7128, longitude=-74.0060,
-            timezone="America/New_York"
+            year=1990,
+            month=5,
+            day=15,
+            hour=14,
+            minute=30,
+            latitude=40.7128,
+            longitude=-74.0060,
+            timezone="America/New_York",
         )
 
         for ayanamsa in Ayanamsa:
@@ -167,9 +187,14 @@ class TestChartCalculation:
 
     def test_different_house_systems(self):
         birth = BirthData(
-            year=1990, month=5, day=15, hour=14, minute=30,
-            latitude=40.7128, longitude=-74.0060,
-            timezone="America/New_York"
+            year=1990,
+            month=5,
+            day=15,
+            hour=14,
+            minute=30,
+            latitude=40.7128,
+            longitude=-74.0060,
+            timezone="America/New_York",
         )
 
         for house_system in HouseSystem:
@@ -180,10 +205,15 @@ class TestChartCalculation:
     def test_indian_birth(self):
         """Test with Indian coordinates (Bangalore)."""
         birth = BirthData(
-            year=1990, month=5, day=15, hour=14, minute=30,
-            latitude=12.9716, longitude=77.5946,
+            year=1990,
+            month=5,
+            day=15,
+            hour=14,
+            minute=30,
+            latitude=12.9716,
+            longitude=77.5946,
             timezone="Asia/Kolkata",
-            place_name="Bangalore, India"
+            place_name="Bangalore, India",
         )
 
         chart = calculate_chart(birth)
@@ -191,24 +221,51 @@ class TestChartCalculation:
         # Should have valid data - 7 grahas
         assert len(chart.planets) == 7  # 7 grahas
         assert chart.ascendant.sign in [
-            "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
-            "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
+            "Aries",
+            "Taurus",
+            "Gemini",
+            "Cancer",
+            "Leo",
+            "Virgo",
+            "Libra",
+            "Scorpio",
+            "Sagittarius",
+            "Capricorn",
+            "Aquarius",
+            "Pisces",
         ]
 
     def test_planet_house_assignment(self):
         """Verify planets are assigned to correct houses (Whole Sign)."""
         birth = BirthData(
-            year=1990, month=5, day=15, hour=14, minute=30,
-            latitude=40.7128, longitude=-74.0060,
-            timezone="America/New_York"
+            year=1990,
+            month=5,
+            day=15,
+            hour=14,
+            minute=30,
+            latitude=40.7128,
+            longitude=-74.0060,
+            timezone="America/New_York",
         )
 
         chart = calculate_chart(birth)
 
         # Get ascendant sign
         asc_sign = chart.ascendant.sign
-        signs = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
-                 "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
+        signs = [
+            "Aries",
+            "Taurus",
+            "Gemini",
+            "Cancer",
+            "Leo",
+            "Virgo",
+            "Libra",
+            "Scorpio",
+            "Sagittarius",
+            "Capricorn",
+            "Aquarius",
+            "Pisces",
+        ]
         asc_idx = signs.index(asc_sign)
 
         # Each planet's house should match whole sign from ascendant
@@ -227,9 +284,14 @@ class TestBirthData:
 
     def test_datetime_utc_conversion(self):
         birth = BirthData(
-            year=1990, month=5, day=15, hour=14, minute=30,
-            latitude=40.7128, longitude=-74.0060,
-            timezone="America/New_York"  # EDT = UTC-4 in May
+            year=1990,
+            month=5,
+            day=15,
+            hour=14,
+            minute=30,
+            latitude=40.7128,
+            longitude=-74.0060,
+            timezone="America/New_York",  # EDT = UTC-4 in May
         )
 
         utc_dt = birth.datetime_utc
@@ -240,19 +302,31 @@ class TestBirthData:
     def test_birth_data_validation(self):
         # Valid data should work
         BirthData(
-            year=2000, month=1, day=1, hour=12, minute=0,
-            latitude=0.0, longitude=0.0, timezone="UTC"
+            year=2000,
+            month=1,
+            day=1,
+            hour=12,
+            minute=0,
+            latitude=0.0,
+            longitude=0.0,
+            timezone="UTC",
         )
+
 
 class TestVedicExtensions:
     """Test rich Vedic extensions: dashas, vargas, ashtakavarga, shadbala, upagrahas."""
 
     def test_vimshottari_dashas(self):
         birth = BirthData(
-            year=1997, month=5, day=22, hour=4, minute=53,
-            latitude=27.8667, longitude=83.4833,
+            year=1997,
+            month=5,
+            day=22,
+            hour=4,
+            minute=53,
+            latitude=27.8667,
+            longitude=83.4833,
             timezone="Asia/Kathmandu",
-            place_name="Palpa, Nepal"
+            place_name="Palpa, Nepal",
         )
         chart = calculate_chart(birth)
         assert chart.dashas is not None
@@ -278,15 +352,34 @@ class TestVedicExtensions:
 
     def test_vargas_shodashavarga(self):
         birth = BirthData(
-            year=1997, month=5, day=22, hour=4, minute=53,
-            latitude=27.8667, longitude=83.4833,
+            year=1997,
+            month=5,
+            day=22,
+            hour=4,
+            minute=53,
+            latitude=27.8667,
+            longitude=83.4833,
             timezone="Asia/Kathmandu",
         )
         chart = calculate_chart(birth)
         assert chart.vargas is not None
         expected_vargas = [
-            "D1", "D2", "D3", "D4", "D7", "D9", "D10", "D12",
-            "D16", "D20", "D24", "D27", "D30", "D40", "D45", "D60",
+            "D1",
+            "D2",
+            "D3",
+            "D4",
+            "D7",
+            "D9",
+            "D10",
+            "D12",
+            "D16",
+            "D20",
+            "D24",
+            "D27",
+            "D30",
+            "D40",
+            "D45",
+            "D60",
         ]
         for v in expected_vargas:
             assert v in chart.vargas
@@ -298,8 +391,13 @@ class TestVedicExtensions:
 
     def test_ashtakavarga(self):
         birth = BirthData(
-            year=1997, month=5, day=22, hour=4, minute=53,
-            latitude=27.8667, longitude=83.4833,
+            year=1997,
+            month=5,
+            day=22,
+            hour=4,
+            minute=53,
+            latitude=27.8667,
+            longitude=83.4833,
             timezone="Asia/Kathmandu",
         )
         chart = calculate_chart(birth)
@@ -309,8 +407,13 @@ class TestVedicExtensions:
 
     def test_shadbala(self):
         birth = BirthData(
-            year=1997, month=5, day=22, hour=4, minute=53,
-            latitude=27.8667, longitude=83.4833,
+            year=1997,
+            month=5,
+            day=22,
+            hour=4,
+            minute=53,
+            latitude=27.8667,
+            longitude=83.4833,
             timezone="Asia/Kathmandu",
         )
         chart = calculate_chart(birth)
@@ -322,8 +425,13 @@ class TestVedicExtensions:
 
     def test_upagrahas(self):
         birth = BirthData(
-            year=1997, month=5, day=22, hour=4, minute=53,
-            latitude=27.8667, longitude=83.4833,
+            year=1997,
+            month=5,
+            day=22,
+            hour=4,
+            minute=53,
+            latitude=27.8667,
+            longitude=83.4833,
             timezone="Asia/Kathmandu",
         )
         chart = calculate_chart(birth)
@@ -338,10 +446,16 @@ class TestVedicExtensions:
     def test_reference_chart_concordance(self):
         """Test against TNP LCP.txt reference chart."""
         birth = BirthData(
-            year=1997, month=5, day=22, hour=4, minute=53, second=0,
-            latitude=27 + 52/60, longitude=83 + 29/60,
+            year=1997,
+            month=5,
+            day=22,
+            hour=4,
+            minute=53,
+            second=0,
+            latitude=27 + 52 / 60,
+            longitude=83 + 29 / 60,
             timezone="Asia/Kathmandu",
-            place_name="Palpa, Nepal"
+            place_name="Palpa, Nepal",
         )
         chart = calculate_chart(birth)
 
@@ -374,8 +488,14 @@ class TestVedicExtensions:
     def test_output_formatters(self):
         """Test ASCII table, markdown, CSV, and diagram output methods."""
         birth = BirthData(
-            year=1997, month=5, day=22, hour=4, minute=53, second=0,
-            latitude=27.8667, longitude=83.4833,
+            year=1997,
+            month=5,
+            day=22,
+            hour=4,
+            minute=53,
+            second=0,
+            latitude=27.8667,
+            longitude=83.4833,
             timezone="Asia/Kathmandu",
         )
         chart = calculate_chart(birth, ayanamsa=Ayanamsa.JHORA_LAHIRI)
@@ -409,8 +529,14 @@ class TestVedicExtensions:
     def test_chart_save(self, tmp_path):
         """Test chart.save() method with automatic format inference."""
         birth = BirthData(
-            year=1997, month=5, day=22, hour=4, minute=53, second=0,
-            latitude=27.8667, longitude=83.4833,
+            year=1997,
+            month=5,
+            day=22,
+            hour=4,
+            minute=53,
+            second=0,
+            latitude=27.8667,
+            longitude=83.4833,
             timezone="Asia/Kathmandu",
         )
         chart = calculate_chart(birth, ayanamsa=Ayanamsa.JHORA_LAHIRI)
@@ -428,8 +554,14 @@ class TestVedicExtensions:
     def test_vargas_and_d10(self):
         """Test D10 Dasamsa calculation and diagram rendering."""
         birth = BirthData(
-            year=1997, month=5, day=22, hour=4, minute=53, second=0,
-            latitude=27.8667, longitude=83.4833,
+            year=1997,
+            month=5,
+            day=22,
+            hour=4,
+            minute=53,
+            second=0,
+            latitude=27.8667,
+            longitude=83.4833,
             timezone="Asia/Kathmandu",
         )
         chart = calculate_chart(birth, ayanamsa=Ayanamsa.JHORA_LAHIRI)
@@ -452,14 +584,21 @@ class TestVedicExtensions:
     def test_transits(self):
         """Test transit (Gochar) calculation, Sade Sati detection, and table output."""
         birth = BirthData(
-            year=1997, month=5, day=22, hour=4, minute=53, second=0,
-            latitude=27.8667, longitude=83.4833,
+            year=1997,
+            month=5,
+            day=22,
+            hour=4,
+            minute=53,
+            second=0,
+            latitude=27.8667,
+            longitude=83.4833,
             timezone="Asia/Kathmandu",
         )
         chart = calculate_chart(birth)
 
         # Transit for a specific date
         from datetime import datetime
+
         t_dt = datetime(2026, 10, 10, 12, 0, 0)
         report = chart.get_transits(t_dt)
 

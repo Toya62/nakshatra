@@ -5,7 +5,7 @@ Unit tests for TextSplitter & HeaderTracker (adapted from Tencent/WeKnora).
 import pytest
 
 from nakshatra.ai.corpus import chunk_text
-from nakshatra.ai.splitter import HeaderTracker, TextSplitter
+from nakshatra.ai.splitter import TextSplitter
 
 
 class TestTextSplitter:
@@ -30,7 +30,9 @@ class TestTextSplitter:
 
     def test_overlap_between_chunks(self):
         splitter = TextSplitter(chunk_size=60, chunk_overlap=20)
-        text = "First sentence about Aries. Second sentence about Taurus. Third sentence about Gemini."
+        text = (
+            "First sentence about Aries. Second sentence about Taurus. Third sentence about Gemini."
+        )
         chunks = splitter.split_text(text)
         assert len(chunks) > 1
         for start, end, chunk_str in chunks:
@@ -38,11 +40,7 @@ class TestTextSplitter:
 
     def test_protected_table_rows(self):
         splitter = TextSplitter(chunk_size=100, chunk_overlap=20)
-        table = (
-            "| Graha | Rashi |\n"
-            "|---|---|\n"
-            "| Surya | Mesha |\n"
-        )
+        table = "| Graha | Rashi |\n|---|---|\n| Surya | Mesha |\n"
         chunks = splitter.split_text(table)
         assert len(chunks) >= 1
         # Full table rows preserved without internal character fragmentation

@@ -31,6 +31,7 @@ from nakshatra.ai.synthesize import (
 
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     pass
@@ -153,14 +154,11 @@ class RAGService:
                 chunks = _read_corpus_chunks(index_dir)
                 if not chunks:
                     raise FileNotFoundError(
-                        f"No index found at {index_dir}. "
-                        "Run POST /rag/ingest first."
+                        f"No index found at {index_dir}. Run POST /rag/ingest first."
                     )
                 store = EmbeddingStore()
                 store.add_records(chunks)
-            self._retrievers[key] = HybridRetriever(
-                store, embedder=self._get_embedder()
-            )
+            self._retrievers[key] = HybridRetriever(store, embedder=self._get_embedder())
         return self._retrievers[key]
 
     def ask(
@@ -173,9 +171,7 @@ class RAGService:
         """Retrieve references and synthesize a cited answer."""
         retriever = self.load(index_dir)
         results = retriever.search(question, top_k=top_k)
-        answer = self._get_synthesizer().synthesize(
-            question, results, birth_context=birth_context
-        )
+        answer = self._get_synthesizer().synthesize(question, results, birth_context=birth_context)
         return answer, results
 
     def ask_stream(
@@ -189,7 +185,5 @@ class RAGService:
         retriever = self.load(index_dir)
         results = retriever.search(question, top_k=top_k)
         synthesizer = self._get_synthesizer()
-        stream = synthesizer.synthesize_stream(
-            question, results, birth_context=birth_context
-        )
+        stream = synthesizer.synthesize_stream(question, results, birth_context=birth_context)
         return stream, results, synthesizer

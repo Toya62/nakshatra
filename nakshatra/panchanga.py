@@ -26,39 +26,131 @@ from nakshatra.core import (
 
 # 30 Tithis
 TITHI_NAMES = [
-    "Shukla Pratipada", "Shukla Dvitiya", "Shukla Tritiya", "Shukla Chaturthi",
-    "Shukla Panchami", "Shukla Shashthi", "Shukla Saptami", "Shukla Ashtami",
-    "Shukla Navami", "Shukla Dashami", "Shukla Ekadashi", "Shukla Dvadashi",
-    "Shukla Trayodashi", "Shukla Chaturdashi", "Purnima",
-    "Krishna Pratipada", "Krishna Dvitiya", "Krishna Tritiya", "Krishna Chaturthi",
-    "Krishna Panchami", "Krishna Shashthi", "Krishna Saptami", "Krishna Ashtami",
-    "Krishna Navami", "Krishna Dashami", "Krishna Ekadashi", "Krishna Dvadashi",
-    "Krishna Trayodashi", "Krishna Chaturdashi", "Amavasya",
+    "Shukla Pratipada",
+    "Shukla Dvitiya",
+    "Shukla Tritiya",
+    "Shukla Chaturthi",
+    "Shukla Panchami",
+    "Shukla Shashthi",
+    "Shukla Saptami",
+    "Shukla Ashtami",
+    "Shukla Navami",
+    "Shukla Dashami",
+    "Shukla Ekadashi",
+    "Shukla Dvadashi",
+    "Shukla Trayodashi",
+    "Shukla Chaturdashi",
+    "Purnima",
+    "Krishna Pratipada",
+    "Krishna Dvitiya",
+    "Krishna Tritiya",
+    "Krishna Chaturthi",
+    "Krishna Panchami",
+    "Krishna Shashthi",
+    "Krishna Saptami",
+    "Krishna Ashtami",
+    "Krishna Navami",
+    "Krishna Dashami",
+    "Krishna Ekadashi",
+    "Krishna Dvadashi",
+    "Krishna Trayodashi",
+    "Krishna Chaturdashi",
+    "Amavasya",
 ]
 
 # Tithi ruling planets in classical Parashara cycle (Sun to Rahu)
 TITHI_LORDS = [
-    "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu",
-    "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn",
-    "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu",
-    "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn",
+    "Sun",
+    "Moon",
+    "Mars",
+    "Mercury",
+    "Jupiter",
+    "Venus",
+    "Saturn",
+    "Rahu",
+    "Sun",
+    "Moon",
+    "Mars",
+    "Mercury",
+    "Jupiter",
+    "Venus",
+    "Saturn",
+    "Sun",
+    "Moon",
+    "Mars",
+    "Mercury",
+    "Jupiter",
+    "Venus",
+    "Saturn",
+    "Rahu",
+    "Sun",
+    "Moon",
+    "Mars",
+    "Mercury",
+    "Jupiter",
+    "Venus",
+    "Saturn",
 ]
 
 # 27 Solilunar Yogas
 YOGA_NAMES = [
-    "Vishkambha", "Priti", "Ayushman", "Saubhagya", "Shobhana", "Atiganda",
-    "Sukarma", "Dhriti", "Shoola", "Ganda", "Vriddhi", "Dhruva",
-    "Vyaghata", "Harshana", "Vajra", "Siddhi", "Vyatipata", "Variyan",
-    "Parigha", "Shiva", "Siddha", "Sadhya", "Shubha", "Shukla",
-    "Brahma", "Indra", "Vaidhriti",
+    "Vishkambha",
+    "Priti",
+    "Ayushman",
+    "Saubhagya",
+    "Shobhana",
+    "Atiganda",
+    "Sukarma",
+    "Dhriti",
+    "Shoola",
+    "Ganda",
+    "Vriddhi",
+    "Dhruva",
+    "Vyaghata",
+    "Harshana",
+    "Vajra",
+    "Siddhi",
+    "Vyatipata",
+    "Variyan",
+    "Parigha",
+    "Shiva",
+    "Siddha",
+    "Sadhya",
+    "Shubha",
+    "Shukla",
+    "Brahma",
+    "Indra",
+    "Vaidhriti",
 ]
 
 YOGA_LORDS = [
-    "Saturn", "Mercury", "Ketu", "Venus", "Sun", "Moon",
-    "Mars", "Rahu", "Jupiter", "Saturn", "Mercury", "Ketu",
-    "Venus", "Sun", "Moon", "Mars", "Rahu", "Jupiter",
-    "Saturn", "Mercury", "Ketu", "Venus", "Sun", "Moon",
-    "Mars", "Rahu", "Jupiter",
+    "Saturn",
+    "Mercury",
+    "Ketu",
+    "Venus",
+    "Sun",
+    "Moon",
+    "Mars",
+    "Rahu",
+    "Jupiter",
+    "Saturn",
+    "Mercury",
+    "Ketu",
+    "Venus",
+    "Sun",
+    "Moon",
+    "Mars",
+    "Rahu",
+    "Jupiter",
+    "Saturn",
+    "Mercury",
+    "Ketu",
+    "Venus",
+    "Sun",
+    "Moon",
+    "Mars",
+    "Rahu",
+    "Jupiter",
 ]
 
 # 7 Repeating Movable Karanas
@@ -75,8 +167,12 @@ FIXED_KARANAS = {
 
 # 7 Vedic Weekdays (Vara)
 VARA_NAMES = [
-    "Ravivara (Sunday)", "Somavara (Monday)", "Mangalavara (Tuesday)",
-    "Budhavara (Wednesday)", "Guruvara (Thursday)", "Shukravara (Friday)",
+    "Ravivara (Sunday)",
+    "Somavara (Monday)",
+    "Mangalavara (Tuesday)",
+    "Budhavara (Wednesday)",
+    "Guruvara (Thursday)",
+    "Shukravara (Friday)",
     "Shanivara (Saturday)",
 ]
 VARA_LORDS = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"]
@@ -126,6 +222,7 @@ class VaraData(BaseModel):
 
 class PanchangaData(BaseModel):
     """Complete 5-limb Vedic calendar data."""
+
     timestamp: str
     latitude: float
     longitude: float
@@ -147,18 +244,32 @@ class PanchangaData(BaseModel):
         lines.append("                         VEDIC PANCHANGA REPORT")
         lines.append("=" * 76)
         lines.append(f" Date & Time    : {self.timestamp} ({self.timezone})")
-        lines.append(f" Coordinates    : {abs(self.latitude):.4f}°{'N' if self.latitude>=0 else 'S'}, {abs(self.longitude):.4f}°{'E' if self.longitude>=0 else 'W'}")
+        lines.append(
+            f" Coordinates    : {abs(self.latitude):.4f}°{'N' if self.latitude >= 0 else 'S'}, {abs(self.longitude):.4f}°{'E' if self.longitude >= 0 else 'W'}"
+        )
         if self.sunrise_time and self.sunset_time:
-            lines.append(f" Solar Markers  : Sunrise {self.sunrise_time} | Sunset {self.sunset_time}")
+            lines.append(
+                f" Solar Markers  : Sunrise {self.sunrise_time} | Sunset {self.sunset_time}"
+            )
         lines.append("-" * 76)
         lines.append(f" 1. VARA (Day)  : {self.vara.name} (Lord: {self.vara.lord})")
-        lines.append(f" 2. TITHI       : {self.tithi.name} ({self.tithi.paksha}) - {self.tithi.percentage_left:.2f}% left (Lord: {self.tithi.lord})")
-        lines.append(f" 3. NAKSHATRA   : {self.nakshatra.name} (Pada {self.nakshatra.pada}) - {self.nakshatra.percentage_left:.2f}% left (Lord: {self.nakshatra.lord})")
-        lines.append(f" 4. YOGA        : {self.yoga.name} - {self.yoga.percentage_left:.2f}% left (Lord: {self.yoga.lord})")
+        lines.append(
+            f" 2. TITHI       : {self.tithi.name} ({self.tithi.paksha}) - {self.tithi.percentage_left:.2f}% left (Lord: {self.tithi.lord})"
+        )
+        lines.append(
+            f" 3. NAKSHATRA   : {self.nakshatra.name} (Pada {self.nakshatra.pada}) - {self.nakshatra.percentage_left:.2f}% left (Lord: {self.nakshatra.lord})"
+        )
+        lines.append(
+            f" 4. YOGA        : {self.yoga.name} - {self.yoga.percentage_left:.2f}% left (Lord: {self.yoga.lord})"
+        )
         bhadra_alert = " [BHADRA/VISHTI]" if self.karana.is_vishti_bhadra else ""
-        lines.append(f" 5. KARANA      : {self.karana.name}{bhadra_alert} - {self.karana.percentage_left:.2f}% left (Lord: {self.karana.lord})")
+        lines.append(
+            f" 5. KARANA      : {self.karana.name}{bhadra_alert} - {self.karana.percentage_left:.2f}% left (Lord: {self.karana.lord})"
+        )
         lines.append("-" * 76)
-        lines.append(f" Celestial Posi : Sun {self.sun_longitude:.4f}° | Moon {self.moon_longitude:.4f}°")
+        lines.append(
+            f" Celestial Posi : Sun {self.sun_longitude:.4f}° | Moon {self.moon_longitude:.4f}°"
+        )
         lines.append("=" * 76)
         return "\n".join(lines)
 
@@ -181,7 +292,7 @@ def calculate_panchanga(
     utcoffset = local_dt.utcoffset()
     offset_sec = utcoffset.total_seconds() if utcoffset is not None else 0.0
     t_h = local_dt.hour + (local_dt.minute / 60.0) + (local_dt.second / 3600.0)
-    t_tz_str = f"{int(offset_sec//3600):+03d}:{int((abs(offset_sec)%3600)//60):02d}"
+    t_tz_str = f"{int(offset_sec // 3600):+03d}:{int((abs(offset_sec) % 3600) // 60):02d}"
 
     m_dt = Datetime([local_dt.year, local_dt.month, local_dt.day], t_h, t_tz_str)
     m_pos = GeoPos(latitude, longitude)
@@ -213,12 +324,8 @@ def calculate_panchanga(
     flag_rise = swe.CALC_RISE | swe.BIT_DISC_CENTER
     flag_set = swe.CALC_SET | swe.BIT_DISC_CENTER
 
-    t_rise_res = swe.rise_trans(
-        jd_midnight, swe.SUN, flag_rise, geopos_tuple, 0.0, 0.0
-    )
-    t_set_res = swe.rise_trans(
-        jd_midnight, swe.SUN, flag_set, geopos_tuple, 0.0, 0.0
-    )
+    t_rise_res = swe.rise_trans(jd_midnight, swe.SUN, flag_rise, geopos_tuple, 0.0, 0.0)
+    t_set_res = swe.rise_trans(jd_midnight, swe.SUN, flag_set, geopos_tuple, 0.0, 0.0)
 
     sunrise_jd = t_rise_res[1][0] if t_rise_res[0] == 0 else None
     sunset_jd = t_set_res[1][0] if t_set_res[0] == 0 else None
@@ -229,6 +336,7 @@ def calculate_panchanga(
         is_pre_sunrise = True
         # If before sunrise today, previous day's sunrise/sunset define the solar day
         from datetime import timedelta
+
         prev_day = local_dt.date() - timedelta(days=1)
         prev_midnight_dt = Datetime([prev_day.year, prev_day.month, prev_day.day], 0.0, t_tz_str)
         prev_rise_res = swe.rise_trans(

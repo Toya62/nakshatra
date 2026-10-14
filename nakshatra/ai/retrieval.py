@@ -48,10 +48,7 @@ class BM25Index:
             # Okapi idf smoothing zeroes terms present in half a small
             # corpus and penalizes terms in all of it; floor both so
             # ranking still works on small works.
-            self._bm25.idf = {
-                term: max(score, IDF_FLOOR)
-                for term, score in self._bm25.idf.items()
-            }
+            self._bm25.idf = {term: max(score, IDF_FLOOR) for term, score in self._bm25.idf.items()}
 
     def __len__(self) -> int:
         return len(self._chunks)
@@ -60,9 +57,7 @@ class BM25Index:
         """BM25 score for every chunk (parallel to chunks)."""
         if self._bm25 is None:
             return np.zeros(len(self._chunks), dtype=np.float32)
-        return np.asarray(
-            self._bm25.get_scores(tokenize(query)), dtype=np.float32
-        )
+        return np.asarray(self._bm25.get_scores(tokenize(query)), dtype=np.float32)
 
     def search(self, query: str, top_k: int = 5) -> list[tuple[int, float]]:
         """Top-k (chunk_index, score) pairs, highest score first."""
@@ -129,10 +124,7 @@ class ConceptMap:
         lower = query.lower()
         expansions: list[str] = []
         for _concept, (triggers, terms) in self.CONCEPTS.items():
-            if any(
-                re.search(rf"\b{re.escape(trigger)}\b", lower)
-                for trigger in triggers
-            ):
+            if any(re.search(rf"\b{re.escape(trigger)}\b", lower) for trigger in triggers):
                 expansions.extend(terms)
         if not expansions:
             return query
@@ -177,9 +169,7 @@ class HybridRetriever:
         # Lexical (BM25) ranking
         bm25_scores = self._bm25.scores(expanded)
         lexical_order = [
-            int(index)
-            for index in np.argsort(-bm25_scores)
-            if bm25_scores[int(index)] > 0
+            int(index) for index in np.argsort(-bm25_scores) if bm25_scores[int(index)] > 0
         ]
         rankings.append(lexical_order)
 
@@ -207,6 +197,5 @@ class HybridRetriever:
 
         ranked = sorted(fused.items(), key=lambda item: (-item[1], item[0]))
         return [
-            SearchResult(chunk=self._chunks[index], score=score)
-            for index, score in ranked[:top_k]
+            SearchResult(chunk=self._chunks[index], score=score) for index, score in ranked[:top_k]
         ]

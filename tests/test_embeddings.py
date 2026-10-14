@@ -91,20 +91,20 @@ class TestEmbeddingStore:
     def test_add_and_search_ranking(self):
         store = EmbeddingStore()
         chunks = [_chunk(verse="1"), _chunk(verse="2"), _chunk(verse="3")]
-        vectors = np.array([
-            [1.0, 0.0, 0.0],
-            [0.0, 1.0, 0.0],
-            [0.0, 0.0, 1.0],
-        ])
+        vectors = np.array(
+            [
+                [1.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0],
+                [0.0, 0.0, 1.0],
+            ]
+        )
         store.add(chunks, vectors)
         results = store.search(np.array([1.0, 0.1, 0.0]), top_k=2)
         assert len(results) == 2
         assert results[0].chunk.verse == "1"
         assert results[1].chunk.verse == "2"
         assert results[0].score > results[1].score
-        assert results[0].score == pytest.approx(
-            1.0 / math.sqrt(1.01), abs=1e-5
-        )
+        assert results[0].score == pytest.approx(1.0 / math.sqrt(1.01), abs=1e-5)
 
     def test_identical_direction_scores_one(self):
         store = EmbeddingStore()

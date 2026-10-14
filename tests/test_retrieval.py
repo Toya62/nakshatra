@@ -211,10 +211,7 @@ class TestHybridRetriever:
         assert results[0].chunk.verse == "1"
 
     def test_top_k_bounds(self):
-        chunks = [
-            _chunk(verse=str(i), text=f"Verse {i} about the Sun and Moon")
-            for i in range(10)
-        ]
+        chunks = [_chunk(verse=str(i), text=f"Verse {i} about the Sun and Moon") for i in range(10)]
         store = EmbeddingStore()
         store.add_records(chunks)
         retriever = HybridRetriever(store)

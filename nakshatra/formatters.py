@@ -146,8 +146,7 @@ def format_table(chart: ChartData) -> str:
             active_marker = " *" if d.current_md and d.current_md.lord == md.lord else ""
             dur_str = f"({md.duration_years:4.1f} yrs)" if md.duration_years is not None else ""
             lines.append(
-                f"   {md.lord:<11} : {md.start[:10]} to {md.end[:10]} "
-                f"{dur_str}{active_marker}"
+                f"   {md.lord:<11} : {md.start[:10]} to {md.end[:10]} {dur_str}{active_marker}"
             )
         lines.append("-" * 88)
 
@@ -157,8 +156,18 @@ def format_table(chart: ChartData) -> str:
         lines.append(f" ASHTAKAVARGA (Sarvashtakavarga Grand Total: {av.grand_total} bindus)")
         lines.append("-" * 88)
         signs_short = [
-            "Ari", "Tau", "Gem", "Can", "Leo", "Vir",
-            "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis",
+            "Ari",
+            "Tau",
+            "Gem",
+            "Can",
+            "Leo",
+            "Vir",
+            "Lib",
+            "Sco",
+            "Sag",
+            "Cap",
+            "Aqu",
+            "Pis",
         ]
         header_row = f"{'Planet':<9} " + " ".join(f"{s:>4}" for s in signs_short) + " Total"
         lines.append(header_row)
@@ -168,7 +177,8 @@ def format_table(chart: ChartData) -> str:
             lines.append(row_str)
         lines.append("-" * 88)
         sav_row = (
-            f"{'SAV':<9} " + " ".join(f"{b:>4}" for b in av.sarvashtakavarga)
+            f"{'SAV':<9} "
+            + " ".join(f"{b:>4}" for b in av.sarvashtakavarga)
             + f" {av.grand_total:>5}"
         )
         lines.append(sav_row)
@@ -258,9 +268,13 @@ def format_markdown(chart: ChartData) -> str:
         md.append(
             f"- **Nakshatra**: {p.nakshatra.name} (Pada {p.nakshatra.pada}) — {p.nakshatra.percentage_left:.2f}% left (Lord: {p.nakshatra.lord})"
         )
-        md.append(f"- **Yoga**: {p.yoga.name} — {p.yoga.percentage_left:.2f}% left (Lord: {p.yoga.lord})")
+        md.append(
+            f"- **Yoga**: {p.yoga.name} — {p.yoga.percentage_left:.2f}% left (Lord: {p.yoga.lord})"
+        )
         bhadra = " [BHADRA/VISHTI]" if p.karana.is_vishti_bhadra else ""
-        md.append(f"- **Karana**: {p.karana.name}{bhadra} — {p.karana.percentage_left:.2f}% left (Lord: {p.karana.lord})")
+        md.append(
+            f"- **Karana**: {p.karana.name}{bhadra} — {p.karana.percentage_left:.2f}% left (Lord: {p.karana.lord})"
+        )
         if p.sunrise_time and p.sunset_time:
             md.append(f"- **Solar Markers**: Sunrise {p.sunrise_time} | Sunset {p.sunset_time}")
         md.append("")
@@ -301,8 +315,7 @@ def format_markdown(chart: ChartData) -> str:
         md.append("|:---|:---|:---|:---:|")
         for md_period in d.mahadashas:
             dur_str = (
-                f"{md_period.duration_years:.1f}"
-                if md_period.duration_years is not None else "-"
+                f"{md_period.duration_years:.1f}" if md_period.duration_years is not None else "-"
             )
             md.append(
                 f"| **{md_period.lord}** | {md_period.start[:10]} "
@@ -326,7 +339,8 @@ def format_markdown(chart: ChartData) -> str:
             row = f"| **{planet}** | " + " | ".join(str(b) for b in bindus) + f" | {sum(bindus)} |"
             md.append(row)
         sav_row = (
-            "| **SAV** | " + " | ".join(str(b) for b in av.sarvashtakavarga)
+            "| **SAV** | "
+            + " | ".join(str(b) for b in av.sarvashtakavarga)
             + f" | **{av.grand_total}** |"
         )
         md.append(sav_row)
@@ -337,8 +351,7 @@ def format_markdown(chart: ChartData) -> str:
         md.append("## Shadbala (Planetary Strength)")
         md.append("")
         md.append(
-            "| Planet | Total Rupas | Required Rupas | Status | "
-            "Sthana | Dig | Kala | Cheshta |"
+            "| Planet | Total Rupas | Required Rupas | Status | Sthana | Dig | Kala | Cheshta |"
         )
         md.append("|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|")
         for p_name, sb in chart.shadbala.items():
@@ -359,7 +372,9 @@ def format_markdown(chart: ChartData) -> str:
         for idx, y in enumerate(chart.yogas, 1):
             cat_val = y.category.value if hasattr(y.category, "value") else y.category
             planets_s = ", ".join(y.planets_involved) if y.planets_involved else "-"
-            md.append(f"| {idx} | **{y.name}** | {cat_val} | {y.strength} | {planets_s} | {y.description} |")
+            md.append(
+                f"| {idx} | **{y.name}** | {cat_val} | {y.strength} | {planets_s} | {y.description} |"
+            )
         md.append("")
 
     return "\n".join(md)
@@ -369,46 +384,52 @@ def format_csv(chart: ChartData) -> str:
     """Format planets and houses into CSV."""
     buf = io.StringIO()
     writer = csv.writer(buf)
-    writer.writerow([
-        "Body",
-        "Sign",
-        "Degree_In_Sign",
-        "Longitude",
-        "Nakshatra",
-        "Pada",
-        "Nakshatra_Lord",
-        "House",
-        "Retrograde",
-        "Speed",
-    ])
+    writer.writerow(
+        [
+            "Body",
+            "Sign",
+            "Degree_In_Sign",
+            "Longitude",
+            "Nakshatra",
+            "Pada",
+            "Nakshatra_Lord",
+            "House",
+            "Retrograde",
+            "Speed",
+        ]
+    )
 
     asc = chart.ascendant
-    writer.writerow([
-        "Ascendant",
-        asc.sign,
-        f"{asc.degree_in_sign:.4f}",
-        f"{asc.longitude:.4f}",
-        asc.nakshatra,
-        asc.pada,
-        asc.nakshatra_lord,
-        1,
-        False,
-        "0.0000",
-    ])
+    writer.writerow(
+        [
+            "Ascendant",
+            asc.sign,
+            f"{asc.degree_in_sign:.4f}",
+            f"{asc.longitude:.4f}",
+            asc.nakshatra,
+            asc.pada,
+            asc.nakshatra_lord,
+            1,
+            False,
+            "0.0000",
+        ]
+    )
 
     for p in chart.planets + [chart.rahu, chart.ketu]:
-        writer.writerow([
-            p.name,
-            p.sign,
-            f"{p.degree_in_sign:.4f}",
-            f"{p.longitude:.4f}",
-            p.nakshatra,
-            p.pada,
-            p.nakshatra_lord,
-            p.house,
-            p.retrograde,
-            f"{p.speed:.4f}",
-        ])
+        writer.writerow(
+            [
+                p.name,
+                p.sign,
+                f"{p.degree_in_sign:.4f}",
+                f"{p.longitude:.4f}",
+                p.nakshatra,
+                p.pada,
+                p.nakshatra_lord,
+                p.house,
+                p.retrograde,
+                f"{p.speed:.4f}",
+            ]
+        )
 
     return buf.getvalue()
 
@@ -419,10 +440,23 @@ def format_chart_diagram(chart: ChartData, varga: str = "D1") -> str:
     Supports any divisional chart (D1, D9, D10, etc.).
     """
     # Group bodies by sign
-    sign_bodies: dict[str, list[str]] = {s: [] for s in [
-        "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
-        "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
-    ]}
+    sign_bodies: dict[str, list[str]] = {
+        s: []
+        for s in [
+            "Aries",
+            "Taurus",
+            "Gemini",
+            "Cancer",
+            "Leo",
+            "Virgo",
+            "Libra",
+            "Scorpio",
+            "Sagittarius",
+            "Capricorn",
+            "Aquarius",
+            "Pisces",
+        ]
+    }
 
     v_key = varga.upper()
     v_data = chart.vargas.get(v_key) if chart.vargas else None

@@ -51,9 +51,7 @@ def _result(
     text: str = "The Sun in the first house.",
     score: float = 0.9,
 ) -> SearchResult:
-    return SearchResult(
-        chunk=_chunk(verse=verse, text=text), score=score
-    )
+    return SearchResult(chunk=_chunk(verse=verse, text=text), score=score)
 
 
 class TestBuildPrompt:
@@ -100,9 +98,7 @@ class TestExtractCitations:
 
     def test_parses_markers(self):
         results = [_result(verse="1"), _result(verse="2", text="Moon.")]
-        citations = extract_citations(
-            "According to [1] and also [2], the Sun rules.", results
-        )
+        citations = extract_citations("According to [1] and also [2], the Sun rules.", results)
         assert len(citations) == 2
         assert citations[0].verse == "1"
         assert citations[0].work == "BPHS"
@@ -204,4 +200,3 @@ class TestLLMSynthesizer:
         answer = synthesizer.synthesize("career?", [_result()])
         assert answer.model == "gemini-3.8-flash"
         assert len(answer.answer.strip()) > 0
-

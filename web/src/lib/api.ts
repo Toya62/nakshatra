@@ -4,8 +4,10 @@ import {
   CompatibilityReport,
   MuhurthaReport,
   PanchangaData,
+  PlaceResult,
   RAGAnswer,
   SearchReference,
+  TimezoneOffsetInfo,
   TransitReport,
   YogaResult,
 } from "./types";
@@ -366,3 +368,30 @@ export async function fetchMuhurtha(input: BirthDataInput): Promise<MuhurthaRepo
   const json = await res.json();
   return json.data;
 }
+
+export async function searchPlaces(query: string, limit: number = 8): Promise<PlaceResult[]> {
+  const baseUrl = getApiBaseUrl();
+  const res = await fetch(`${baseUrl}/geocode/search?q=${encodeURIComponent(query)}&limit=${limit}`);
+  if (!res.ok) {
+    return [];
+  }
+  return res.json();
+}
+
+export async function fetchTimezoneOffset(
+  timezone: string,
+  year: number,
+  month: number,
+  day: number,
+  hour: number = 12,
+  minute: number = 0
+): Promise<TimezoneOffsetInfo | null> {
+  const baseUrl = getApiBaseUrl();
+  const url = `${baseUrl}/geocode/timezone?tz=${encodeURIComponent(timezone)}&year=${year}&month=${month}&day=${day}&hour=${hour}&minute=${minute}`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    return null;
+  }
+  return res.json();
+}
+

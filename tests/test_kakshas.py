@@ -43,7 +43,14 @@ def test_gochara_kakshyas_in_transits():
     for p in report.planets:
         if p.name in ("Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"):
             assert p.kakshya_lord in (
-                "Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon", "Ascendant"
+                "Saturn",
+                "Jupiter",
+                "Mars",
+                "Sun",
+                "Venus",
+                "Mercury",
+                "Moon",
+                "Ascendant",
             )
             assert 0 <= p.kakshya_index <= 7
             assert p.kakshya_range is not None

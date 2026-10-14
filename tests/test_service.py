@@ -22,10 +22,7 @@ def corpus(tmp_path):
     work_dir = tmp_path / "corpus" / "bphs"
     work_dir.mkdir(parents=True)
     (work_dir / "meta.json").write_text(
-        json.dumps(
-            {"work": "BPHS", "translator": "R. Santhanam",
-             "license": "public domain"}
-        ),
+        json.dumps({"work": "BPHS", "translator": "R. Santhanam", "license": "public domain"}),
         encoding="utf-8",
     )
     (work_dir / "bphs.txt").write_text(
@@ -39,9 +36,7 @@ def corpus(tmp_path):
 @pytest.fixture()
 def service():
     """Deterministic RAG service (hash embeddings, fallback synthesis)."""
-    return RAGService(
-        embedder=HashingEmbedder(), synthesizer=FallbackSynthesizer()
-    )
+    return RAGService(embedder=HashingEmbedder(), synthesizer=FallbackSynthesizer())
 
 
 @pytest.fixture()
@@ -50,9 +45,7 @@ def rag_client(tmp_path, monkeypatch):
     monkeypatch.setattr(
         api_module,
         "_rag_service",
-        RAGService(
-            embedder=HashingEmbedder(), synthesizer=FallbackSynthesizer()
-        ),
+        RAGService(embedder=HashingEmbedder(), synthesizer=FallbackSynthesizer()),
     )
     return TestClient(app)
 
@@ -70,14 +63,10 @@ class TestRAGService:
         assert (index_dir / "vectors.npy").is_file()
         assert (index_dir / "records.json").is_file()
 
-    def test_ask_returns_answer_and_references(
-        self, corpus, tmp_path, service
-    ):
+    def test_ask_returns_answer_and_references(self, corpus, tmp_path, service):
         index_dir = tmp_path / "index"
         service.ingest(corpus, index_dir)
-        answer, references = service.ask(
-            "What about my career?", index_dir=index_dir
-        )
+        answer, references = service.ask("What about my career?", index_dir=index_dir)
         assert answer.question == "What about my career?"
         assert references
         assert answer.citations
@@ -111,9 +100,7 @@ class TestRAGService:
 
     def test_bm25_only_mode(self, corpus, tmp_path):
         """embedder=False forces BM25-only (records, no vectors)."""
-        service = RAGService(
-            embedder=False, synthesizer=FallbackSynthesizer()
-        )
+        service = RAGService(embedder=False, synthesizer=FallbackSynthesizer())
         index_dir = tmp_path / "index"
         result = service.ingest(corpus, index_dir)
         assert result.total_chunks == 2
@@ -189,9 +176,7 @@ class TestRAGEndpoints:
         )
         assert response.status_code == 404
 
-    def test_ingest_missing_corpus_returns_400(
-        self, rag_client, tmp_path
-    ):
+    def test_ingest_missing_corpus_returns_400(self, rag_client, tmp_path):
         response = rag_client.post(
             "/rag/ingest",
             json={
@@ -231,9 +216,7 @@ class TestRAGEndpoints:
         assert response.json()["references"]
 
     def test_ask_empty_question_returns_422(self, rag_client):
-        response = rag_client.post(
-            "/rag/ask", json={"question": "", "index_dir": "index"}
-        )
+        response = rag_client.post("/rag/ask", json={"question": "", "index_dir": "index"})
         assert response.status_code == 422
 
     def test_root_lists_rag_endpoints(self, rag_client):

@@ -305,3 +305,27 @@ export interface MuhurthaReport {
   suitability: MuhurthaSuitability;
   recommendation: string;
 }
+
+export interface PlaceResult {
+  name: string;
+  city: string;
+  country: string;
+  latitude: number;
+  longitude: number;
+  timezone: string;
+  elevation_m?: number;
+}
+
+export interface TimezoneOffsetInfo {
+  timezone: string;
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  utc_offset_seconds: number;
+  utc_offset_str: string;
+  is_dst: boolean;
+  tz_abbreviation: string;
+}
+

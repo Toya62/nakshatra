@@ -189,4 +189,3 @@ async def test_mcp_consult_scripture_rag():
     text = res.content[0].text
     # Either returns consultation synthesis or graceful index notice
     assert len(text) > 0
-

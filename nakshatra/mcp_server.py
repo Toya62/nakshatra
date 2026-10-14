@@ -16,9 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from datetime import datetime
-from typing import Any
 
 from mcp.server.mcpserver import MCPServer
 
@@ -26,7 +24,6 @@ from nakshatra.compatibility import calculate_compatibility
 from nakshatra.core import (
     Ayanamsa,
     BirthData,
-    ChartData,
     HouseSystem,
     calculate_chart,
 )
@@ -49,6 +46,7 @@ server = MCPServer(
 # ---------------------------------------------------------------------------
 # Tool 1: Birth Chart Calculation
 # ---------------------------------------------------------------------------
+
 
 @server.tool(
     description=(
@@ -74,7 +72,11 @@ def calculate_birth_chart(
 ) -> str:
     """Calculate Vedic birth chart."""
     ay = Ayanamsa(ayanamsa) if ayanamsa in [a.value for a in Ayanamsa] else Ayanamsa.JHORA_LAHIRI
-    hs = HouseSystem(house_system) if house_system in [h.value for h in HouseSystem] else HouseSystem.WHOLE_SIGN
+    hs = (
+        HouseSystem(house_system)
+        if house_system in [h.value for h in HouseSystem]
+        else HouseSystem.WHOLE_SIGN
+    )
 
     birth = BirthData(
         year=year,
@@ -96,11 +98,19 @@ def calculate_birth_chart(
     # Summary format
     lines = []
     lines.append(f"VEDIC BIRTH CHART (KUNDALI): {place_name or f'{latitude}, {longitude}'}")
-    lines.append(f"Date & Time: {year:04d}-{month:02d}-{day:02d} {hour:02d}:{minute:02d}:{second:02d} ({timezone})")
-    lines.append(f"Ayanamsa: {ay.value} (Value: {chart.ayanamsa_value:.4f}°) | House System: {hs.value}")
-    lines.append(f"Ascendant (Lagna): {chart.ascendant.sign} ({chart.ascendant.degree_in_sign:.2f}°)")
+    lines.append(
+        f"Date & Time: {year:04d}-{month:02d}-{day:02d} {hour:02d}:{minute:02d}:{second:02d} ({timezone})"
+    )
+    lines.append(
+        f"Ayanamsa: {ay.value} (Value: {chart.ayanamsa_value:.4f}°) | House System: {hs.value}"
+    )
+    lines.append(
+        f"Ascendant (Lagna): {chart.ascendant.sign} ({chart.ascendant.degree_in_sign:.2f}°)"
+    )
     lines.append("-" * 70)
-    lines.append(f"{'Planet':<10} {'Sign':<12} {'Degree':<10} {'Nakshatra (Pada)':<20} {'House':<6} Retro")
+    lines.append(
+        f"{'Planet':<10} {'Sign':<12} {'Degree':<10} {'Nakshatra (Pada)':<20} {'House':<6} Retro"
+    )
     lines.append("-" * 70)
     for p in chart.planets:
         r_flag = "(R)" if p.retrograde else "   "
@@ -119,13 +129,16 @@ def calculate_birth_chart(
             lines.append(f"First Mahadasha: {md0.lord} ({md0.start} to {md0.end})")
     if chart.ashtakavarga:
         sav_str = " ".join(str(b) for b in chart.ashtakavarga.sarvashtakavarga)
-        lines.append(f"Sarvashtakavarga (Aries..Pisces): {sav_str} (Total: {chart.ashtakavarga.grand_total})")
+        lines.append(
+            f"Sarvashtakavarga (Aries..Pisces): {sav_str} (Total: {chart.ashtakavarga.grand_total})"
+        )
     return "\n".join(lines)
 
 
 # ---------------------------------------------------------------------------
 # Tool 2: Daily Panchanga
 # ---------------------------------------------------------------------------
+
 
 @server.tool(
     description=(
@@ -159,6 +172,7 @@ def get_daily_panchanga(
 # Tool 3: Kundali Matching & Compatibility (Ashtakoota + Kuja Dosha)
 # ---------------------------------------------------------------------------
 
+
 @server.tool(
     description=(
         "Calculate complete 36-point Ashtakoota marriage compatibility and Kuja Dosha (Manglik) "
@@ -190,8 +204,12 @@ def match_kundali_compatibility(
 ) -> str:
     """Calculate relationship compatibility."""
     ay = Ayanamsa(ayanamsa) if ayanamsa in [a.value for a in Ayanamsa] else Ayanamsa.JHORA_LAHIRI
-    b_birth = BirthData(b_year, b_month, b_day, b_hour, b_minute, 0, b_latitude, b_longitude, b_timezone)
-    g_birth = BirthData(g_year, g_month, g_day, g_hour, g_minute, 0, g_latitude, g_longitude, g_timezone)
+    b_birth = BirthData(
+        b_year, b_month, b_day, b_hour, b_minute, 0, b_latitude, b_longitude, b_timezone
+    )
+    g_birth = BirthData(
+        g_year, g_month, g_day, g_hour, g_minute, 0, g_latitude, g_longitude, g_timezone
+    )
 
     b_chart = calculate_chart(b_birth, ayanamsa=ay)
     g_chart = calculate_chart(g_birth, ayanamsa=ay)
@@ -205,6 +223,7 @@ def match_kundali_compatibility(
 # ---------------------------------------------------------------------------
 # Tool 4: Muhurtha & Auspicious Election
 # ---------------------------------------------------------------------------
+
 
 @server.tool(
     description=(
@@ -239,6 +258,7 @@ def get_muhurtha_election(
 # Tool 5: Planetary Transits (Gochar) & Kakshas
 # ---------------------------------------------------------------------------
 
+
 @server.tool(
     description=(
         "Calculate Vedic planetary transits (Gochar) relative to a natal chart. "
@@ -263,14 +283,29 @@ def get_transits_gochar(
 ) -> str:
     """Calculate Gochar transits."""
     ay = Ayanamsa(ayanamsa) if ayanamsa in [a.value for a in Ayanamsa] else Ayanamsa.JHORA_LAHIRI
-    birth = BirthData(birth_year, birth_month, birth_day, birth_hour, birth_minute, 0, birth_latitude, birth_longitude, birth_timezone)
+    birth = BirthData(
+        birth_year,
+        birth_month,
+        birth_day,
+        birth_hour,
+        birth_minute,
+        0,
+        birth_latitude,
+        birth_longitude,
+        birth_timezone,
+    )
     chart = calculate_chart(birth, ayanamsa=ay)
 
     t_dt = None
     if transit_iso_datetime:
         t_dt = datetime.fromisoformat(transit_iso_datetime)
 
-    rep = calculate_transits(chart, transit_date=t_dt, transit_latitude=transit_latitude, transit_longitude=transit_longitude)
+    rep = calculate_transits(
+        chart,
+        transit_date=t_dt,
+        transit_latitude=transit_latitude,
+        transit_longitude=transit_longitude,
+    )
     if format == "json":
         return rep.model_dump_json(indent=2)
     return rep.to_table()
@@ -279,6 +314,7 @@ def get_transits_gochar(
 # ---------------------------------------------------------------------------
 # Tool 6: Classical Vedic Yogas Detection
 # ---------------------------------------------------------------------------
+
 
 @server.tool(
     description=(
@@ -316,6 +352,7 @@ def detect_vedic_yogas(
 # Tool 7: Classical Scripture RAG Consultation
 # ---------------------------------------------------------------------------
 
+
 @server.tool(
     description=(
         "Consult canonical Vedic astrology texts (Brihat Parashara Hora Shastra, Phaladeepika) "
@@ -336,11 +373,31 @@ def consult_scripture_rag(
 ) -> str:
     """Consult Vedic scriptures."""
     from nakshatra.ai.service import RAGService
+
     service = RAGService()
 
     birth_ctx = None
-    if all(v is not None for v in [birth_year, birth_month, birth_day, birth_hour, birth_minute, birth_latitude, birth_longitude, birth_timezone]):
-        b = BirthData(birth_year, birth_month, birth_day, birth_hour, birth_minute, 0, birth_latitude, birth_longitude, birth_timezone)
+    if (
+        birth_year is not None
+        and birth_month is not None
+        and birth_day is not None
+        and birth_hour is not None
+        and birth_minute is not None
+        and birth_latitude is not None
+        and birth_longitude is not None
+        and birth_timezone is not None
+    ):
+        b = BirthData(
+            birth_year,
+            birth_month,
+            birth_day,
+            birth_hour,
+            birth_minute,
+            0,
+            birth_latitude,
+            birth_longitude,
+            birth_timezone,
+        )
         c = calculate_chart(b)
         birth_ctx = c.model_dump()
 
@@ -360,6 +417,7 @@ def consult_scripture_rag(
 # ---------------------------------------------------------------------------
 # Server Entrypoint
 # ---------------------------------------------------------------------------
+
 
 def main() -> None:
     """CLI entrypoint for Nakshatra MCP Server."""

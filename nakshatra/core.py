@@ -41,6 +41,7 @@ if TYPE_CHECKING:
 
 class Ayanamsa(str, Enum):
     """Supported ayanamsa systems."""
+
     LAHIRI = "lahiri"
     JHORA_LAHIRI = "jhora_lahiri"
     RAMAN = "raman"
@@ -50,6 +51,7 @@ class Ayanamsa(str, Enum):
 
 class HouseSystem(str, Enum):
     """Supported house systems."""
+
     WHOLE_SIGN = "WholeSign"
     PLACIDUS = "Placidus"
     KOCH = "Koch"
@@ -61,6 +63,7 @@ class HouseSystem(str, Enum):
 
 class ZodiacSystem(str, Enum):
     """Zodiac systems."""
+
     TROPICAL = "tropical"
     SIDEREAL = "sidereal"
 
@@ -68,6 +71,7 @@ class ZodiacSystem(str, Enum):
 @dataclass(frozen=True)
 class GeoLocation:
     """Geographic location for birth place."""
+
     latitude: float
     longitude: float
     timezone: str
@@ -77,6 +81,7 @@ class GeoLocation:
 @dataclass(frozen=True)
 class BirthData:
     """Birth data input."""
+
     year: int
     month: int
     day: int
@@ -99,6 +104,7 @@ class BirthData:
 
 class PlanetPosition(BaseModel):
     """Single planet position in chart."""
+
     name: str
     longitude: float
     latitude: float = 0.0
@@ -117,6 +123,7 @@ class PlanetPosition(BaseModel):
 
 class HouseCusp(BaseModel):
     """House cusp data."""
+
     house: int
     longitude: float
     sign: str
@@ -126,6 +133,7 @@ class HouseCusp(BaseModel):
 
 class Aspect(BaseModel):
     """Aspect between two planets."""
+
     planet1: str
     planet2: str
     aspect_type: str
@@ -136,6 +144,7 @@ class Aspect(BaseModel):
 
 class DashaPeriod(BaseModel):
     """Single Dasha period (Mahadasha, Antardasha, or Pratyantardasha)."""
+
     lord: str
     start: str
     end: str
@@ -146,6 +155,7 @@ class DashaPeriod(BaseModel):
 
 class VimshottariDasha(BaseModel):
     """Complete Vimshottari Dasha system data."""
+
     birth_nakshatra: str
     birth_nakshatra_lord: str
     balance_lord: str
@@ -158,6 +168,7 @@ class VimshottariDasha(BaseModel):
 
 class ShadbalaPlanet(BaseModel):
     """Planetary strength metrics from Shadbala."""
+
     planet: str
     total_rupas: float
     total_virupas: float
@@ -173,6 +184,7 @@ class ShadbalaPlanet(BaseModel):
 
 class AshtakavargaData(BaseModel):
     """Ashtakavarga bindu totals and classical Shodhita reductions."""
+
     sarvashtakavarga: list[int]
     grand_total: int
     bhinnashtakavarga: dict[str, list[int]]
@@ -182,6 +194,7 @@ class AshtakavargaData(BaseModel):
 
 class UpagrahaPosition(BaseModel):
     """Position of a shadow planet / upagraha."""
+
     name: str
     longitude: float
     sign: str
@@ -191,6 +204,7 @@ class UpagrahaPosition(BaseModel):
 
 class ChartData(BaseModel):
     """Complete birth chart data."""
+
     birth_data: BirthData
     calculation_time: str
     zodiac: ZodiacSystem
@@ -218,9 +232,14 @@ class ChartData(BaseModel):
         """Get or calculate Vedic Panchanga."""
         if self.panchanga is None:
             from nakshatra.panchanga import calculate_panchanga
+
             dt_local = datetime(
-                self.birth_data.year, self.birth_data.month, self.birth_data.day,
-                self.birth_data.hour, self.birth_data.minute, self.birth_data.second,
+                self.birth_data.year,
+                self.birth_data.month,
+                self.birth_data.day,
+                self.birth_data.hour,
+                self.birth_data.minute,
+                self.birth_data.second,
                 tzinfo=ZoneInfo(self.birth_data.timezone),
             )
             self.panchanga = calculate_panchanga(
@@ -236,6 +255,7 @@ class ChartData(BaseModel):
         """Get or calculate Vedic Yogas."""
         if self.yogas is None:
             from nakshatra.yogas import detect_yogas
+
             self.yogas = detect_yogas(self)
         return self.yogas
 
@@ -250,21 +270,25 @@ class ChartData(BaseModel):
     def to_table(self) -> str:
         """Format chart into formatted ASCII tables."""
         from nakshatra.formatters import format_table
+
         return format_table(self)
 
     def to_markdown(self) -> str:
         """Format chart into GitHub-flavored Markdown."""
         from nakshatra.formatters import format_markdown
+
         return format_markdown(self)
 
     def to_csv(self) -> str:
         """Format chart planetary positions into CSV."""
         from nakshatra.formatters import format_csv
+
         return format_csv(self)
 
     def to_diagram(self, varga: str = "D1") -> str:
         """Format chart into ASCII South Indian diagram for given varga (e.g. D1, D9)."""
         from nakshatra.formatters import format_chart_diagram
+
         return format_chart_diagram(self, varga=varga)
 
     def get_varga(self, varga: str = "D10") -> dict:
@@ -312,6 +336,7 @@ class ChartData(BaseModel):
         Returns TransitReport with Sade Sati, Double Transits, and Ashtakavarga weighting.
         """
         from nakshatra.transits import calculate_transits
+
         return calculate_transits(
             natal_chart=self,
             transit_date=transit_date,
@@ -351,32 +376,67 @@ class ChartData(BaseModel):
         return filepath
 
 
-
 # Nakshatra data (27 nakshatras with lords)
 NAKSHATRAS = [
-    ("Ashwini", "Ketu"), ("Bharani", "Venus"), ("Krittika", "Sun"),
-    ("Rohini", "Moon"), ("Mrigashira", "Mars"), ("Ardra", "Rahu"),
-    ("Punarvasu", "Jupiter"), ("Pushya", "Saturn"), ("Ashlesha", "Mercury"),
-    ("Magha", "Ketu"), ("Purva Phalguni", "Venus"), ("Uttara Phalguni", "Sun"),
-    ("Hasta", "Moon"), ("Chitra", "Mars"), ("Swati", "Rahu"),
-    ("Vishakha", "Jupiter"), ("Anuradha", "Saturn"), ("Jyeshtha", "Mercury"),
-    ("Mula", "Ketu"), ("Purva Ashadha", "Venus"), ("Uttara Ashadha", "Sun"),
-    ("Shravana", "Moon"), ("Dhanishta", "Mars"), ("Shatabhisha", "Rahu"),
-    ("Purva Bhadrapada", "Jupiter"), ("Uttara Bhadrapada", "Saturn"), ("Revati", "Mercury"),
+    ("Ashwini", "Ketu"),
+    ("Bharani", "Venus"),
+    ("Krittika", "Sun"),
+    ("Rohini", "Moon"),
+    ("Mrigashira", "Mars"),
+    ("Ardra", "Rahu"),
+    ("Punarvasu", "Jupiter"),
+    ("Pushya", "Saturn"),
+    ("Ashlesha", "Mercury"),
+    ("Magha", "Ketu"),
+    ("Purva Phalguni", "Venus"),
+    ("Uttara Phalguni", "Sun"),
+    ("Hasta", "Moon"),
+    ("Chitra", "Mars"),
+    ("Swati", "Rahu"),
+    ("Vishakha", "Jupiter"),
+    ("Anuradha", "Saturn"),
+    ("Jyeshtha", "Mercury"),
+    ("Mula", "Ketu"),
+    ("Purva Ashadha", "Venus"),
+    ("Uttara Ashadha", "Sun"),
+    ("Shravana", "Moon"),
+    ("Dhanishta", "Mars"),
+    ("Shatabhisha", "Rahu"),
+    ("Purva Bhadrapada", "Jupiter"),
+    ("Uttara Bhadrapada", "Saturn"),
+    ("Revati", "Mercury"),
 ]
 
 # Zodiac signs in order
 ZODIAC_SIGNS = [
-    "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
-    "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
+    "Aries",
+    "Taurus",
+    "Gemini",
+    "Cancer",
+    "Leo",
+    "Virgo",
+    "Libra",
+    "Scorpio",
+    "Sagittarius",
+    "Capricorn",
+    "Aquarius",
+    "Pisces",
 ]
 
 # Sign lords
 SIGN_LORDS = {
-    "Aries": "Mars", "Taurus": "Venus", "Gemini": "Mercury",
-    "Cancer": "Moon", "Leo": "Sun", "Virgo": "Mercury",
-    "Libra": "Venus", "Scorpio": "Mars", "Sagittarius": "Jupiter",
-    "Capricorn": "Saturn", "Aquarius": "Saturn", "Pisces": "Jupiter",
+    "Aries": "Mars",
+    "Taurus": "Venus",
+    "Gemini": "Mercury",
+    "Cancer": "Moon",
+    "Leo": "Sun",
+    "Virgo": "Mercury",
+    "Libra": "Venus",
+    "Scorpio": "Mars",
+    "Sagittarius": "Jupiter",
+    "Capricorn": "Saturn",
+    "Aquarius": "Saturn",
+    "Pisces": "Jupiter",
 }
 
 # 7 Classical Grahas
@@ -384,8 +444,15 @@ VEDIC_PLANETS = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"]
 
 # All chart bodies (7 grahas + lunar nodes)
 CHART_BODIES = [
-    "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn",
-    "North Node", "South Node",
+    "Sun",
+    "Moon",
+    "Mars",
+    "Mercury",
+    "Jupiter",
+    "Venus",
+    "Saturn",
+    "North Node",
+    "South Node",
 ]
 
 # Mayaastrolib House system mapping
@@ -438,19 +505,31 @@ def get_degree_in_sign(longitude: float) -> float:
 def calculate_dignity(planet: str, sign: str) -> str:
     """Calculate planetary dignity (simplified classical Vedic)."""
     exaltation = {
-        "Sun": "Aries", "Moon": "Taurus", "Mars": "Capricorn",
-        "Mercury": "Virgo", "Jupiter": "Cancer", "Venus": "Pisces",
+        "Sun": "Aries",
+        "Moon": "Taurus",
+        "Mars": "Capricorn",
+        "Mercury": "Virgo",
+        "Jupiter": "Cancer",
+        "Venus": "Pisces",
         "Saturn": "Libra",
     }
     debilitation = {
-        "Sun": "Libra", "Moon": "Scorpio", "Mars": "Cancer",
-        "Mercury": "Pisces", "Jupiter": "Capricorn", "Venus": "Virgo",
+        "Sun": "Libra",
+        "Moon": "Scorpio",
+        "Mars": "Cancer",
+        "Mercury": "Pisces",
+        "Jupiter": "Capricorn",
+        "Venus": "Virgo",
         "Saturn": "Aries",
     }
     own_signs = {
-        "Sun": ["Leo"], "Moon": ["Cancer"], "Mars": ["Aries", "Scorpio"],
-        "Mercury": ["Gemini", "Virgo"], "Jupiter": ["Sagittarius", "Pisces"],
-        "Venus": ["Taurus", "Libra"], "Saturn": ["Capricorn", "Aquarius"],
+        "Sun": ["Leo"],
+        "Moon": ["Cancer"],
+        "Mars": ["Aries", "Scorpio"],
+        "Mercury": ["Gemini", "Virgo"],
+        "Jupiter": ["Sagittarius", "Pisces"],
+        "Venus": ["Taurus", "Libra"],
+        "Saturn": ["Capricorn", "Aquarius"],
     }
 
     if sign == exaltation.get(planet):
@@ -494,7 +573,7 @@ def _convert_dasha_period(period: vdasha.DashaPeriod, include_subs: bool = True)
                 )
                 for pd in pds
             ]
-            has_jd = hasattr(ad.start, 'jd') and hasattr(ad.end, 'jd')
+            has_jd = hasattr(ad.start, "jd") and hasattr(ad.end, "jd")
             dur = round((ad.end.jd - ad.start.jd) / 365.25, 3) if has_jd else None
             subs_models.append(
                 DashaPeriod(
@@ -507,7 +586,7 @@ def _convert_dasha_period(period: vdasha.DashaPeriod, include_subs: bool = True)
                 )
             )
 
-    has_jd = hasattr(period.start, 'jd') and hasattr(period.end, 'jd')
+    has_jd = hasattr(period.start, "jd") and hasattr(period.end, "jd")
     dur = round((period.end.jd - period.start.jd) / 365.25, 3) if has_jd else None
     return DashaPeriod(
         lord=period.lord,
@@ -552,8 +631,12 @@ def calculate_chart(
     """
     # 1. Prepare timezone offset string for Datetime
     dt_local = datetime(
-        birth.year, birth.month, birth.day,
-        birth.hour, birth.minute, birth.second,
+        birth.year,
+        birth.month,
+        birth.day,
+        birth.hour,
+        birth.minute,
+        birth.second,
         tzinfo=ZoneInfo(birth.timezone),
     )
     utc_offset = dt_local.utcoffset()
@@ -567,7 +650,7 @@ def calculate_chart(
     m_pos = GeoPos(birth.latitude, birth.longitude)
 
     # 2. Configure Ayanamsa and House system
-    is_jhora = (ayanamsa == Ayanamsa.JHORA_LAHIRI)
+    is_jhora = ayanamsa == Ayanamsa.JHORA_LAHIRI
     base_ayanamsa = "lahiri" if is_jhora else ayanamsa.value
     # JHora traditional Lahiri is 56.5318 arcseconds smaller than standard IAU Lahiri
     jhora_offset_deg = (56.5318 / 3600.0) if is_jhora else 0.0
@@ -576,9 +659,15 @@ def calculate_chart(
 
     # Objects to calculate
     objects_list = [
-        const.SUN, const.MOON, const.MARS, const.MERCURY,
-        const.JUPITER, const.VENUS, const.SATURN,
-        const.NORTH_NODE, const.SOUTH_NODE,
+        const.SUN,
+        const.MOON,
+        const.MARS,
+        const.MERCURY,
+        const.JUPITER,
+        const.VENUS,
+        const.SATURN,
+        const.NORTH_NODE,
+        const.SOUTH_NODE,
     ]
 
     # Instantiate sidereal chart
@@ -723,7 +812,8 @@ def calculate_chart(
 
     # 6. Rahu & Ketu (Mean Node)
     rahu_calc, _ = swisseph.calc_ut(
-        m_dt.jd, swisseph.MEAN_NODE,
+        m_dt.jd,
+        swisseph.MEAN_NODE,
         swisseph.FLG_SIDEREAL | swisseph.FLG_SPEED,
     )
     rahu_lon = (rahu_calc[0] + jhora_offset_deg) % 360.0
@@ -809,7 +899,7 @@ def calculate_chart(
         target_pydt = target_date or datetime.now(ZoneInfo(birth.timezone))
         t_td = target_pydt.utcoffset()
         t_sec = t_td.total_seconds() if t_td is not None else offset_sec
-        t_str = f"{int(t_sec//3600):+03d}:{int((abs(t_sec)%3600)//60):02d}"
+        t_str = f"{int(t_sec // 3600):+03d}:{int((abs(t_sec) % 3600) // 60):02d}"
         target_mdt = Datetime(
             [target_pydt.year, target_pydt.month, target_pydt.day],
             target_pydt.hour + (target_pydt.minute / 60.0) + (target_pydt.second / 3600.0),
@@ -855,9 +945,7 @@ def calculate_chart(
         all_objs["South Node"] = ketu_lon
         vargas_data = {}
         for v_name, fn in vdiv._VARGA_FUNCTIONS.items():
-            vargas_data[v_name] = {
-                p_id: vdiv.SIGN_NAMES[fn(lon)] for p_id, lon in all_objs.items()
-            }
+            vargas_data[v_name] = {p_id: vdiv.SIGN_NAMES[fn(lon)] for p_id, lon in all_objs.items()}
 
     # 10. Ashtakavarga
     ashtakavarga_data = None
@@ -867,8 +955,7 @@ def calculate_chart(
         shodhita_bav = None
         try:
             p_signs_map = {
-                p: ZODIAC_SIGNS.index(chart.get(p).sign)
-                for p in vav.ASHTAKAVARGA_PLANETS
+                p: ZODIAC_SIGNS.index(chart.get(p).sign) for p in vav.ASHTAKAVARGA_PLANETS
             }
             shodhita_res = vav.shodhita_sarvashtakavarga(
                 p_signs_map,
@@ -977,6 +1064,7 @@ def calculate_chart(
     if include_transits:
         try:
             from nakshatra.transits import calculate_transits
+
             transit_report = calculate_transits(res_chart, transit_date=target_date)
             res_chart.transits = transit_report.model_dump()
         except Exception:
@@ -985,6 +1073,7 @@ def calculate_chart(
     if include_panchanga:
         try:
             from nakshatra.panchanga import calculate_panchanga
+
             res_chart.panchanga = calculate_panchanga(
                 dt_local,
                 birth.latitude,
@@ -998,6 +1087,7 @@ def calculate_chart(
     if include_yogas:
         try:
             from nakshatra.yogas import detect_yogas
+
             res_chart.yogas = detect_yogas(res_chart)
         except Exception:
             pass

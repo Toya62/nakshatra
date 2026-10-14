@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
+
 from pydantic import BaseModel, Field
 
 from nakshatra.ai.splitter import TextSplitter
@@ -27,12 +28,36 @@ MAX_CHUNK_CHARS = 600
 
 # Classical yoga and technical terms for topic tagging
 YOGA_TERMS = [
-    "Pancha Mahapurusha", "Ruchaka", "Bhadra", "Hamsa", "Malavya", "Sasa",
-    "Gaja Kesari", "Kemadruma", "Neechabhanga", "Sunapha", "Anapha",
-    "Dhurdhura", "Chandra Mangala", "Adhi Yoga", "Budhaditya", "Vesi Yoga",
-    "Vasi Yoga", "Ubhayachari", "Amala Yoga", "Dhana Yoga", "Raja Yoga",
-    "Viparita Raja", "Maraka", "Yogakaraka", "Karakamsa", "Bhrigu Bindu",
-    "Sade Sati", "Ashtama Shani", "Kantaka Shani", "Chandra Lagna",
+    "Pancha Mahapurusha",
+    "Ruchaka",
+    "Bhadra",
+    "Hamsa",
+    "Malavya",
+    "Sasa",
+    "Gaja Kesari",
+    "Kemadruma",
+    "Neechabhanga",
+    "Sunapha",
+    "Anapha",
+    "Dhurdhura",
+    "Chandra Mangala",
+    "Adhi Yoga",
+    "Budhaditya",
+    "Vesi Yoga",
+    "Vasi Yoga",
+    "Ubhayachari",
+    "Amala Yoga",
+    "Dhana Yoga",
+    "Raja Yoga",
+    "Viparita Raja",
+    "Maraka",
+    "Yogakaraka",
+    "Karakamsa",
+    "Bhrigu Bindu",
+    "Sade Sati",
+    "Ashtama Shani",
+    "Kantaka Shani",
+    "Chandra Lagna",
 ]
 
 # Bodies for topic tagging (grahas + nodes + angles)
@@ -78,6 +103,7 @@ CHAPTER_HEADER_PATTERN = re.compile(
 
 class CorpusChunk(BaseModel):
     """Single retrievable chunk of corpus text with citation metadata."""
+
     work: str
     chapter: str = Field(default="", description="Chapter number/label")
     verse: str = Field(default="", description="Verse number/label")
@@ -91,6 +117,7 @@ class CorpusChunk(BaseModel):
 
 class WorkMeta(BaseModel):
     """Provenance metadata for a corpus work (license gate)."""
+
     work: str
     translator: str = ""
     license: str = Field(..., description="License of the translation (e.g. 'Public Domain')")
@@ -99,6 +126,7 @@ class WorkMeta(BaseModel):
 
 class IngestReport(BaseModel):
     """Per-work ingestion statistics."""
+
     work: str
     files: int
     chunks: int
@@ -110,6 +138,7 @@ class IngestReport(BaseModel):
 
 class IngestResult(BaseModel):
     """Full corpus ingestion result."""
+
     reports: list[IngestReport] = Field(default_factory=list)
     total_chunks: int
     total_files: int
@@ -305,14 +334,10 @@ def ingest_corpus(corpus_dir: str | Path, out_dir: str | Path) -> IngestResult:
 
         work_chunks: list[CorpusChunk] = []
         work_files = 0
-        text_files = sorted(
-            list(work_dir.glob("*.txt")) + list(work_dir.glob("*.md"))
-        )
+        text_files = sorted(list(work_dir.glob("*.txt")) + list(work_dir.glob("*.md")))
         for text_file in text_files:
             text = text_file.read_text(encoding="utf-8")
-            chunks, _stats = chunk_text(
-                text, work=meta.work, source_file=text_file.name
-            )
+            chunks, _stats = chunk_text(text, work=meta.work, source_file=text_file.name)
             work_chunks.extend(chunks)
             work_files += 1
 

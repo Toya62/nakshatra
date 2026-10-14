@@ -10,7 +10,6 @@ from datetime import datetime
 
 from nakshatra.muhurtha import (
     CHALDEAN_HORA_SEQUENCE,
-    WEEKDAY_LORDS,
     MuhurthaReport,
     calculate_muhurtha,
 )

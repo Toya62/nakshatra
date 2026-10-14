@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-test:
+    name: Backend Test & Quality (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install build tools & dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -e ".[dev]"
+
+      - name: Run Ruff Lint Check
+        run: |
+          ruff check nakshatra/ tests/
+
+      - name: Run Mypy Type Check
+        run: |
+          mypy nakshatra/
+
+      - name: Run Pytest (Deterministic Swiss Ephemeris & Concordance Suite)
+        run: |
+          pytest -v --durations=10
+
+  frontend-build:
+    name: Frontend Build & Typecheck (Next.js 15)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install Node dependencies
+        working-directory: web
+        run: npm ci
+
+      - name: Build Next.js Web App
+        working-directory: web
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+        run: npm run build

@@ -22,16 +22,12 @@ Features:
 
 from __future__ import annotations
 
-from typing import Any
 from pydantic import BaseModel, Field
 
 from nakshatra.core import (
-    CHART_BODIES,
     SIGN_LORDS,
     ZODIAC_SIGNS,
     ChartData,
-    get_nakshatra,
-    get_sign,
 )
 
 # ---------------------------------------------------------------------------
@@ -40,11 +36,33 @@ from nakshatra.core import (
 
 # 27 Nakshatras in order
 NAKSHATRA_NAMES = [
-    "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra",
-    "Punarvasu", "Pushya", "Ashlesha", "Magha", "Purva Phalguni", "Uttara Phalguni",
-    "Hasta", "Chitra", "Swati", "Vishakha", "Anuradha", "Jyeshtha",
-    "Mula", "Purva Ashadha", "Uttara Ashadha", "Shravana", "Dhanishta", "Shatabhisha",
-    "Purva Bhadrapada", "Uttara Bhadrapada", "Revati",
+    "Ashwini",
+    "Bharani",
+    "Krittika",
+    "Rohini",
+    "Mrigashira",
+    "Ardra",
+    "Punarvasu",
+    "Pushya",
+    "Ashlesha",
+    "Magha",
+    "Purva Phalguni",
+    "Uttara Phalguni",
+    "Hasta",
+    "Chitra",
+    "Swati",
+    "Vishakha",
+    "Anuradha",
+    "Jyeshtha",
+    "Mula",
+    "Purva Ashadha",
+    "Uttara Ashadha",
+    "Shravana",
+    "Dhanishta",
+    "Shatabhisha",
+    "Purva Bhadrapada",
+    "Uttara Bhadrapada",
+    "Revati",
 ]
 
 # Varna mapping by sign: Brahmin (4), Kshatriya (3), Vaishya (2), Shudra (1)
@@ -97,8 +115,15 @@ VASHYA_TARGETS: dict[str, list[str]] = {
 
 # 9 Taras (1-9)
 TARA_NAMES = [
-    "Janma", "Sampat", "Vipat", "Kshema", "Pratyak",
-    "Sadhana", "Naidhana", "Mitra", "Parama Mitra",
+    "Janma",
+    "Sampat",
+    "Vipat",
+    "Kshema",
+    "Pratyak",
+    "Sadhana",
+    "Naidhana",
+    "Mitra",
+    "Parama Mitra",
 ]
 AUSPICIOUS_TARAS = {1, 2, 4, 6, 8, 9}
 
@@ -221,19 +246,37 @@ NADI_MAP: dict[str, str] = {
 # Rajju grouping by anatomical level
 RAJJU_MAP: dict[str, str] = {
     # Shira (Head)
-    "Chitra": "Shira", "Mrigashira": "Shira", "Dhanishta": "Shira",
+    "Chitra": "Shira",
+    "Mrigashira": "Shira",
+    "Dhanishta": "Shira",
     # Kantha (Neck)
-    "Rohini": "Kantha", "Ardra": "Kantha", "Hasta": "Kantha",
-    "Swati": "Kantha", "Shravana": "Kantha", "Shatabhisha": "Kantha",
+    "Rohini": "Kantha",
+    "Ardra": "Kantha",
+    "Hasta": "Kantha",
+    "Swati": "Kantha",
+    "Shravana": "Kantha",
+    "Shatabhisha": "Kantha",
     # Nabhi (Navel)
-    "Krittika": "Nabhi", "Punarvasu": "Nabhi", "Uttara Phalguni": "Nabhi",
-    "Vishakha": "Nabhi", "Uttara Ashadha": "Nabhi", "Purva Bhadrapada": "Nabhi",
+    "Krittika": "Nabhi",
+    "Punarvasu": "Nabhi",
+    "Uttara Phalguni": "Nabhi",
+    "Vishakha": "Nabhi",
+    "Uttara Ashadha": "Nabhi",
+    "Purva Bhadrapada": "Nabhi",
     # Kati (Waist)
-    "Bharani": "Kati", "Pushya": "Kati", "Purva Phalguni": "Kati",
-    "Anuradha": "Kati", "Purva Ashadha": "Kati", "Uttara Bhadrapada": "Kati",
+    "Bharani": "Kati",
+    "Pushya": "Kati",
+    "Purva Phalguni": "Kati",
+    "Anuradha": "Kati",
+    "Purva Ashadha": "Kati",
+    "Uttara Bhadrapada": "Kati",
     # Pada (Feet)
-    "Ashwini": "Pada", "Ashlesha": "Pada", "Magha": "Pada",
-    "Jyeshtha": "Pada", "Mula": "Pada", "Revati": "Pada",
+    "Ashwini": "Pada",
+    "Ashlesha": "Pada",
+    "Magha": "Pada",
+    "Jyeshtha": "Pada",
+    "Mula": "Pada",
+    "Revati": "Pada",
 }
 
 # Vedha (Mutual Piercing Affliction) nakshatra pairs
@@ -258,8 +301,10 @@ VEDHA_PAIRS: set[frozenset[str]] = {
 # Pydantic Schemas
 # ---------------------------------------------------------------------------
 
+
 class KutaScore(BaseModel):
     """Evaluation of an individual Koota factor."""
+
     name: str
     max_score: float
     obtained_score: float
@@ -273,6 +318,7 @@ class KutaScore(BaseModel):
 
 class AshtakootaReport(BaseModel):
     """Complete 36-point Ashtakoota evaluation."""
+
     varna: KutaScore
     vashya: KutaScore
     tara: KutaScore
@@ -283,12 +329,15 @@ class AshtakootaReport(BaseModel):
     nadi: KutaScore
     total_score: float
     percentage: float
-    verdict: str = Field(..., description="'Uttama' (>=28), 'Madhyama' (18-27.5), or 'Adhama' (<18)")
+    verdict: str = Field(
+        ..., description="'Uttama' (>=28), 'Madhyama' (18-27.5), or 'Adhama' (<18)"
+    )
     summary: str
 
 
 class ExtendedKutasReport(BaseModel):
     """Extended classical Kootas from VedAstro / South Indian canons."""
+
     mahendra: KutaScore
     stree_deergha: KutaScore
     rajju: KutaScore
@@ -297,6 +346,7 @@ class ExtendedKutasReport(BaseModel):
 
 class KujaDoshaDetails(BaseModel):
     """Manglik / Kuja Dosha profile for a single partner."""
+
     is_manglik: bool
     severity: str = Field(..., description="'None', 'Low', 'Moderate', or 'High'")
     score: float
@@ -309,6 +359,7 @@ class KujaDoshaDetails(BaseModel):
 
 class KujaDoshaReport(BaseModel):
     """Pair Kuja Dosha analysis."""
+
     bride: KujaDoshaDetails
     groom: KujaDoshaDetails
     is_compatible: bool
@@ -318,6 +369,7 @@ class KujaDoshaReport(BaseModel):
 
 class CompatibilityReport(BaseModel):
     """Comprehensive Relationship Compatibility Report."""
+
     bride_name: str | None = None
     groom_name: str | None = None
     bride_moon_sign: str
@@ -338,10 +390,16 @@ class CompatibilityReport(BaseModel):
         lines.append("=" * 80)
         lines.append("                VEDIC ASHTAKOOTA COMPATIBILITY REPORT")
         lines.append("=" * 80)
-        lines.append(f" Bride : {self.bride_moon_sign} | {self.bride_nakshatra} (Pada {self.bride_pada})")
-        lines.append(f" Groom : {self.groom_moon_sign} | {self.groom_nakshatra} (Pada {self.groom_pada})")
+        lines.append(
+            f" Bride : {self.bride_moon_sign} | {self.bride_nakshatra} (Pada {self.bride_pada})"
+        )
+        lines.append(
+            f" Groom : {self.groom_moon_sign} | {self.groom_nakshatra} (Pada {self.groom_pada})"
+        )
         lines.append("-" * 80)
-        lines.append(f"{'KOOTA':<16} | {'MAX':<4} | {'PTS':<4} | {'BRIDE':<16} | {'GROOM':<16} | STATUS")
+        lines.append(
+            f"{'KOOTA':<16} | {'MAX':<4} | {'PTS':<4} | {'BRIDE':<16} | {'GROOM':<16} | STATUS"
+        )
         lines.append("-" * 80)
         for kuta in [
             self.ashtakoota.varna,
@@ -371,9 +429,15 @@ class CompatibilityReport(BaseModel):
         lines.append(f"  - Vedha         : {self.extended_kutas.vedha.notes}")
         lines.append("-" * 80)
         lines.append(f" KUJA DOSHA (MANGLIK): {self.kuja_dosha.verdict}")
-        lines.append(f"  Bride: {self.kuja_dosha.bride.severity} (Cancelled: {self.kuja_dosha.bride.is_cancelled})")
-        lines.append(f"  Groom: {self.kuja_dosha.groom.severity} (Cancelled: {self.kuja_dosha.groom.is_cancelled})")
-        lines.append(f"  Pair Status: {'COMPATIBLE' if self.kuja_dosha.is_compatible else 'AFFLICTED'}")
+        lines.append(
+            f"  Bride: {self.kuja_dosha.bride.severity} (Cancelled: {self.kuja_dosha.bride.is_cancelled})"
+        )
+        lines.append(
+            f"  Groom: {self.kuja_dosha.groom.severity} (Cancelled: {self.kuja_dosha.groom.is_cancelled})"
+        )
+        lines.append(
+            f"  Pair Status: {'COMPATIBLE' if self.kuja_dosha.is_compatible else 'AFFLICTED'}"
+        )
         lines.append("=" * 80)
         lines.append(f" FINAL RECOMMENDATION: {self.recommendation}")
         lines.append("=" * 80)
@@ -383,6 +447,7 @@ class CompatibilityReport(BaseModel):
 # ---------------------------------------------------------------------------
 # Individual Koota Calculation Functions
 # ---------------------------------------------------------------------------
+
 
 def calculate_varna(bride_sign: str, groom_sign: str) -> KutaScore:
     """1. Varna Koota (1 point): Spiritual hierarchy and spiritual compatibility."""
@@ -396,7 +461,9 @@ def calculate_varna(bride_sign: str, groom_sign: str) -> KutaScore:
         bride_val=b_name,
         groom_val=g_name,
         is_favorable=(score == 1.0),
-        notes="Groom varna equal or higher than bride" if score == 1.0 else "Groom varna lower than bride",
+        notes="Groom varna equal or higher than bride"
+        if score == 1.0
+        else "Groom varna lower than bride",
     )
 
 
@@ -408,13 +475,19 @@ def calculate_vashya(bride_sign: str, groom_sign: str) -> KutaScore:
     if bride_sign == groom_sign or b_cat == g_cat:
         score = 2.0
         note = "Identical sign or vashya archetype"
-    elif groom_sign in VASHYA_TARGETS.get(bride_sign, []) and bride_sign in VASHYA_TARGETS.get(groom_sign, []):
+    elif groom_sign in VASHYA_TARGETS.get(bride_sign, []) and bride_sign in VASHYA_TARGETS.get(
+        groom_sign, []
+    ):
         score = 2.0
         note = "Mutual direct attraction"
-    elif groom_sign in VASHYA_TARGETS.get(bride_sign, []) or bride_sign in VASHYA_TARGETS.get(groom_sign, []):
+    elif groom_sign in VASHYA_TARGETS.get(bride_sign, []) or bride_sign in VASHYA_TARGETS.get(
+        groom_sign, []
+    ):
         score = 1.0
         note = "One-way vashya attraction"
-    elif (b_cat == "Vanachara" and g_cat in ("Chatushpada", "Manava")) or (g_cat == "Vanachara" and b_cat in ("Chatushpada", "Manava")):
+    elif (b_cat == "Vanachara" and g_cat in ("Chatushpada", "Manava")) or (
+        g_cat == "Vanachara" and b_cat in ("Chatushpada", "Manava")
+    ):
         score = 0.0
         note = "Bhakshya-Bhakshaka (predator vs prey) discord"
     else:
@@ -463,7 +536,9 @@ def calculate_tara(bride_nak_idx: int, groom_nak_idx: int) -> KutaScore:
         bride_val=f"{b_tara_name} ({t1})",
         groom_val=f"{g_tara_name} ({t2})",
         is_favorable=(score >= 1.5),
-        notes="Both Taras auspicious" if score == 3.0 else ("One Tara auspicious" if score == 1.5 else "Both Taras afflicted"),
+        notes="Both Taras auspicious"
+        if score == 3.0
+        else ("One Tara auspicious" if score == 1.5 else "Both Taras afflicted"),
     )
 
 
@@ -514,22 +589,32 @@ def calculate_graha_maitri(bride_sign: str, groom_sign: str) -> KutaScore:
         b_friends, b_neutrals, b_enemies = NATURAL_FRIENDSHIP[b_lord]
         g_friends, g_neutrals, g_enemies = NATURAL_FRIENDSHIP[g_lord]
 
-        b_rel_to_g = "friend" if g_lord in b_friends else ("neutral" if g_lord in b_neutrals else "enemy")
-        g_rel_to_b = "friend" if b_lord in g_friends else ("neutral" if b_lord in g_neutrals else "enemy")
+        b_rel_to_g = (
+            "friend" if g_lord in b_friends else ("neutral" if g_lord in b_neutrals else "enemy")
+        )
+        g_rel_to_b = (
+            "friend" if b_lord in g_friends else ("neutral" if b_lord in g_neutrals else "enemy")
+        )
 
         if b_rel_to_g == "friend" and g_rel_to_b == "friend":
             score = 5.0
             note = f"Mutual friends ({b_lord} & {g_lord})"
-        elif (b_rel_to_g == "friend" and g_rel_to_b == "neutral") or (b_rel_to_g == "neutral" and g_rel_to_b == "friend"):
+        elif (b_rel_to_g == "friend" and g_rel_to_b == "neutral") or (
+            b_rel_to_g == "neutral" and g_rel_to_b == "friend"
+        ):
             score = 4.0
             note = f"One friend, one neutral ({b_lord} & {g_lord})"
         elif b_rel_to_g == "neutral" and g_rel_to_b == "neutral":
             score = 3.0
             note = f"Mutual neutrals ({b_lord} & {g_lord})"
-        elif (b_rel_to_g == "friend" and g_rel_to_b == "enemy") or (b_rel_to_g == "enemy" and g_rel_to_b == "friend"):
+        elif (b_rel_to_g == "friend" and g_rel_to_b == "enemy") or (
+            b_rel_to_g == "enemy" and g_rel_to_b == "friend"
+        ):
             score = 1.0
             note = f"One friend, one enemy ({b_lord} & {g_lord})"
-        elif (b_rel_to_g == "neutral" and g_rel_to_b == "enemy") or (b_rel_to_g == "enemy" and g_rel_to_b == "neutral"):
+        elif (b_rel_to_g == "neutral" and g_rel_to_b == "enemy") or (
+            b_rel_to_g == "enemy" and g_rel_to_b == "neutral"
+        ):
             score = 0.5
             note = f"One neutral, one enemy ({b_lord} & {g_lord})"
         else:
@@ -632,12 +717,18 @@ def calculate_bhakoot(bride_sign: str, groom_sign: str) -> KutaScore:
             score = 7.0
             is_favorable = True
             cancelled = True
-            cancellation_reason = f"Bhakoot Dosha cancelled: Sign lords are mutual friends ({b_lord} & {g_lord})"
+            cancellation_reason = (
+                f"Bhakoot Dosha cancelled: Sign lords are mutual friends ({b_lord} & {g_lord})"
+            )
             note = cancellation_reason
         else:
             score = 0.0
             is_favorable = False
-            dosha_name = "Sashtashtaka (6/8)" if diff in (6, 8) else ("Dvidvadasha (2/12)" if diff in (2, 12) else "Navapanchama (5/9)")
+            dosha_name = (
+                "Sashtashtaka (6/8)"
+                if diff in (6, 8)
+                else ("Dvidvadasha (2/12)" if diff in (2, 12) else "Navapanchama (5/9)")
+            )
             note = f"Bhakoot Dosha present: {dosha_name}"
 
     return KutaScore(
@@ -684,8 +775,14 @@ def calculate_nadi(
     # 4. Canonical exemption Nakshatras: Rohini, Mrigashira, Ardra, Jyeshtha,
     #    Uttara Ashadha, Shravana, Uttara Bhadrapada, Revati
     exempt_nakshatras = {
-        "Rohini", "Mrigashira", "Ardra", "Jyeshtha",
-        "Uttara Ashadha", "Shravana", "Uttara Bhadrapada", "Revati",
+        "Rohini",
+        "Mrigashira",
+        "Ardra",
+        "Jyeshtha",
+        "Uttara Ashadha",
+        "Shravana",
+        "Uttara Bhadrapada",
+        "Revati",
     }
 
     cancelled = False
@@ -719,6 +816,7 @@ def calculate_nadi(
 # Extended Classical Kutas (16 Kutas Subsets)
 # ---------------------------------------------------------------------------
 
+
 def calculate_extended_kutas(
     bride_nak: str,
     groom_nak: str,
@@ -736,7 +834,9 @@ def calculate_extended_kutas(
         bride_val=str(bride_nak_idx),
         groom_val=str(groom_nak_idx),
         is_favorable=mahendra_favorable,
-        notes="Favorable for progeny, attachment, and lineage" if mahendra_favorable else "Neutral / Average",
+        notes="Favorable for progeny, attachment, and lineage"
+        if mahendra_favorable
+        else "Neutral / Average",
     )
 
     # 2. Stree Deergha: Groom nakshatra > 13 away from bride
@@ -748,13 +848,15 @@ def calculate_extended_kutas(
         bride_val=str(bride_nak_idx),
         groom_val=str(groom_nak_idx),
         is_favorable=stree_deergha_favorable,
-        notes=f"Distance {d_b_to_g} nakshatras (>=13 auspicious for long life and wealth)" if stree_deergha_favorable else f"Distance {d_b_to_g} nakshatras (<13)",
+        notes=f"Distance {d_b_to_g} nakshatras (>=13 auspicious for long life and wealth)"
+        if stree_deergha_favorable
+        else f"Distance {d_b_to_g} nakshatras (<13)",
     )
 
     # 3. Rajju: Affliction if in same anatomical level
     b_rajju = RAJJU_MAP.get(bride_nak, "Unknown")
     g_rajju = RAJJU_MAP.get(groom_nak, "Unknown")
-    rajju_dosha = (b_rajju == g_rajju)
+    rajju_dosha = b_rajju == g_rajju
     rajju_kuta = KutaScore(
         name="Rajju",
         max_score=1.0,
@@ -763,7 +865,9 @@ def calculate_extended_kutas(
         groom_val=g_rajju,
         is_favorable=(not rajju_dosha),
         dosha_present=rajju_dosha,
-        notes=f"Rajju Dosha: Same limb ({b_rajju} Rajju)" if rajju_dosha else f"Auspicious: Different Rajjus ({b_rajju} vs {g_rajju})",
+        notes=f"Rajju Dosha: Same limb ({b_rajju} Rajju)"
+        if rajju_dosha
+        else f"Auspicious: Different Rajjus ({b_rajju} vs {g_rajju})",
     )
 
     # 4. Vedha: Mutual piercing affliction
@@ -776,7 +880,9 @@ def calculate_extended_kutas(
         groom_val=groom_nak,
         is_favorable=(not is_vedha),
         dosha_present=is_vedha,
-        notes=f"Vedha Dosha present ({bride_nak} piercings {groom_nak})" if is_vedha else "No Vedha affliction",
+        notes=f"Vedha Dosha present ({bride_nak} piercings {groom_nak})"
+        if is_vedha
+        else "No Vedha affliction",
     )
 
     return ExtendedKutasReport(
@@ -833,7 +939,9 @@ def evaluate_chart_kuja_dosha(chart: ChartData) -> KujaDoshaDetails:
     aff_venus = [h_venus] if h_venus in MANGLIK_HOUSES else []
 
     is_manglik = bool(aff_lagna or aff_moon or aff_venus)
-    raw_score = (1.0 if aff_lagna else 0.0) + (0.5 if aff_moon else 0.0) + (0.25 if aff_venus else 0.0)
+    raw_score = (
+        (1.0 if aff_lagna else 0.0) + (0.5 if aff_moon else 0.0) + (0.25 if aff_venus else 0.0)
+    )
 
     # Classical cancellations
     cancellations: list[str] = []
@@ -922,6 +1030,7 @@ def evaluate_pair_kuja_dosha(bride_chart: ChartData, groom_chart: ChartData) -> 
 # Master Compatibility Calculation
 # ---------------------------------------------------------------------------
 
+
 def calculate_compatibility(
     bride_chart: ChartData,
     groom_chart: ChartData,
@@ -940,11 +1049,11 @@ def calculate_compatibility(
     b_sign = b_moon.sign
     g_sign = g_moon.sign
 
-    b_nak = b_moon.nakshatra
-    g_nak = g_moon.nakshatra
+    b_nak = b_moon.nakshatra or ""
+    g_nak = g_moon.nakshatra or ""
 
-    b_pada = b_moon.pada
-    g_pada = g_moon.pada
+    b_pada = b_moon.pada or 1
+    g_pada = g_moon.pada or 1
 
     b_nak_idx = NAKSHATRA_NAMES.index(b_nak) + 1 if b_nak in NAKSHATRA_NAMES else 1
     g_nak_idx = NAKSHATRA_NAMES.index(g_nak) + 1 if g_nak in NAKSHATRA_NAMES else 1

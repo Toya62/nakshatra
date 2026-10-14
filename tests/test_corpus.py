@@ -57,13 +57,8 @@ class TestVerseHeaderParsing:
         assert chunks[0].verse == "12"
 
     def test_hyphen_prose_range_ignored(self):
-        text = (
-            "145-148.\n"
-            "The bhava effects of Dhooma and Gulika are narrated in chapter 25."
-        )
-        chunks, stats = chunk_text(
-            text, work="BPHS", source_file="bphs.txt"
-        )
+        text = "145-148.\nThe bhava effects of Dhooma and Gulika are narrated in chapter 25."
+        chunks, stats = chunk_text(text, work="BPHS", source_file="bphs.txt")
         assert stats["verse"] == 0
         assert stats["paragraph"] == 1
         assert not chunks[0].chapter
@@ -81,11 +76,7 @@ class TestVerseHeaderParsing:
         assert chunks[1].chapter == "2"
 
     def test_chapter_only_header_updates_context(self):
-        text = (
-            "Chapter 4\n"
-            "Verse 1: Text in chapter 4.\n"
-            "Verse 2: Also in chapter 4."
-        )
+        text = "Chapter 4\nVerse 1: Text in chapter 4.\nVerse 2: Also in chapter 4."
         chunks, _ = chunk_text(text, work="BPHS", source_file="bphs.txt")
         assert all(c.chapter == "4" for c in chunks)
 
@@ -134,10 +125,7 @@ class TestFallbackParagraphChunking:
         assert all(c.chapter == "1" for c in chunks)
 
     def test_chapter_context_retained_in_fallback(self):
-        text = (
-            "Chapter 5\n"
-            "Some prose text without verse numbering. " * 20
-        )
+        text = "Chapter 5\nSome prose text without verse numbering. " * 20
         chunks, _ = chunk_text(text, work="BPHS", source_file="bphs.txt")
         assert len(chunks) >= 1
         assert all(c.chapter == "5" for c in chunks)
@@ -225,24 +213,30 @@ class TestIngestCorpus:
     def _make_work(self, root, name: str, text: str) -> None:
         work_dir = root / name
         work_dir.mkdir(parents=True)
-        (work_dir / "meta.json").write_text(json.dumps({
-            "work": name.replace("-", " ").title(),
-            "translator": "Test Translator",
-            "license": "Public Domain",
-            "source": "test",
-        }))
+        (work_dir / "meta.json").write_text(
+            json.dumps(
+                {
+                    "work": name.replace("-", " ").title(),
+                    "translator": "Test Translator",
+                    "license": "Public Domain",
+                    "source": "test",
+                }
+            )
+        )
         (work_dir / "text.txt").write_text(text)
 
     def test_full_ingestion(self, tmp_path):
         corpus = tmp_path / "corpus"
         corpus.mkdir()
         self._make_work(
-            corpus, "bphs",
+            corpus,
+            "bphs",
             "Chapter 1, Verse 1: The Sun in the first house.\n"
             "Chapter 1, Verse 2: The Moon in the second house.",
         )
         self._make_work(
-            corpus, "phaladeepika",
+            corpus,
+            "phaladeepika",
             "Prose text about planetary strengths and weaknesses. " * 10,
         )
         out = tmp_path / "index"
@@ -284,9 +278,9 @@ class TestIngestCorpus:
         corpus.mkdir()
         work_dir = corpus / "empty"
         work_dir.mkdir()
-        (work_dir / "meta.json").write_text(json.dumps({
-            "work": "Empty", "license": "Public Domain"
-        }))
+        (work_dir / "meta.json").write_text(
+            json.dumps({"work": "Empty", "license": "Public Domain"})
+        )
         result = ingest_corpus(corpus, tmp_path / "out")
         assert result.total_chunks == 0
         assert result.total_files == 0
@@ -296,7 +290,8 @@ class TestIngestCorpus:
         corpus = tmp_path / "corpus"
         corpus.mkdir()
         self._make_work(
-            corpus, "bphs",
+            corpus,
+            "bphs",
             "Chapter 1, Verse 1: Short verse text for offset testing.",
         )
         result = ingest_corpus(corpus, tmp_path / "out")

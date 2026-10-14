@@ -66,9 +66,7 @@ class SentenceTransformerEmbedder(BaseEmbedder):
     def embed(self, texts: list[str]) -> np.ndarray:
         if not texts:
             return np.zeros((0, self.dim), dtype=np.float32)
-        vectors = self._model.encode(
-            texts, normalize_embeddings=True, show_progress_bar=False
-        )
+        vectors = self._model.encode(texts, normalize_embeddings=True, show_progress_bar=False)
         return np.asarray(vectors, dtype=np.float32)
 
 
@@ -135,14 +133,10 @@ class EmbeddingStore:
         vectors = np.atleast_2d(np.asarray(vectors, dtype=np.float32))
         if vectors.shape[0] != len(chunks):
             raise ValueError(
-                f"Chunk/vector count mismatch: {len(chunks)} chunks, "
-                f"{vectors.shape[0]} vectors"
+                f"Chunk/vector count mismatch: {len(chunks)} chunks, {vectors.shape[0]} vectors"
             )
         if self._dim and vectors.shape[1] != self._dim:
-            raise ValueError(
-                f"Dimension mismatch: store has {self._dim}, "
-                f"got {vectors.shape[1]}"
-            )
+            raise ValueError(f"Dimension mismatch: store has {self._dim}, got {vectors.shape[1]}")
         norms = np.linalg.norm(vectors, axis=1, keepdims=True)
         norms = np.where(norms == 0.0, 1.0, norms)
         vectors = vectors / norms
@@ -194,18 +188,14 @@ class EmbeddingStore:
         index_path = Path(index_dir)
         index_path.mkdir(parents=True, exist_ok=True)
         np.save(index_path / "vectors.npy", self._vectors)
-        (index_path / "records.json").write_text(
-            json.dumps(self._records), encoding="utf-8"
-        )
+        (index_path / "records.json").write_text(json.dumps(self._records), encoding="utf-8")
 
     @classmethod
     def load(cls, index_dir: str | Path) -> EmbeddingStore:
         """Load a store persisted by save()."""
         index_path = Path(index_dir)
         vectors = np.load(index_path / "vectors.npy")
-        records = json.loads(
-            (index_path / "records.json").read_text(encoding="utf-8")
-        )
+        records = json.loads((index_path / "records.json").read_text(encoding="utf-8"))
         store = cls()
         store._vectors = np.atleast_2d(np.asarray(vectors, dtype=np.float32))
         store._records = records

@@ -36,6 +36,10 @@ from nakshatra.ai.service import (
     DEFAULT_INDEX_DIR,
     RAGService,
 )
+from nakshatra.ai.splitter import (
+    HeaderTracker,
+    TextSplitter,
+)
 from nakshatra.ai.synthesize import (
     Answer,
     BaseSynthesizer,
@@ -44,10 +48,6 @@ from nakshatra.ai.synthesize import (
     LLMSynthesizer,
     build_prompt,
     extract_citations,
-)
-from nakshatra.ai.splitter import (
-    HeaderTracker,
-    TextSplitter,
 )
 
 __all__ = [

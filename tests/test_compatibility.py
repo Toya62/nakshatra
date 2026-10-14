@@ -28,17 +28,13 @@ from nakshatra.core import BirthData, calculate_chart
 @pytest.fixture
 def chart_bride():
     """Birth chart for bride: May 22, 1997, 04:53, Palpa, Nepal (Scorpio Moon / Vishakha)."""
-    return calculate_chart(
-        BirthData(1997, 5, 22, 4, 53, 0, 27.8667, 83.4833, "Asia/Kathmandu")
-    )
+    return calculate_chart(BirthData(1997, 5, 22, 4, 53, 0, 27.8667, 83.4833, "Asia/Kathmandu"))
 
 
 @pytest.fixture
 def chart_groom():
     """Birth chart for groom: Nov 28, 1995, 08:30, Delhi, India (Capricorn Moon / Dhanishta)."""
-    return calculate_chart(
-        BirthData(1995, 11, 28, 8, 30, 0, 28.6139, 77.2090, "Asia/Kolkata")
-    )
+    return calculate_chart(BirthData(1995, 11, 28, 8, 30, 0, 28.6139, 77.2090, "Asia/Kolkata"))
 
 
 def test_varna_koota():

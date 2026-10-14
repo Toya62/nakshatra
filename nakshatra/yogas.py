@@ -91,6 +91,7 @@ class YogaCategory(str, Enum):
 
 class YogaResult(BaseModel):
     """Detected astrological yoga result."""
+
     name: str
     category: YogaCategory
     description: str
@@ -131,7 +132,9 @@ def _get_lord_of_house(chart: ChartData, house_num: int) -> str | None:
     return h.sign_lord if h else None
 
 
-def _get_planets_in_house(chart: ChartData, house_num: int, include_nodes: bool = False) -> list[PlanetPosition]:
+def _get_planets_in_house(
+    chart: ChartData, house_num: int, include_nodes: bool = False
+) -> list[PlanetPosition]:
     """Get all planets situated in given house."""
     found = [p for p in chart.planets if p.house == house_num]
     if include_nodes:
@@ -157,16 +160,41 @@ def _house_distance(from_house: int, to_house: int) -> int:
 def _detect_pancha_mahapurusha(chart: ChartData) -> list[YogaResult]:
     results: list[YogaResult] = []
     mahapurusha_configs = [
-        ("Mars", "Ruchaka Yoga", ["Aries", "Scorpio"], "Capricorn",
-         "Courage, leadership, military/administrative prowess, physical strength, authority."),
-        ("Mercury", "Bhadra Yoga", ["Gemini", "Virgo"], "Virgo",
-         "High intellect, eloquence, learning, scientific acumen, longevity, respected orator."),
-        ("Jupiter", "Hamsa Yoga", ["Sagittarius", "Pisces"], "Cancer",
-         "Righteousness, high wisdom, spiritual authority, universal respect, nobility."),
-        ("Venus", "Malavya Yoga", ["Taurus", "Libra"], "Pisces",
-         "Refinement, prosperity, artistic genius, luxurious conveyances, charismatic grace."),
-        ("Saturn", "Sasa Yoga", ["Capricorn", "Aquarius"], "Libra",
-         "Command over masses, enduring power, discipline, strategic leadership, persistence."),
+        (
+            "Mars",
+            "Ruchaka Yoga",
+            ["Aries", "Scorpio"],
+            "Capricorn",
+            "Courage, leadership, military/administrative prowess, physical strength, authority.",
+        ),
+        (
+            "Mercury",
+            "Bhadra Yoga",
+            ["Gemini", "Virgo"],
+            "Virgo",
+            "High intellect, eloquence, learning, scientific acumen, longevity, respected orator.",
+        ),
+        (
+            "Jupiter",
+            "Hamsa Yoga",
+            ["Sagittarius", "Pisces"],
+            "Cancer",
+            "Righteousness, high wisdom, spiritual authority, universal respect, nobility.",
+        ),
+        (
+            "Venus",
+            "Malavya Yoga",
+            ["Taurus", "Libra"],
+            "Pisces",
+            "Refinement, prosperity, artistic genius, luxurious conveyances, charismatic grace.",
+        ),
+        (
+            "Saturn",
+            "Sasa Yoga",
+            ["Capricorn", "Aquarius"],
+            "Libra",
+            "Command over masses, enduring power, discipline, strategic leadership, persistence.",
+        ),
     ]
 
     for p_name, yoga_name, own, exalted, effects in mahapurusha_configs:
@@ -179,16 +207,18 @@ def _detect_pancha_mahapurusha(chart: ChartData) -> list[YogaResult]:
             is_exalted = p.sign == exalted
             if is_own or is_exalted:
                 status = "exaltation" if is_exalted else "own sign"
-                results.append(YogaResult(
-                    name=yoga_name,
-                    category=YogaCategory.MAHAPURUSHA,
-                    description=f"{p_name} occupies Kendra (House {p.house}) in {status} ({p.sign}).",
-                    is_formed=True,
-                    strength="Strong",
-                    planets_involved=[p_name],
-                    houses_involved=[p.house],
-                    effects=effects,
-                ))
+                results.append(
+                    YogaResult(
+                        name=yoga_name,
+                        category=YogaCategory.MAHAPURUSHA,
+                        description=f"{p_name} occupies Kendra (House {p.house}) in {status} ({p.sign}).",
+                        is_formed=True,
+                        strength="Strong",
+                        planets_involved=[p_name],
+                        houses_involved=[p.house],
+                        effects=effects,
+                    )
+                )
     return results
 
 
@@ -205,16 +235,18 @@ def _detect_gaja_kesari(chart: ChartData) -> list[YogaResult]:
         strength = "Strong"
         if jupiter.dignity == "debilitated" or moon.dignity == "debilitated":
             strength = "Moderate"
-        return [YogaResult(
-            name="Gaja Kesari Yoga",
-            category=YogaCategory.GAJA_KESARI,
-            description=f"Jupiter occupies a Kendra ({dist}th house) from natal Moon (House {moon.house} to House {jupiter.house}).",
-            is_formed=True,
-            strength=strength,
-            planets_involved=["Jupiter", "Moon"],
-            houses_involved=[moon.house, jupiter.house],
-            effects="Enduring reputation, virtue, triumph over adversities, high intelligence, ministerial or executive authority.",
-        )]
+        return [
+            YogaResult(
+                name="Gaja Kesari Yoga",
+                category=YogaCategory.GAJA_KESARI,
+                description=f"Jupiter occupies a Kendra ({dist}th house) from natal Moon (House {moon.house} to House {jupiter.house}).",
+                is_formed=True,
+                strength=strength,
+                planets_involved=["Jupiter", "Moon"],
+                houses_involved=[moon.house, jupiter.house],
+                effects="Enduring reputation, virtue, triumph over adversities, high intelligence, ministerial or executive authority.",
+            )
+        ]
     return []
 
 
@@ -228,8 +260,12 @@ def _detect_kemadruma(chart: ChartData) -> list[YogaResult]:
     h12 = _relative_house(moon.house, 12)
 
     # Physical planets excluding Sun, Rahu, Ketu
-    planets_h2 = [p for p in _get_planets_in_house(chart, h2) if p.name not in ("Sun", "Rahu", "Ketu")]
-    planets_h12 = [p for p in _get_planets_in_house(chart, h12) if p.name not in ("Sun", "Rahu", "Ketu")]
+    planets_h2 = [
+        p for p in _get_planets_in_house(chart, h2) if p.name not in ("Sun", "Rahu", "Ketu")
+    ]
+    planets_h12 = [
+        p for p in _get_planets_in_house(chart, h12) if p.name not in ("Sun", "Rahu", "Ketu")
+    ]
 
     if not planets_h2 and not planets_h12:
         # Kemadruma is nominally formed. Now check cancellations (Kemadruma Bhanga)
@@ -237,16 +273,21 @@ def _detect_kemadruma(chart: ChartData) -> list[YogaResult]:
 
         # Cancellation 1: Planets in Kendra from Lagna (excluding Rahu/Ketu)
         kendra_lagna_planets = [
-            p.name for p in chart.planets
+            p.name
+            for p in chart.planets
             if p.house in KENDRA_HOUSES and p.name not in ("Rahu", "Ketu")
         ]
         if kendra_lagna_planets:
-            bhanga_reasons.append(f"Planets in Kendra from Lagna: {', '.join(kendra_lagna_planets)}")
+            bhanga_reasons.append(
+                f"Planets in Kendra from Lagna: {', '.join(kendra_lagna_planets)}"
+            )
 
         # Cancellation 2: Planets in Kendra from Moon (excluding Rahu/Ketu)
         kendra_moon_planets = [
-            p.name for p in chart.planets
-            if _house_distance(moon.house, p.house) in KENDRA_HOUSES and p.name not in ("Moon", "Rahu", "Ketu")
+            p.name
+            for p in chart.planets
+            if _house_distance(moon.house, p.house) in KENDRA_HOUSES
+            and p.name not in ("Moon", "Rahu", "Ketu")
         ]
         if kendra_moon_planets:
             bhanga_reasons.append(f"Planets in Kendra from Moon: {', '.join(kendra_moon_planets)}")
@@ -257,28 +298,32 @@ def _detect_kemadruma(chart: ChartData) -> list[YogaResult]:
             bhanga_reasons.append("Moon conjoined with Jupiter")
 
         if bhanga_reasons:
-            return [YogaResult(
-                name="Kemadruma Bhanga Yoga (Cancelled Kemadruma)",
-                category=YogaCategory.KEMADRUMA,
-                description="Kemadruma formed (2nd and 12th from Moon vacant of physical planets) but successfully cancelled by Kendra placements.",
-                is_formed=True,
-                strength="Cancelled",
-                planets_involved=["Moon"] + kendra_lagna_planets[:2],
-                houses_involved=[moon.house, h2, h12],
-                cancellation_reason="; ".join(bhanga_reasons),
-                effects="Initial hardship transformed into eventual stability, resilience, and self-reliance due to strong Kendra cancellation.",
-            )]
+            return [
+                YogaResult(
+                    name="Kemadruma Bhanga Yoga (Cancelled Kemadruma)",
+                    category=YogaCategory.KEMADRUMA,
+                    description="Kemadruma formed (2nd and 12th from Moon vacant of physical planets) but successfully cancelled by Kendra placements.",
+                    is_formed=True,
+                    strength="Cancelled",
+                    planets_involved=["Moon"] + kendra_lagna_planets[:2],
+                    houses_involved=[moon.house, h2, h12],
+                    cancellation_reason="; ".join(bhanga_reasons),
+                    effects="Initial hardship transformed into eventual stability, resilience, and self-reliance due to strong Kendra cancellation.",
+                )
+            ]
         else:
-            return [YogaResult(
-                name="Kemadruma Yoga",
-                category=YogaCategory.KEMADRUMA,
-                description="No physical planets in 2nd or 12th from Moon, and no Kendra cancellations present.",
-                is_formed=True,
-                strength="Active (Uncancelled)",
-                planets_involved=["Moon"],
-                houses_involved=[moon.house, h2, h12],
-                effects="Fluctuating fortune, feelings of isolation or mental unrest; remedies and planetary propitiation recommended.",
-            )]
+            return [
+                YogaResult(
+                    name="Kemadruma Yoga",
+                    category=YogaCategory.KEMADRUMA,
+                    description="No physical planets in 2nd or 12th from Moon, and no Kendra cancellations present.",
+                    is_formed=True,
+                    strength="Active (Uncancelled)",
+                    planets_involved=["Moon"],
+                    houses_involved=[moon.house, h2, h12],
+                    effects="Fluctuating fortune, feelings of isolation or mental unrest; remedies and planetary propitiation recommended.",
+                )
+            ]
     return []
 
 
@@ -299,11 +344,15 @@ def _detect_neechabhanga(chart: ChartData) -> list[YogaResult]:
         if dispositor and dispositor_name:
             # Rule 1a: Dispositor in Kendra from Lagna
             if dispositor.house in KENDRA_HOUSES:
-                cancellation_rules.append(f"Dispositor {dispositor_name} in Kendra (House {dispositor.house}) from Lagna")
+                cancellation_rules.append(
+                    f"Dispositor {dispositor_name} in Kendra (House {dispositor.house}) from Lagna"
+                )
                 rule_planets.append(dispositor_name)
             # Rule 1b: Dispositor in Kendra from Moon
             if moon and _house_distance(moon.house, dispositor.house) in KENDRA_HOUSES:
-                cancellation_rules.append(f"Dispositor {dispositor_name} in Kendra ({_ordinal(_house_distance(moon.house, dispositor.house))}) from Moon")
+                cancellation_rules.append(
+                    f"Dispositor {dispositor_name} in Kendra ({_ordinal(_house_distance(moon.house, dispositor.house))}) from Moon"
+                )
                 if dispositor_name not in rule_planets:
                     rule_planets.append(dispositor_name)
 
@@ -320,35 +369,45 @@ def _detect_neechabhanga(chart: ChartData) -> list[YogaResult]:
             if ex_planet:
                 # Rule 2a: Planet exalted in that sign is in Kendra from Lagna
                 if ex_planet.house in KENDRA_HOUSES:
-                    cancellation_rules.append(f"Planet exalted in {p.sign} ({exalted_in_sign}) in Kendra (House {ex_planet.house}) from Lagna")
+                    cancellation_rules.append(
+                        f"Planet exalted in {p.sign} ({exalted_in_sign}) in Kendra (House {ex_planet.house}) from Lagna"
+                    )
                     rule_planets.append(exalted_in_sign)
                 # Rule 2b: In Kendra from Moon
                 if moon and _house_distance(moon.house, ex_planet.house) in KENDRA_HOUSES:
-                    cancellation_rules.append(f"Planet exalted in {p.sign} ({exalted_in_sign}) in Kendra ({_ordinal(_house_distance(moon.house, ex_planet.house))}) from Moon")
+                    cancellation_rules.append(
+                        f"Planet exalted in {p.sign} ({exalted_in_sign}) in Kendra ({_ordinal(_house_distance(moon.house, ex_planet.house))}) from Moon"
+                    )
                     if exalted_in_sign not in rule_planets:
                         rule_planets.append(exalted_in_sign)
 
         # 3. Debilitated planet itself in Kendra from Lagna
         if p.house in KENDRA_HOUSES:
-            cancellation_rules.append(f"Debilitated planet {p.name} itself occupies Kendra (House {p.house}) from Lagna")
+            cancellation_rules.append(
+                f"Debilitated planet {p.name} itself occupies Kendra (House {p.house}) from Lagna"
+            )
 
         # 4. Debilitated planet itself in Kendra from Moon (if planet is not Moon itself)
         if moon and p.name != "Moon" and _house_distance(moon.house, p.house) in KENDRA_HOUSES:
-            cancellation_rules.append(f"Debilitated planet {p.name} occupies Kendra ({_ordinal(_house_distance(moon.house, p.house))}) from Moon")
+            cancellation_rules.append(
+                f"Debilitated planet {p.name} occupies Kendra ({_ordinal(_house_distance(moon.house, p.house))}) from Moon"
+            )
 
         if cancellation_rules:
             strength = "Strong" if len(cancellation_rules) >= 2 else "Moderate"
-            results.append(YogaResult(
-                name=f"Neechabhanga Raja Yoga ({p.name})",
-                category=YogaCategory.NEECHABHANGA,
-                description=f"Debilitation of {p.name} in {p.sign} is cancelled, converting weakness into extraordinary Raja Yoga power.",
-                is_formed=True,
-                strength=strength,
-                planets_involved=list(dict.fromkeys(rule_planets)),
-                houses_involved=[p.house],
-                cancellation_reason="; ".join(cancellation_rules),
-                effects=f"Great elevation after initial struggle, triumph through adversity, sovereign executive capability in {p.name}'s domains.",
-            ))
+            results.append(
+                YogaResult(
+                    name=f"Neechabhanga Raja Yoga ({p.name})",
+                    category=YogaCategory.NEECHABHANGA,
+                    description=f"Debilitation of {p.name} in {p.sign} is cancelled, converting weakness into extraordinary Raja Yoga power.",
+                    is_formed=True,
+                    strength=strength,
+                    planets_involved=list(dict.fromkeys(rule_planets)),
+                    houses_involved=[p.house],
+                    cancellation_reason="; ".join(cancellation_rules),
+                    effects=f"Great elevation after initial struggle, triumph through adversity, sovereign executive capability in {p.name}'s domains.",
+                )
+            )
 
     return results
 
@@ -363,56 +422,68 @@ def _detect_chandra_yogas(chart: ChartData) -> list[YogaResult]:
     h2 = _relative_house(moon.house, 2)
     h12 = _relative_house(moon.house, 12)
 
-    planets_h2 = [p.name for p in _get_planets_in_house(chart, h2) if p.name not in ("Sun", "Rahu", "Ketu")]
-    planets_h12 = [p.name for p in _get_planets_in_house(chart, h12) if p.name not in ("Sun", "Rahu", "Ketu")]
+    planets_h2 = [
+        p.name for p in _get_planets_in_house(chart, h2) if p.name not in ("Sun", "Rahu", "Ketu")
+    ]
+    planets_h12 = [
+        p.name for p in _get_planets_in_house(chart, h12) if p.name not in ("Sun", "Rahu", "Ketu")
+    ]
 
     if planets_h2 and planets_h12:
-        results.append(YogaResult(
-            name="Dhurdhura Yoga",
-            category=YogaCategory.CHANDRA,
-            description=f"Planets occupy both 2nd ({', '.join(planets_h2)}) and 12th ({', '.join(planets_h12)}) from Moon.",
-            is_formed=True,
-            strength="Strong",
-            planets_involved=["Moon"] + planets_h2 + planets_h12,
-            houses_involved=[moon.house, h2, h12],
-            effects="Abundant material comforts, generosity, conveyances, loyal followers, lasting wealth.",
-        ))
+        results.append(
+            YogaResult(
+                name="Dhurdhura Yoga",
+                category=YogaCategory.CHANDRA,
+                description=f"Planets occupy both 2nd ({', '.join(planets_h2)}) and 12th ({', '.join(planets_h12)}) from Moon.",
+                is_formed=True,
+                strength="Strong",
+                planets_involved=["Moon"] + planets_h2 + planets_h12,
+                houses_involved=[moon.house, h2, h12],
+                effects="Abundant material comforts, generosity, conveyances, loyal followers, lasting wealth.",
+            )
+        )
     elif planets_h2:
-        results.append(YogaResult(
-            name="Sunapha Yoga",
-            category=YogaCategory.CHANDRA,
-            description=f"Planets ({', '.join(planets_h2)}) occupy 2nd house from Moon.",
-            is_formed=True,
-            strength="Strong",
-            planets_involved=["Moon"] + planets_h2,
-            houses_involved=[moon.house, h2],
-            effects="Self-earned wealth, intelligent management of resources, good reputation and steady prosperity.",
-        ))
+        results.append(
+            YogaResult(
+                name="Sunapha Yoga",
+                category=YogaCategory.CHANDRA,
+                description=f"Planets ({', '.join(planets_h2)}) occupy 2nd house from Moon.",
+                is_formed=True,
+                strength="Strong",
+                planets_involved=["Moon"] + planets_h2,
+                houses_involved=[moon.house, h2],
+                effects="Self-earned wealth, intelligent management of resources, good reputation and steady prosperity.",
+            )
+        )
     elif planets_h12:
-        results.append(YogaResult(
-            name="Anapha Yoga",
-            category=YogaCategory.CHANDRA,
-            description=f"Planets ({', '.join(planets_h12)}) occupy 12th house from Moon.",
-            is_formed=True,
-            strength="Strong",
-            planets_involved=["Moon"] + planets_h12,
-            houses_involved=[moon.house, h12],
-            effects="Self-control, magnetic personality, physical health, contentment, philosophical incline.",
-        ))
+        results.append(
+            YogaResult(
+                name="Anapha Yoga",
+                category=YogaCategory.CHANDRA,
+                description=f"Planets ({', '.join(planets_h12)}) occupy 12th house from Moon.",
+                is_formed=True,
+                strength="Strong",
+                planets_involved=["Moon"] + planets_h12,
+                houses_involved=[moon.house, h12],
+                effects="Self-control, magnetic personality, physical health, contentment, philosophical incline.",
+            )
+        )
 
     # Chandra Mangala Yoga (Moon + Mars conjunction)
     mars = _get_planet(chart, "Mars")
     if mars and mars.house == moon.house:
-        results.append(YogaResult(
-            name="Chandra Mangala Yoga",
-            category=YogaCategory.CHANDRA,
-            description=f"Moon and Mars are conjoined in House {moon.house} ({moon.sign}).",
-            is_formed=True,
-            strength="Strong",
-            planets_involved=["Moon", "Mars"],
-            houses_involved=[moon.house],
-            effects="Sharp financial instincts, commercial prowess, wealth generation through enterprise and tangible assets.",
-        ))
+        results.append(
+            YogaResult(
+                name="Chandra Mangala Yoga",
+                category=YogaCategory.CHANDRA,
+                description=f"Moon and Mars are conjoined in House {moon.house} ({moon.sign}).",
+                is_formed=True,
+                strength="Strong",
+                planets_involved=["Moon", "Mars"],
+                houses_involved=[moon.house],
+                effects="Sharp financial instincts, commercial prowess, wealth generation through enterprise and tangible assets.",
+            )
+        )
 
     # Adhi Yoga from Moon (Benefics in 6th, 7th, 8th from Moon)
     h6 = _relative_house(moon.house, 6)
@@ -424,16 +495,18 @@ def _detect_chandra_yogas(chart: ChartData) -> list[YogaResult]:
             if p.name in NATURAL_BENEFICS:
                 benefics_678.append(f"{p.name} (H{h_num})")
     if len(benefics_678) >= 2:
-        results.append(YogaResult(
-            name="Chandradhi Yoga",
-            category=YogaCategory.CHANDRA,
-            description=f"Natural benefics placed in 6th/7th/8th from Moon: {', '.join(benefics_678)}.",
-            is_formed=True,
-            strength="Strong",
-            planets_involved=["Moon"] + [b.split()[0] for b in benefics_678],
-            houses_involved=[moon.house, h6, h7, h8],
-            effects="Eminent leadership, trustworthy authority, overcoming enemies peacefully, luxury and contentment.",
-        ))
+        results.append(
+            YogaResult(
+                name="Chandradhi Yoga",
+                category=YogaCategory.CHANDRA,
+                description=f"Natural benefics placed in 6th/7th/8th from Moon: {', '.join(benefics_678)}.",
+                is_formed=True,
+                strength="Strong",
+                planets_involved=["Moon"] + [b.split()[0] for b in benefics_678],
+                houses_involved=[moon.house, h6, h7, h8],
+                effects="Eminent leadership, trustworthy authority, overcoming enemies peacefully, luxury and contentment.",
+            )
+        )
 
     return results
 
@@ -448,56 +521,68 @@ def _detect_surya_yogas(chart: ChartData) -> list[YogaResult]:
 
     # Budhaditya Yoga
     if mercury and mercury.house == sun.house:
-        results.append(YogaResult(
-            name="Budhaditya Yoga",
-            category=YogaCategory.SURYA,
-            description=f"Sun and Mercury conjoined in House {sun.house} ({sun.sign}).",
-            is_formed=True,
-            strength="Strong",
-            planets_involved=["Sun", "Mercury"],
-            houses_involved=[sun.house],
-            effects="Brilliant intellect, analytical acumen, administrative skill, eloquence and academic distinction.",
-        ))
+        results.append(
+            YogaResult(
+                name="Budhaditya Yoga",
+                category=YogaCategory.SURYA,
+                description=f"Sun and Mercury conjoined in House {sun.house} ({sun.sign}).",
+                is_formed=True,
+                strength="Strong",
+                planets_involved=["Sun", "Mercury"],
+                houses_involved=[sun.house],
+                effects="Brilliant intellect, analytical acumen, administrative skill, eloquence and academic distinction.",
+            )
+        )
 
     # Vesi, Vasi, Ubhayachari
     h2 = _relative_house(sun.house, 2)
     h12 = _relative_house(sun.house, 12)
-    planets_h2 = [p.name for p in _get_planets_in_house(chart, h2) if p.name not in ("Moon", "Rahu", "Ketu")]
-    planets_h12 = [p.name for p in _get_planets_in_house(chart, h12) if p.name not in ("Moon", "Rahu", "Ketu")]
+    planets_h2 = [
+        p.name for p in _get_planets_in_house(chart, h2) if p.name not in ("Moon", "Rahu", "Ketu")
+    ]
+    planets_h12 = [
+        p.name for p in _get_planets_in_house(chart, h12) if p.name not in ("Moon", "Rahu", "Ketu")
+    ]
 
     if planets_h2 and planets_h12:
-        results.append(YogaResult(
-            name="Ubhayachari Yoga",
-            category=YogaCategory.SURYA,
-            description=f"Planets flanking Sun on both sides (2nd: {', '.join(planets_h2)}, 12th: {', '.join(planets_h12)}).",
-            is_formed=True,
-            strength="Strong",
-            planets_involved=["Sun"] + planets_h2 + planets_h12,
-            houses_involved=[sun.house, h2, h12],
-            effects="Balanced fortunes, harmonious temperament, broad societal influence and steady prosperity.",
-        ))
+        results.append(
+            YogaResult(
+                name="Ubhayachari Yoga",
+                category=YogaCategory.SURYA,
+                description=f"Planets flanking Sun on both sides (2nd: {', '.join(planets_h2)}, 12th: {', '.join(planets_h12)}).",
+                is_formed=True,
+                strength="Strong",
+                planets_involved=["Sun"] + planets_h2 + planets_h12,
+                houses_involved=[sun.house, h2, h12],
+                effects="Balanced fortunes, harmonious temperament, broad societal influence and steady prosperity.",
+            )
+        )
     elif planets_h2:
-        results.append(YogaResult(
-            name="Vesi Yoga",
-            category=YogaCategory.SURYA,
-            description=f"Planets ({', '.join(planets_h2)}) in 2nd house from Sun.",
-            is_formed=True,
-            strength="Moderate",
-            planets_involved=["Sun"] + planets_h2,
-            houses_involved=[sun.house, h2],
-            effects="Truthfulness, articulate expression, noble character and steady accumulation of wealth.",
-        ))
+        results.append(
+            YogaResult(
+                name="Vesi Yoga",
+                category=YogaCategory.SURYA,
+                description=f"Planets ({', '.join(planets_h2)}) in 2nd house from Sun.",
+                is_formed=True,
+                strength="Moderate",
+                planets_involved=["Sun"] + planets_h2,
+                houses_involved=[sun.house, h2],
+                effects="Truthfulness, articulate expression, noble character and steady accumulation of wealth.",
+            )
+        )
     elif planets_h12:
-        results.append(YogaResult(
-            name="Vasi Yoga",
-            category=YogaCategory.SURYA,
-            description=f"Planets ({', '.join(planets_h12)}) in 12th house from Sun.",
-            is_formed=True,
-            strength="Moderate",
-            planets_involved=["Sun"] + planets_h12,
-            houses_involved=[sun.house, h12],
-            effects="Strong spiritual inclination, charity, renown in distant places, contemplative nature.",
-        ))
+        results.append(
+            YogaResult(
+                name="Vasi Yoga",
+                category=YogaCategory.SURYA,
+                description=f"Planets ({', '.join(planets_h12)}) in 12th house from Sun.",
+                is_formed=True,
+                strength="Moderate",
+                planets_involved=["Sun"] + planets_h12,
+                houses_involved=[sun.house, h12],
+                effects="Strong spiritual inclination, charity, renown in distant places, contemplative nature.",
+            )
+        )
 
     return results
 
@@ -509,9 +594,24 @@ def _detect_viparita_raja(chart: ChartData) -> list[YogaResult]:
     # 8th lord -> Sarala Yoga if in 6, 8, 12
     # 12th lord -> Vimala Yoga if in 6, 8, 12
     vry_configs = [
-        (6, "Harsha Yoga", "6th lord", "Victory over rivals, physical stamina, immunity to scandal, unexpected sudden fortune."),
-        (8, "Sarala Yoga", "8th lord", "Fearlessness, longevity, victory through crises, profound esoteric knowledge, inheritance."),
-        (12, "Vimala Yoga", "12th lord", "Noble spending, independent livelihood, serene mind, virtuous reputation, liberation from debts."),
+        (
+            6,
+            "Harsha Yoga",
+            "6th lord",
+            "Victory over rivals, physical stamina, immunity to scandal, unexpected sudden fortune.",
+        ),
+        (
+            8,
+            "Sarala Yoga",
+            "8th lord",
+            "Fearlessness, longevity, victory through crises, profound esoteric knowledge, inheritance.",
+        ),
+        (
+            12,
+            "Vimala Yoga",
+            "12th lord",
+            "Noble spending, independent livelihood, serene mind, virtuous reputation, liberation from debts.",
+        ),
     ]
 
     for house_num, y_name, lord_desc, effects in vry_configs:
@@ -520,16 +620,18 @@ def _detect_viparita_raja(chart: ChartData) -> list[YogaResult]:
             continue
         p = _get_planet(chart, lord_name)
         if p and p.house in DUSTHANA_HOUSES:
-            results.append(YogaResult(
-                name=f"{y_name} (Viparita Raja Yoga)",
-                category=YogaCategory.VIPARITA,
-                description=f"{lord_desc} ({lord_name}) placed in Dusthana (House {p.house}).",
-                is_formed=True,
-                strength="Strong",
-                planets_involved=[lord_name],
-                houses_involved=[house_num, p.house],
-                effects=effects,
-            ))
+            results.append(
+                YogaResult(
+                    name=f"{y_name} (Viparita Raja Yoga)",
+                    category=YogaCategory.VIPARITA,
+                    description=f"{lord_desc} ({lord_name}) placed in Dusthana (House {p.house}).",
+                    is_formed=True,
+                    strength="Strong",
+                    planets_involved=[lord_name],
+                    houses_involved=[house_num, p.house],
+                    effects=effects,
+                )
+            )
     return results
 
 
@@ -539,33 +641,41 @@ def _detect_raja_and_dhana(chart: ChartData) -> list[YogaResult]:
 
     # Amala Yoga: Natural benefic in 10th house from Lagna or Moon
     moon = _get_planet(chart, "Moon")
-    benefics_in_10_lagna = [p.name for p in _get_planets_in_house(chart, 10) if p.name in NATURAL_BENEFICS]
+    benefics_in_10_lagna = [
+        p.name for p in _get_planets_in_house(chart, 10) if p.name in NATURAL_BENEFICS
+    ]
     if benefics_in_10_lagna:
-        results.append(YogaResult(
-            name="Amala Yoga (from Lagna)",
-            category=YogaCategory.RAJA,
-            description=f"Natural benefic ({', '.join(benefics_in_10_lagna)}) occupies the 10th house from Lagna.",
-            is_formed=True,
-            strength="Strong",
-            planets_involved=benefics_in_10_lagna,
-            houses_involved=[10],
-            effects="Spotless professional reputation, benevolent deeds, enduring honor and executive leadership.",
-        ))
+        results.append(
+            YogaResult(
+                name="Amala Yoga (from Lagna)",
+                category=YogaCategory.RAJA,
+                description=f"Natural benefic ({', '.join(benefics_in_10_lagna)}) occupies the 10th house from Lagna.",
+                is_formed=True,
+                strength="Strong",
+                planets_involved=benefics_in_10_lagna,
+                houses_involved=[10],
+                effects="Spotless professional reputation, benevolent deeds, enduring honor and executive leadership.",
+            )
+        )
 
     if moon:
         h10_moon = _relative_house(moon.house, 10)
-        benefics_in_10_moon = [p.name for p in _get_planets_in_house(chart, h10_moon) if p.name in NATURAL_BENEFICS]
+        benefics_in_10_moon = [
+            p.name for p in _get_planets_in_house(chart, h10_moon) if p.name in NATURAL_BENEFICS
+        ]
         if benefics_in_10_moon:
-            results.append(YogaResult(
-                name="Amala Yoga (from Moon)",
-                category=YogaCategory.RAJA,
-                description=f"Natural benefic ({', '.join(benefics_in_10_moon)}) occupies the 10th house from Moon.",
-                is_formed=True,
-                strength="Strong",
-                planets_involved=benefics_in_10_moon,
-                houses_involved=[h10_moon],
-                effects="Clean public image, lasting community esteem, upright profession.",
-            ))
+            results.append(
+                YogaResult(
+                    name="Amala Yoga (from Moon)",
+                    category=YogaCategory.RAJA,
+                    description=f"Natural benefic ({', '.join(benefics_in_10_moon)}) occupies the 10th house from Moon.",
+                    is_formed=True,
+                    strength="Strong",
+                    planets_involved=benefics_in_10_moon,
+                    houses_involved=[h10_moon],
+                    effects="Clean public image, lasting community esteem, upright profession.",
+                )
+            )
 
     # Dhana Yoga: 2nd lord and 11th lord connection
     l2 = _get_lord_of_house(chart, 2)
@@ -575,27 +685,31 @@ def _detect_raja_and_dhana(chart: ChartData) -> list[YogaResult]:
 
     if p2 and p11 and l2 and l11:
         if p2.house == p11.house:
-            results.append(YogaResult(
-                name="Maha Dhana Yoga (2nd & 11th Lords Conjunction)",
-                category=YogaCategory.DHANA,
-                description=f"2nd lord ({l2}) and 11th lord ({l11}) are conjoined in House {p2.house}.",
-                is_formed=True,
-                strength="Strong",
-                planets_involved=[l2, l11],
-                houses_involved=[2, 11, p2.house],
-                effects="Exceptional wealth accumulation, prolific gains from multiple income streams.",
-            ))
+            results.append(
+                YogaResult(
+                    name="Maha Dhana Yoga (2nd & 11th Lords Conjunction)",
+                    category=YogaCategory.DHANA,
+                    description=f"2nd lord ({l2}) and 11th lord ({l11}) are conjoined in House {p2.house}.",
+                    is_formed=True,
+                    strength="Strong",
+                    planets_involved=[l2, l11],
+                    houses_involved=[2, 11, p2.house],
+                    effects="Exceptional wealth accumulation, prolific gains from multiple income streams.",
+                )
+            )
         elif p2.house in (2, 11) or p11.house in (2, 11):
-            results.append(YogaResult(
-                name="Dhana Yoga (Wealth Axis)",
-                category=YogaCategory.DHANA,
-                description=f"Wealth lord placed in wealth house ({l2} in H{p2.house}, {l11} in H{p11.house}).",
-                is_formed=True,
-                strength="Moderate",
-                planets_involved=list(set(filter(None, [l2, l11]))),
-                houses_involved=[2, 11],
-                effects="Steady financial growth, sound fiscal stewardship, security in possessions.",
-            ))
+            results.append(
+                YogaResult(
+                    name="Dhana Yoga (Wealth Axis)",
+                    category=YogaCategory.DHANA,
+                    description=f"Wealth lord placed in wealth house ({l2} in H{p2.house}, {l11} in H{p11.house}).",
+                    is_formed=True,
+                    strength="Moderate",
+                    planets_involved=list(set(filter(None, [l2, l11]))),
+                    houses_involved=[2, 11],
+                    effects="Steady financial growth, sound fiscal stewardship, security in possessions.",
+                )
+            )
 
     # Kendra-Trikona Raja Yoga (Dharma-Karmadhipati / Kendra-Trikona conjunction)
     # Check conjunction of Kendra lord (4, 7, 10) with Trikona lord (5, 9)
@@ -621,16 +735,18 @@ def _detect_raja_and_dhana(chart: ChartData) -> list[YogaResult]:
                 pair_key: tuple[str, str] = (min(kl, tl), max(kl, tl))
                 if pair_key not in formed_pairs:
                     formed_pairs.add(pair_key)
-                    results.append(YogaResult(
-                        name=f"Kendra-Trikona Raja Yoga ({kl} & {tl})",
-                        category=YogaCategory.RAJA,
-                        description=f"Kendra lord of House {kh} ({kl}) and Trikona lord of House {th} ({tl}) are conjoined in House {kp.house}.",
-                        is_formed=True,
-                        strength="Strong",
-                        planets_involved=[kl, tl],
-                        houses_involved=[kh, th, kp.house],
-                        effects="Elevation in social hierarchy, government or corporate leadership, power, righteous wealth.",
-                    ))
+                    results.append(
+                        YogaResult(
+                            name=f"Kendra-Trikona Raja Yoga ({kl} & {tl})",
+                            category=YogaCategory.RAJA,
+                            description=f"Kendra lord of House {kh} ({kl}) and Trikona lord of House {th} ({tl}) are conjoined in House {kp.house}.",
+                            is_formed=True,
+                            strength="Strong",
+                            planets_involved=[kl, tl],
+                            houses_involved=[kh, th, kp.house],
+                            effects="Elevation in social hierarchy, government or corporate leadership, power, righteous wealth.",
+                        )
+                    )
 
     return results
 
@@ -666,12 +782,16 @@ def format_yogas_table(yogas: list[YogaResult]) -> str:
     lines.append("-" * 84)
     for idx, y in enumerate(yogas, 1):
         status_tag = f"[{y.strength.upper()}]"
-        lines.append(f" {idx:2d}. {y.name} {status_tag} ({y.category.value if isinstance(y.category, YogaCategory) else y.category})")
+        lines.append(
+            f" {idx:2d}. {y.name} {status_tag} ({y.category.value if isinstance(y.category, YogaCategory) else y.category})"
+        )
         lines.append(f"     Rule    : {y.description}")
         if y.cancellation_reason:
             lines.append(f"     Cancel  : {y.cancellation_reason}")
         if y.planets_involved:
-            lines.append(f"     Grahas  : {', '.join(y.planets_involved)} | Houses: {', '.join(map(str, y.houses_involved))}")
+            lines.append(
+                f"     Grahas  : {', '.join(y.planets_involved)} | Houses: {', '.join(map(str, y.houses_involved))}"
+            )
         if y.effects:
             lines.append(f"     Effects : {y.effects}")
         lines.append("-" * 84)
@@ -692,14 +812,22 @@ def format_yogas_markdown(yogas: list[YogaResult]) -> str:
     for idx, y in enumerate(yogas, 1):
         cat_str = y.category.value if isinstance(y.category, YogaCategory) else y.category
         planets_str = ", ".join(y.planets_involved) if y.planets_involved else "-"
-        lines.append(f"| {idx} | **{y.name}** | {cat_str} | {y.strength} | {planets_str} | {y.description} |")
+        lines.append(
+            f"| {idx} | **{y.name}** | {cat_str} | {y.strength} | {planets_str} | {y.description} |"
+        )
 
     lines.append("\n## Detailed Effects\n")
     for idx, y in enumerate(yogas, 1):
         lines.append(f"### {idx}. {y.name} ({y.strength})")
-        lines.append(f"- **Category**: {y.category.value if isinstance(y.category, YogaCategory) else y.category}")
-        lines.append(f"- **Planets**: {', '.join(y.planets_involved) if y.planets_involved else 'None'}")
-        lines.append(f"- **Houses**: {', '.join(map(str, y.houses_involved)) if y.houses_involved else 'None'}")
+        lines.append(
+            f"- **Category**: {y.category.value if isinstance(y.category, YogaCategory) else y.category}"
+        )
+        lines.append(
+            f"- **Planets**: {', '.join(y.planets_involved) if y.planets_involved else 'None'}"
+        )
+        lines.append(
+            f"- **Houses**: {', '.join(map(str, y.houses_involved)) if y.houses_involved else 'None'}"
+        )
         lines.append(f"- **Rule**: {y.description}")
         if y.cancellation_reason:
             lines.append(f"- **Cancellation / Modification**: {y.cancellation_reason}")

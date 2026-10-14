@@ -26,10 +26,10 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
-from pydantic import BaseModel, Field
 
 import swisseph as swe
 from mayaastrolib.datetime import Datetime
+from pydantic import BaseModel, Field
 
 from nakshatra.core import Ayanamsa
 from nakshatra.panchanga import (
@@ -43,7 +43,13 @@ from nakshatra.panchanga import (
 
 # Chaldean planetary sequence in descending order of orbit/speed
 CHALDEAN_HORA_SEQUENCE = [
-    "Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon",
+    "Saturn",
+    "Jupiter",
+    "Mars",
+    "Sun",
+    "Venus",
+    "Mercury",
+    "Moon",
 ]
 
 # Weekday lords: Sun=0 (Sunday), Mon=1, Tue=2, Wed=3, Thu=4, Fri=5, Sat=6
@@ -108,24 +114,24 @@ CHOGHADIYA_TYPES = {
 
 # Day Choghadiya sequence per weekday (Sun=0 to Sat=6)
 DAY_CHOGHADIYA_CYCLES = [
-    ["Udveg", "Char", "Labh", "Amrit", "Kaal", "Shubh", "Rog", "Udveg"],     # Sunday
-    ["Amrit", "Kaal", "Shubh", "Rog", "Udveg", "Char", "Labh", "Amrit"],     # Monday
-    ["Rog", "Udveg", "Char", "Labh", "Amrit", "Kaal", "Shubh", "Rog"],       # Tuesday
-    ["Labh", "Amrit", "Kaal", "Shubh", "Rog", "Udveg", "Char", "Labh"],     # Wednesday
-    ["Shubh", "Rog", "Udveg", "Char", "Labh", "Amrit", "Kaal", "Shubh"],     # Thursday
-    ["Char", "Labh", "Amrit", "Kaal", "Shubh", "Rog", "Udveg", "Char"],     # Friday
-    ["Kaal", "Shubh", "Rog", "Udveg", "Char", "Labh", "Amrit", "Kaal"],     # Saturday
+    ["Udveg", "Char", "Labh", "Amrit", "Kaal", "Shubh", "Rog", "Udveg"],  # Sunday
+    ["Amrit", "Kaal", "Shubh", "Rog", "Udveg", "Char", "Labh", "Amrit"],  # Monday
+    ["Rog", "Udveg", "Char", "Labh", "Amrit", "Kaal", "Shubh", "Rog"],  # Tuesday
+    ["Labh", "Amrit", "Kaal", "Shubh", "Rog", "Udveg", "Char", "Labh"],  # Wednesday
+    ["Shubh", "Rog", "Udveg", "Char", "Labh", "Amrit", "Kaal", "Shubh"],  # Thursday
+    ["Char", "Labh", "Amrit", "Kaal", "Shubh", "Rog", "Udveg", "Char"],  # Friday
+    ["Kaal", "Shubh", "Rog", "Udveg", "Char", "Labh", "Amrit", "Kaal"],  # Saturday
 ]
 
 # Night Choghadiya sequence per weekday
 NIGHT_CHOGHADIYA_CYCLES = [
-    ["Shubh", "Amrit", "Char", "Rog", "Kaal", "Labh", "Udveg", "Shubh"],     # Sunday
-    ["Char", "Rog", "Kaal", "Labh", "Udveg", "Shubh", "Amrit", "Char"],     # Monday
-    ["Kaal", "Labh", "Udveg", "Shubh", "Amrit", "Char", "Rog", "Kaal"],     # Tuesday
-    ["Udveg", "Shubh", "Amrit", "Char", "Rog", "Kaal", "Labh", "Udveg"],     # Wednesday
-    ["Amrit", "Char", "Rog", "Kaal", "Labh", "Udveg", "Shubh", "Amrit"],     # Thursday
-    ["Rog", "Kaal", "Labh", "Udveg", "Shubh", "Amrit", "Char", "Rog"],       # Friday
-    ["Labh", "Udveg", "Shubh", "Amrit", "Char", "Rog", "Kaal", "Labh"],     # Saturday
+    ["Shubh", "Amrit", "Char", "Rog", "Kaal", "Labh", "Udveg", "Shubh"],  # Sunday
+    ["Char", "Rog", "Kaal", "Labh", "Udveg", "Shubh", "Amrit", "Char"],  # Monday
+    ["Kaal", "Labh", "Udveg", "Shubh", "Amrit", "Char", "Rog", "Kaal"],  # Tuesday
+    ["Udveg", "Shubh", "Amrit", "Char", "Rog", "Kaal", "Labh", "Udveg"],  # Wednesday
+    ["Amrit", "Char", "Rog", "Kaal", "Labh", "Udveg", "Shubh", "Amrit"],  # Thursday
+    ["Rog", "Kaal", "Labh", "Udveg", "Shubh", "Amrit", "Char", "Rog"],  # Friday
+    ["Labh", "Udveg", "Shubh", "Amrit", "Char", "Rog", "Kaal", "Labh"],  # Saturday
 ]
 
 # Daytime Rahu Kalam octant index (1 to 8) per weekday (Sun=0 to Sat=6)
@@ -142,7 +148,15 @@ GULIKA_OCTANTS = [7, 6, 5, 4, 3, 2, 1]
 
 # Sarvartha Siddhi Yoga (Vara 0-6 -> set of Nakshatra names)
 SARVARTHA_SIDDHI_MAP: dict[int, set[str]] = {
-    0: {"Hasta", "Mula", "Uttara Phalguni", "Uttara Ashadha", "Uttara Bhadrapada", "Ashwini", "Pushya"},
+    0: {
+        "Hasta",
+        "Mula",
+        "Uttara Phalguni",
+        "Uttara Ashadha",
+        "Uttara Bhadrapada",
+        "Ashwini",
+        "Pushya",
+    },
     1: {"Rohini", "Mrigashira", "Punarvasu", "Pushya", "Shravana"},
     2: {"Ashwini", "Krittika", "Ashlesha"},
     3: {"Rohini", "Anuradha", "Hasta", "Krittika"},
@@ -167,8 +181,10 @@ AMRITA_SIDDHI_MAP: dict[int, str] = {
 # Pydantic Schemas
 # ---------------------------------------------------------------------------
 
+
 class TimeInterval(BaseModel):
     """Start and end time strings for a muhurtha window."""
+
     name: str
     start_time: str
     end_time: str
@@ -180,6 +196,7 @@ class TimeInterval(BaseModel):
 
 class HoraItem(BaseModel):
     """Planetary Hora period."""
+
     hora_index: int = Field(..., description="1-24 (1-12 Day, 13-24 Night)")
     period_type: str = Field(..., description="'Day' or 'Night'")
     ruling_planet: str
@@ -192,6 +209,7 @@ class HoraItem(BaseModel):
 
 class ChoghadiyaItem(BaseModel):
     """Choghadiya subdivision."""
+
     index: int = Field(..., description="1-8")
     name: str
     period_type: str = Field(..., description="'Day' or 'Night'")
@@ -205,6 +223,7 @@ class ChoghadiyaItem(BaseModel):
 
 class SpecialYogaStatus(BaseModel):
     """Presence of classical electional yogas."""
+
     sarvartha_siddhi: bool
     amrita_siddhi: bool
     guru_pushya: bool
@@ -216,6 +235,7 @@ class SpecialYogaStatus(BaseModel):
 
 class MuhurthaSuitability(BaseModel):
     """Enterprise suitability indicators for activities."""
+
     business_contract: bool
     financial_investment: bool
     travel: bool
@@ -226,6 +246,7 @@ class MuhurthaSuitability(BaseModel):
 
 class MuhurthaReport(BaseModel):
     """Comprehensive Muhurtha Election Report."""
+
     timestamp: str
     timezone: str
     latitude: float
@@ -259,7 +280,9 @@ class MuhurthaReport(BaseModel):
         lines.append("                      VEDIC MUHURTHA & ELECTION REPORT")
         lines.append("=" * 80)
         lines.append(f" Observation Time   : {self.timestamp} ({self.timezone})")
-        lines.append(f" Solar Day Bounds   : Sunrise {self.sunrise_time} | Sunset {self.sunset_time}")
+        lines.append(
+            f" Solar Day Bounds   : Sunrise {self.sunrise_time} | Sunset {self.sunset_time}"
+        )
         lines.append("-" * 80)
         lines.append(
             f" 1. ACTIVE HORA      : {self.current_hora.ruling_planet} Hora "
@@ -288,9 +311,17 @@ class MuhurthaReport(BaseModel):
             f"    - Yamaganda [AVOID]  : {self.yamaganda.start_time} - {self.yamaganda.end_time}"
         )
         lines.append("-" * 80)
-        active_yogas_str = ", ".join(self.special_yogas.active_yogas) if self.special_yogas.active_yogas else "None"
+        active_yogas_str = (
+            ", ".join(self.special_yogas.active_yogas)
+            if self.special_yogas.active_yogas
+            else "None"
+        )
         lines.append(f" 4. CELESTIAL YOGAS  : {active_yogas_str}")
-        bhadra_str = "YES (Vishti/Bhadra Karana in progress - inauspicious)" if self.special_yogas.vishti_bhadra_active else "No"
+        bhadra_str = (
+            "YES (Vishti/Bhadra Karana in progress - inauspicious)"
+            if self.special_yogas.vishti_bhadra_active
+            else "No"
+        )
         lines.append(f"    - Vishti/Bhadra : {bhadra_str}")
         lines.append("-" * 80)
         lines.append(f" OVERALL MUHURTHA SCORE: {self.muhurtha_score}/100 -> {self.verdict}")
@@ -309,6 +340,7 @@ class MuhurthaReport(BaseModel):
 # ---------------------------------------------------------------------------
 # Calculation Engine
 # ---------------------------------------------------------------------------
+
 
 def calculate_muhurtha(
     dt: datetime,
@@ -340,7 +372,7 @@ def calculate_muhurtha(
     # Convert local_dt into UTC offset seconds
     utcoffset = local_dt.utcoffset()
     offset_sec = utcoffset.total_seconds() if utcoffset is not None else 0.0
-    t_tz_str = f"{int(offset_sec//3600):+03d}:{int((abs(offset_sec)%3600)//60):02d}"
+    t_tz_str = f"{int(offset_sec // 3600):+03d}:{int((abs(offset_sec) % 3600) // 60):02d}"
 
     # Calculate Sunrise, Sunset, and Next Sunrise exact JDs
     midnight_dt = Datetime([local_dt.year, local_dt.month, local_dt.day], 0.0, t_tz_str)
@@ -479,9 +511,9 @@ def calculate_muhurtha(
             index=i + 1,
             name=name,
             period_type="Day",
-            ruler=c_meta["ruler"],
-            nature=c_meta["nature"],
-            score=c_meta["score"],
+            ruler=str(c_meta["ruler"]),
+            nature=str(c_meta["nature"]),
+            score=int(str(c_meta["score"])),
             start_time=_jd_to_time_str(c_start_jd),
             end_time=_jd_to_time_str(c_end_jd),
             is_current=is_cur,
@@ -500,9 +532,9 @@ def calculate_muhurtha(
             index=i + 1,
             name=name,
             period_type="Night",
-            ruler=c_meta["ruler"],
-            nature=c_meta["nature"],
-            score=c_meta["score"],
+            ruler=str(c_meta["ruler"]),
+            nature=str(c_meta["nature"]),
+            score=int(str(c_meta["score"])),
             start_time=_jd_to_time_str(c_start_jd),
             end_time=_jd_to_time_str(c_end_jd),
             is_current=is_cur,
@@ -528,7 +560,9 @@ def calculate_muhurtha(
         is_active=_is_between(obs_jd, abhijit_start_jd, abhijit_end_jd),
         nature="Auspicious" if weekday_idx != 3 else "Neutral",
         score=abhijit_score,
-        notes="Auspicious solar culmination window" if weekday_idx != 3 else "Weakened on Wednesday",
+        notes="Auspicious solar culmination window"
+        if weekday_idx != 3
+        else "Weakened on Wednesday",
     )
 
     # 3b. Brahma Muhurtha: 2 muhurthas (96 min) before sunrise to 1 muhurtha (48 min) before sunrise
@@ -628,23 +662,30 @@ def calculate_muhurtha(
         active_yogas.append("Sarvartha Siddhi Yoga")
 
     # 5b. Amrita Siddhi Yoga
-    is_amrita_siddhi = (AMRITA_SIDDHI_MAP.get(weekday_idx) == current_nak_name)
+    is_amrita_siddhi = AMRITA_SIDDHI_MAP.get(weekday_idx) == current_nak_name
     if is_amrita_siddhi:
         active_yogas.append("Amrita Siddhi Yoga")
 
     # 5c. Guru Pushya Yoga & Ravi Pushya Yoga
-    is_guru_pushya = (weekday_idx == 4 and current_nak_name == "Pushya")
+    is_guru_pushya = weekday_idx == 4 and current_nak_name == "Pushya"
     if is_guru_pushya:
         active_yogas.append("Guru Pushya Yoga (Supreme Auspiciousness)")
 
-    is_ravi_pushya = (weekday_idx == 0 and current_nak_name == "Pushya")
+    is_ravi_pushya = weekday_idx == 0 and current_nak_name == "Pushya"
     if is_ravi_pushya:
         active_yogas.append("Ravi Pushya Yoga (High Prosperity)")
 
     # 5d. Tripushkar Yoga: Bhadra Tithi (2, 7, 12) + Vara (Sun, Tue, Sat) + Tri-pada Nakshatra
     tripushkar_tithis = {2, 7, 12, 17, 22, 27}
     tripushkar_varas = {0, 2, 6}
-    tripushkar_naks = {"Krittika", "Punarvasu", "Uttara Phalguni", "Vishakha", "Uttara Ashadha", "Purva Bhadrapada"}
+    tripushkar_naks = {
+        "Krittika",
+        "Punarvasu",
+        "Uttara Phalguni",
+        "Vishakha",
+        "Uttara Ashadha",
+        "Purva Bhadrapada",
+    }
     is_tripushkar = (
         panchanga.tithi.index in tripushkar_tithis
         and weekday_idx in tripushkar_varas
@@ -705,15 +746,23 @@ def calculate_muhurtha(
         verdict = "Ashubha (Inauspicious / Afflicted)"
 
     is_rahu_active = rahu_window.is_active
-    is_favorable_base = (score >= 60 and not is_rahu_active and not is_bhadra)
+    is_favorable_base = score >= 60 and not is_rahu_active and not is_bhadra
 
     suitability = MuhurthaSuitability(
-        business_contract=is_favorable_base and current_hora.ruling_planet in ("Jupiter", "Mercury", "Venus", "Sun"),
-        financial_investment=is_favorable_base and current_hora.ruling_planet in ("Jupiter", "Venus", "Mercury"),
-        travel=is_favorable_base and current_hora.ruling_planet in ("Moon", "Venus", "Mercury") and not yama_window.is_active,
-        marriage=is_favorable_base and current_hora.ruling_planet in ("Jupiter", "Venus") and score >= 75,
-        property_purchase=is_favorable_base and current_hora.ruling_planet in ("Saturn", "Jupiter", "Mars"),
-        medical_treatment=is_favorable_base and current_hora.ruling_planet in ("Sun", "Mars", "Jupiter"),
+        business_contract=is_favorable_base
+        and current_hora.ruling_planet in ("Jupiter", "Mercury", "Venus", "Sun"),
+        financial_investment=is_favorable_base
+        and current_hora.ruling_planet in ("Jupiter", "Venus", "Mercury"),
+        travel=is_favorable_base
+        and current_hora.ruling_planet in ("Moon", "Venus", "Mercury")
+        and not yama_window.is_active,
+        marriage=is_favorable_base
+        and current_hora.ruling_planet in ("Jupiter", "Venus")
+        and score >= 75,
+        property_purchase=is_favorable_base
+        and current_hora.ruling_planet in ("Saturn", "Jupiter", "Mars"),
+        medical_treatment=is_favorable_base
+        and current_hora.ruling_planet in ("Sun", "Mars", "Jupiter"),
     )
 
     if score >= 80:
@@ -723,7 +772,9 @@ def calculate_muhurtha(
     elif is_rahu_active:
         recommendation = "Rahu Kalam active! Postpone important signatures, departures, or new commitments until this window ends."
     elif is_bhadra:
-        recommendation = "Vishti/Bhadra Karana in progress. Avoid auspicious ceremonies and travels."
+        recommendation = (
+            "Vishti/Bhadra Karana in progress. Avoid auspicious ceremonies and travels."
+        )
     else:
         recommendation = "Adverse planetary alignment. Postpone major life decisions or consult an astrologer for remediation."
 

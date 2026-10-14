@@ -178,7 +178,15 @@ class TestTransitsEndpoint:
         planets = r.json()["data"]["planets"]
         names = [p["name"] for p in planets]
         assert names == [
-            "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu",
+            "Sun",
+            "Moon",
+            "Mars",
+            "Mercury",
+            "Jupiter",
+            "Venus",
+            "Saturn",
+            "Rahu",
+            "Ketu",
         ]
         for p in planets:
             assert 1 <= p["house_from_lagna"] <= 12
@@ -377,5 +385,3 @@ class TestMuhurthaEndpoint:
         assert r.status_code == 200
         assert r.headers["content-type"].startswith("text/plain")
         assert "VEDIC MUHURTHA & ELECTION REPORT" in r.text
-
-

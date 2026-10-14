@@ -108,4 +108,3 @@ __all__ = [
     "panchanga",
     "yogas",
 ]
-

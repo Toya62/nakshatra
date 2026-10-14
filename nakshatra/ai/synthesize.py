@@ -107,14 +107,32 @@ def _citation_label(index: int, result: SearchResult) -> str:
 
 
 _ZODIAC_SIGNS = [
-    "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
-    "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
+    "Aries",
+    "Taurus",
+    "Gemini",
+    "Cancer",
+    "Leo",
+    "Virgo",
+    "Libra",
+    "Scorpio",
+    "Sagittarius",
+    "Capricorn",
+    "Aquarius",
+    "Pisces",
 ]
 _SIGN_LORDS = {
-    "Aries": "Mars", "Taurus": "Venus", "Gemini": "Mercury",
-    "Cancer": "Moon", "Leo": "Sun", "Virgo": "Mercury",
-    "Libra": "Venus", "Scorpio": "Mars", "Sagittarius": "Jupiter",
-    "Capricorn": "Saturn", "Aquarius": "Saturn", "Pisces": "Jupiter",
+    "Aries": "Mars",
+    "Taurus": "Venus",
+    "Gemini": "Mercury",
+    "Cancer": "Moon",
+    "Leo": "Sun",
+    "Virgo": "Mercury",
+    "Libra": "Venus",
+    "Scorpio": "Mars",
+    "Sagittarius": "Jupiter",
+    "Capricorn": "Saturn",
+    "Aquarius": "Saturn",
+    "Pisces": "Jupiter",
 }
 
 
@@ -171,7 +189,9 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
         sav = av.get("sarvashtakavarga")
         if isinstance(sav, list) and len(sav) == 12:
             sav_items = [f"{_ZODIAC_SIGNS[i]}: {sav[i]}" for i in range(12)]
-            lines.append("- Calculated Sarvashtakavarga (SAV Points per Sign): " + ", ".join(sav_items))
+            lines.append(
+                "- Calculated Sarvashtakavarga (SAV Points per Sign): " + ", ".join(sav_items)
+            )
 
     # Real-Time Astronomical Transits (Gochara)
     transits = chart.get("transits")
@@ -182,8 +202,12 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
         for tp in t_planets:
             if isinstance(tp, dict):
                 fav = " [Auspicious from Moon]" if tp.get("is_favorable_gochar") else ""
-                bav_str = f", BAV: {tp.get('bav_bindus')}" if tp.get("bav_bindus") is not None else ""
-                sav_str = f", SAV: {tp.get('sav_bindus')}" if tp.get("sav_bindus") is not None else ""
+                bav_str = (
+                    f", BAV: {tp.get('bav_bindus')}" if tp.get("bav_bindus") is not None else ""
+                )
+                sav_str = (
+                    f", SAV: {tp.get('sav_bindus')}" if tp.get("sav_bindus") is not None else ""
+                )
                 retro = " (Retrograde)" if tp.get("retrograde") else ""
                 lines.append(
                     f"  • Transit {tp.get('name')}: {tp.get('sign')} ({tp.get('degree_in_sign', 0):.2f}° {tp.get('nakshatra')}){retro} "
@@ -200,7 +224,9 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
 
         double_tr = transits.get("double_transit_houses") or []
         if double_tr:
-            lines.append(f"  • Double Transit Focus (Jupiter + Saturn jointly influencing Bhavas): Houses {', '.join(map(str, double_tr))}")
+            lines.append(
+                f"  • Double Transit Focus (Jupiter + Saturn jointly influencing Bhavas): Houses {', '.join(map(str, double_tr))}"
+            )
 
     dashas = chart.get("dashas")
     if isinstance(dashas, dict):
@@ -230,9 +256,7 @@ def build_prompt(
     """Assemble the consultation prompt with classical references and natal context."""
     lines = ["References:"]
     for index, result in enumerate(results, start=1):
-        lines.append(
-            f"{_citation_label(index, result)}: {result.chunk.text}"
-        )
+        lines.append(f"{_citation_label(index, result)}: {result.chunk.text}")
     lines.append("")
     if birth_context:
         ayanamsa = birth_context.get("ayanamsa", "jhora_lahiri")
@@ -260,9 +284,7 @@ def build_prompt(
     return "\n".join(lines)
 
 
-def extract_citations(
-    answer: str, results: list[SearchResult]
-) -> list[Citation]:
+def extract_citations(answer: str, results: list[SearchResult]) -> list[Citation]:
     """Parse [n] markers from model output into citations."""
     used = sorted({int(match) for match in re.findall(r"\[(\d+)\]", answer)})
     citations: list[Citation] = []
@@ -394,16 +416,19 @@ class LLMSynthesizer(BaseSynthesizer):
         last_err: Exception | None = None
         for cand in candidates:
             try:
-                response = self._client.models.generate_content(
-                    model=cand, contents=prompt
-                )
+                response = self._client.models.generate_content(model=cand, contents=prompt)
                 self.model = cand
                 return str(response.text)
             except Exception as e:
                 last_err = e
                 err_str = str(e)
                 # Rotate immediately if model hits 429 quota exhaustion or 503 unavailable
-                if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str or "503" in err_str or "UNAVAILABLE" in err_str:
+                if (
+                    "429" in err_str
+                    or "RESOURCE_EXHAUSTED" in err_str
+                    or "503" in err_str
+                    or "UNAVAILABLE" in err_str
+                ):
                     continue
                 raise
 
@@ -458,6 +483,7 @@ class LLMSynthesizer(BaseSynthesizer):
 
         if self._client is None:
             from google import genai
+
             api_key = (
                 self._api_key
                 or os.environ.get("GOOGLE_API_KEY")
@@ -479,7 +505,12 @@ class LLMSynthesizer(BaseSynthesizer):
             except Exception as e:
                 last_err = e
                 err_str = str(e)
-                if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str or "503" in err_str or "UNAVAILABLE" in err_str:
+                if (
+                    "429" in err_str
+                    or "RESOURCE_EXHAUSTED" in err_str
+                    or "503" in err_str
+                    or "UNAVAILABLE" in err_str
+                ):
                     continue
                 raise
 
@@ -504,17 +535,12 @@ class FallbackSynthesizer(BaseSynthesizer):
         if not results:
             return Answer(
                 question=question,
-                answer=(
-                    "No relevant references were found in the corpus "
-                    "for this question."
-                ),
+                answer=("No relevant references were found in the corpus for this question."),
                 model="fallback",
             )
         lines = [f"Regarding your question '{question}':"]
         for index, result in enumerate(results, start=1):
-            lines.append(
-                f"{_citation_label(index, result)}: {result.chunk.text}"
-            )
+            lines.append(f"{_citation_label(index, result)}: {result.chunk.text}")
         return Answer(
             question=question,
             answer="\n".join(lines),

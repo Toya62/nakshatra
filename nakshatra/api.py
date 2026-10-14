@@ -33,6 +33,12 @@ from nakshatra.core import (
     HouseSystem,
     calculate_chart,
 )
+from nakshatra.geocoding import (
+    PlaceResult,
+    TimezoneOffsetInfo,
+    resolve_timezone_offset,
+    search_places,
+)
 from nakshatra.muhurtha import (
     MuhurthaReport,
     calculate_muhurtha,
@@ -61,6 +67,7 @@ FORMAT_CONTENT_TYPES = {
 
 class ChartRequest(BaseModel):
     """Birth chart calculation request."""
+
     year: int = Field(..., ge=1, le=3000, description="Birth year")
     month: int = Field(..., ge=1, le=12, description="Birth month")
     day: int = Field(..., ge=1, le=31, description="Birth day")
@@ -90,6 +97,7 @@ class ChartRequest(BaseModel):
 
 class ChartResponse(BaseModel):
     """Birth chart calculation response."""
+
     success: bool = True
     data: ChartData
     meta: dict = Field(default_factory=dict)
@@ -97,6 +105,7 @@ class ChartResponse(BaseModel):
 
 class TransitRequest(BaseModel):
     """Transit (Gochar) calculation request: natal birth data + optional transit time/place."""
+
     year: int = Field(..., ge=1, le=3000, description="Natal birth year")
     month: int = Field(..., ge=1, le=12, description="Natal birth month")
     day: int = Field(..., ge=1, le=31, description="Natal birth day")
@@ -130,6 +139,7 @@ class TransitRequest(BaseModel):
 
 class TransitResponse(BaseModel):
     """Transit (Gochar) calculation response."""
+
     success: bool = True
     data: TransitReport
     meta: dict = Field(default_factory=dict)
@@ -137,6 +147,7 @@ class TransitResponse(BaseModel):
 
 class PanchangaResponse(BaseModel):
     """Vedic Panchanga calculation response."""
+
     success: bool = True
     data: PanchangaData
     meta: dict = Field(default_factory=dict)
@@ -144,6 +155,7 @@ class PanchangaResponse(BaseModel):
 
 class YogaResponse(BaseModel):
     """Vedic Yoga detection response."""
+
     success: bool = True
     total: int
     data: list[YogaResult]
@@ -152,6 +164,7 @@ class YogaResponse(BaseModel):
 
 class CompatibilityRequest(BaseModel):
     """Relationship compatibility request."""
+
     bride: ChartRequest
     groom: ChartRequest
     bride_name: str | None = Field(None, description="Bride name for report")
@@ -160,6 +173,7 @@ class CompatibilityRequest(BaseModel):
 
 class CompatibilityResponse(BaseModel):
     """Relationship compatibility response."""
+
     success: bool = True
     data: CompatibilityReport
     meta: dict = Field(default_factory=dict)
@@ -167,6 +181,7 @@ class CompatibilityResponse(BaseModel):
 
 class MuhurthaRequest(BaseModel):
     """Vedic Muhurtha election request."""
+
     year: int = Field(..., ge=1, le=3000, description="Year")
     month: int = Field(..., ge=1, le=12, description="Month")
     day: int = Field(..., ge=1, le=31, description="Day")
@@ -181,14 +196,15 @@ class MuhurthaRequest(BaseModel):
 
 class MuhurthaResponse(BaseModel):
     """Vedic Muhurtha election response."""
+
     success: bool = True
     data: MuhurthaReport
     meta: dict = Field(default_factory=dict)
 
 
-
 class HealthResponse(BaseModel):
     """Health check response."""
+
     status: str = "healthy"
     version: str = "0.1.0"
     ephemeris: str = "Swiss Ephemeris (pyswisseph) via mayaastrolib"
@@ -197,12 +213,14 @@ class HealthResponse(BaseModel):
 
 class RAGIngestRequest(BaseModel):
     """Corpus ingestion request."""
+
     corpus_dir: str = Field("corpus", description="Corpus directory to ingest")
     index_dir: str = Field("index", description="Index output directory")
 
 
 class RAGIngestResponse(BaseModel):
     """Corpus ingestion response."""
+
     success: bool = True
     data: IngestResult
     meta: dict = Field(default_factory=dict)
@@ -210,16 +228,16 @@ class RAGIngestResponse(BaseModel):
 
 class RAGAskRequest(BaseModel):
     """Consultation question request."""
+
     question: str = Field(..., min_length=1, description="Consultation question")
     index_dir: str = Field("index", description="Index directory to query")
     top_k: int = Field(5, ge=1, le=20, description="References to retrieve")
-    birth: ChartRequest | None = Field(
-        None, description="Optional natal chart context"
-    )
+    birth: ChartRequest | None = Field(None, description="Optional natal chart context")
 
 
 class RAGAskResponse(BaseModel):
     """Consultation answer with retrieved references."""
+
     success: bool = True
     data: Answer
     references: list[SearchResult]
@@ -298,6 +316,32 @@ async def health_check() -> HealthResponse:
     return HealthResponse()
 
 
+@app.get("/geocode/search", response_model=list[PlaceResult], tags=["Geocoding"])
+async def geocode_search(
+    q: str = Query(..., min_length=1, description="Place or city name to search"),
+    limit: int = Query(8, ge=1, le=50, description="Max results"),
+) -> list[PlaceResult]:
+    """Search places and resolve coordinates + IANA timezone."""
+    return search_places(q, limit=limit)
+
+
+@app.get("/geocode/timezone", response_model=TimezoneOffsetInfo, tags=["Geocoding"])
+async def geocode_timezone(
+    tz: str = Query(..., description="IANA timezone identifier, e.g. 'Asia/Kathmandu'"),
+    year: int = Query(..., ge=1, le=3000),
+    month: int = Query(..., ge=1, le=12),
+    day: int = Query(..., ge=1, le=31),
+    hour: int = Query(12, ge=0, le=23),
+    minute: int = Query(0, ge=0, le=59),
+) -> TimezoneOffsetInfo:
+    """Resolve historical UTC offset and Daylight Saving Time (DST) status for an epoch."""
+    try:
+        return resolve_timezone_offset(tz, year, month, day, hour, minute)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid timezone or date: {str(e)}")
+
+
+
 @app.post("/chart", response_model=ChartResponse, tags=["Chart"])
 async def create_chart(
     request: ChartRequest, format: str = Query("json")
@@ -365,11 +409,18 @@ async def create_chart_get(
             detail=f"Unsupported format '{format}'. Use one of: {', '.join(SUPPORTED_FORMATS)}",
         )
     request = ChartRequest(
-        year=year, month=month, day=day,
-        hour=hour, minute=minute, second=second,
-        latitude=latitude, longitude=longitude,
-        timezone=timezone, place_name=place_name,
-        ayanamsa=ayanamsa, house_system=house_system,
+        year=year,
+        month=month,
+        day=day,
+        hour=hour,
+        minute=minute,
+        second=second,
+        latitude=latitude,
+        longitude=longitude,
+        timezone=timezone,
+        place_name=place_name,
+        ayanamsa=ayanamsa,
+        house_system=house_system,
     )
     return await create_chart(request, format=format)
 
@@ -393,11 +444,18 @@ async def chart_diagram(
     """Render a South Indian ASCII chart diagram for the given varga (e.g., D1, D9, D10)."""
     try:
         request = ChartRequest(
-            year=year, month=month, day=day,
-            hour=hour, minute=minute, second=second,
-            latitude=latitude, longitude=longitude,
-            timezone=timezone, place_name=place_name,
-            ayanamsa=ayanamsa, house_system=house_system,
+            year=year,
+            month=month,
+            day=day,
+            hour=hour,
+            minute=minute,
+            second=second,
+            latitude=latitude,
+            longitude=longitude,
+            timezone=timezone,
+            place_name=place_name,
+            ayanamsa=ayanamsa,
+            house_system=house_system,
         )
         chart = _build_chart(request)
         return PlainTextResponse(chart.to_diagram(varga=varga))
@@ -484,7 +542,9 @@ async def create_panchanga_endpoint(
 ) -> PanchangaResponse | Response:
     """Calculate 5-limb Vedic Panchanga from birth request data."""
     try:
-        dt = datetime(request.year, request.month, request.day, request.hour, request.minute, request.second)
+        dt = datetime(
+            request.year, request.month, request.day, request.hour, request.minute, request.second
+        )
         p = calculate_panchanga(
             dt, request.latitude, request.longitude, request.timezone, ayanamsa=request.ayanamsa
         )
@@ -521,15 +581,26 @@ async def get_yogas_endpoint(
     """Detect classical Vedic Yogas in a birth chart."""
     try:
         birth = BirthData(
-            year=year, month=month, day=day, hour=hour, minute=minute, second=second,
-            latitude=latitude, longitude=longitude, timezone=timezone,
+            year=year,
+            month=month,
+            day=day,
+            hour=hour,
+            minute=minute,
+            second=second,
+            latitude=latitude,
+            longitude=longitude,
+            timezone=timezone,
         )
         chart = calculate_chart(birth=birth, ayanamsa=ayanamsa, house_system=house_system)
         yogas_list = detect_yogas(chart)
         if format == "table":
-            return Response(content=format_yogas_table(yogas_list), media_type="text/plain; charset=utf-8")
+            return Response(
+                content=format_yogas_table(yogas_list), media_type="text/plain; charset=utf-8"
+            )
         if format == "markdown":
-            return Response(content=format_yogas_markdown(yogas_list), media_type="text/markdown; charset=utf-8")
+            return Response(
+                content=format_yogas_markdown(yogas_list), media_type="text/markdown; charset=utf-8"
+            )
         return YogaResponse(
             total=len(yogas_list),
             data=yogas_list,
@@ -554,9 +625,13 @@ async def create_yogas_endpoint(
         chart = _build_chart(request)
         yogas_list = detect_yogas(chart)
         if format == "table":
-            return Response(content=format_yogas_table(yogas_list), media_type="text/plain; charset=utf-8")
+            return Response(
+                content=format_yogas_table(yogas_list), media_type="text/plain; charset=utf-8"
+            )
         if format == "markdown":
-            return Response(content=format_yogas_markdown(yogas_list), media_type="text/markdown; charset=utf-8")
+            return Response(
+                content=format_yogas_markdown(yogas_list), media_type="text/markdown; charset=utf-8"
+            )
         return YogaResponse(
             total=len(yogas_list),
             data=yogas_list,
@@ -610,8 +685,12 @@ async def calculate_muhurtha_endpoint(
     """Calculate Vedic Muhurtha, Horas, Choghadiyas, and Siddhi Yogas for a given time and place."""
     try:
         dt = datetime(
-            request.year, request.month, request.day,
-            request.hour, request.minute, request.second,
+            request.year,
+            request.month,
+            request.day,
+            request.hour,
+            request.minute,
+            request.second,
         )
         report = calculate_muhurtha(
             dt,
@@ -652,8 +731,16 @@ async def get_muhurtha_endpoint(
 ) -> MuhurthaResponse | Response:
     """Calculate Vedic Muhurtha via GET query parameters."""
     req = MuhurthaRequest(
-        year=year, month=month, day=day, hour=hour, minute=minute, second=second,
-        latitude=latitude, longitude=longitude, timezone=timezone, ayanamsa=ayanamsa,
+        year=year,
+        month=month,
+        day=day,
+        hour=hour,
+        minute=minute,
+        second=second,
+        latitude=latitude,
+        longitude=longitude,
+        timezone=timezone,
+        ayanamsa=ayanamsa,
     )
     return await calculate_muhurtha_endpoint(req, format=format)
 
@@ -701,6 +788,7 @@ async def rag_ask(request: RAGAskRequest) -> RAGAskResponse:
             birth_context = chart.model_dump()
             try:
                 from nakshatra.transits import calculate_transits
+
                 transits = calculate_transits(chart)
                 birth_context["transits"] = transits.model_dump()
             except Exception:
@@ -739,6 +827,7 @@ async def rag_ask_stream(request: RAGAskRequest) -> StreamingResponse:
         birth_context = chart.model_dump()
         try:
             from nakshatra.transits import calculate_transits
+
             transits = calculate_transits(chart)
             birth_context["transits"] = transits.model_dump()
         except Exception:
@@ -774,6 +863,7 @@ async def rag_ask_stream(request: RAGAskRequest) -> StreamingResponse:
 
             full_text = "".join(accumulated_tokens)
             from nakshatra.ai.synthesize import extract_citations
+
             citations = extract_citations(full_text, references)
             citation_data = [
                 {
@@ -785,11 +875,13 @@ async def rag_ask_stream(request: RAGAskRequest) -> StreamingResponse:
                 for c in citations
             ]
             final_model = getattr(synthesizer, "model", model_name)
-            done_payload = json.dumps({
-                "type": "done",
-                "citations": citation_data,
-                "model": final_model,
-            })
+            done_payload = json.dumps(
+                {
+                    "type": "done",
+                    "citations": citation_data,
+                    "model": final_model,
+                }
+            )
             yield f"data: {done_payload}\n\n"
         except Exception as e:
             err_payload = json.dumps({"type": "error", "error": str(e)})
@@ -819,8 +911,7 @@ async def root() -> dict:
         "default_house_system": "Whole Sign",
         "endpoints": {
             "POST /chart": (
-                "Calculate birth chart (JSON body); "
-                "?format=table|markdown|csv|diagram for text"
+                "Calculate birth chart (JSON body); ?format=table|markdown|csv|diagram for text"
             ),
             "GET /chart": "Calculate birth chart (query params); supports format param",
             "GET /chart/diagram": "South Indian ASCII chart diagram for a varga (D1, D9, D10, ...)",
@@ -842,4 +933,5 @@ async def root() -> dict:
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)
