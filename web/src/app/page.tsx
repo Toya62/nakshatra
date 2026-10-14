@@ -5,7 +5,6 @@ import { Navbar } from "@/components/Navbar";
 import { Sidebar, TabId } from "@/components/Sidebar";
 import { BirthForm } from "@/components/BirthForm";
 import { BirthSummaryPill } from "@/components/BirthSummaryPill";
-import { SouthIndianChart } from "@/components/SouthIndianChart";
 import { NorthIndianChart } from "@/components/NorthIndianChart";
 import { PlanetsTable } from "@/components/PlanetsTable";
 import { YogasView } from "@/components/YogasView";
@@ -59,7 +58,6 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<TabId>("chart");
   const [apiStatus, setApiStatus] = useState<"connected" | "offline" | "checking">("checking");
   const [selectedVarga, setSelectedVarga] = useState("D1");
-  const [chartStyle, setChartStyle] = useState<"north" | "south">("north");
   const [legalModalOpen, setLegalModalOpen] = useState(false);
   const [sidebarSlim, setSidebarSlim] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -82,13 +80,6 @@ export default function Home() {
       if (typeof window !== "undefined") {
         window.history.replaceState(null, "", `#${tab}`);
       }
-    } catch {}
-  };
-
-  const handleChartStyleChange = (s: "north" | "south") => {
-    setChartStyle(s);
-    try {
-      localStorage.setItem("nakshatra_chart_style", s);
     } catch {}
   };
 
@@ -167,9 +158,6 @@ export default function Home() {
     try {
       const savedSlim = localStorage.getItem("nakshatra_sidebar_slim");
       if (savedSlim !== null) setSidebarSlim(savedSlim === "true");
-
-      const savedStyle = localStorage.getItem("nakshatra_chart_style");
-      if (savedStyle === "north" || savedStyle === "south") setChartStyle(savedStyle);
 
       const savedVarga = localStorage.getItem("nakshatra_selected_varga");
       if (savedVarga && VARGAS.includes(savedVarga)) setSelectedVarga(savedVarga);
@@ -284,18 +272,11 @@ export default function Home() {
                       gap: "var(--space-3)",
                     }}
                   >
-                    {/* Chart style chips */}
-                    <div style={{ display: "flex", gap: "var(--space-1)" }}>
-                      {(["north", "south"] as const).map((s) => (
-                        <button
-                          key={s}
-                          onClick={() => handleChartStyleChange(s)}
-                          className={`chip${chartStyle === s ? " active" : ""}`}
-                          aria-pressed={chartStyle === s}
-                        >
-                          {s === "north" ? "North Indian" : "South Indian"}
-                        </button>
-                      ))}
+                    {/* Section title */}
+                    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+                      <span className="serif-section" style={{ fontSize: "1.05rem", color: "var(--gold-bright)", letterSpacing: "0.03em" }}>
+                        Kundali Chart
+                      </span>
                     </div>
 
                     {/* Varga chips (scrollable row for all 16 Shodashavargas) */}
@@ -325,11 +306,7 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {chartStyle === "north" ? (
-                    <NorthIndianChart chart={chartData} varga={selectedVarga} size={480} />
-                  ) : (
-                    <SouthIndianChart chart={chartData} varga={selectedVarga} size={480} />
-                  )}
+                  <NorthIndianChart chart={chartData} varga={selectedVarga} size={500} />
                 </div>
 
                 {/* Data Rail */}

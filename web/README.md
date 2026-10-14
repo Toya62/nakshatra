@@ -12,12 +12,24 @@ Modern, high-performance web interface for the **Nakshatra Vedic Astrology AI En
    - Ayanamsa selector (Jagannatha Hora Lahiri default, Lahiri, Raman, KP, Fagan-Bradley).
    - House system selector (Whole Sign default, Placidus, Equal, etc.).
 
-2. **Dual Visual Chart Renderers**:
-   - **North Indian (`NorthIndianChart.tsx`)**: Traditional diamond chart format with house numbers, retrograde indicators, and planetary dignity badges.
-   - **South Indian (`SouthIndianChart.tsx`)**: Fixed zodiac sign grid format with aspect markings.
-   - **Varga Switcher**: Instant switching across D1 (Rasi), D9 (Navamsha), D10 (Dasamsha), and D60 (Shastiamsha).
+2. **High-Legibility North Indian Kundali (`NorthIndianChart.tsx`)**:
+   - Traditional diamond chart format with enlarged `13px` Graha names, `11px` degrees, and bold `13.5px` Rashi number seals.
+   - Centered `LAGNA` header in House 1 (1st Bhava diamond).
+   - Instant 16-Varga divisional chart selector across D1 (Rasi), D9 (Navamsha), D10 (Dasamsha), up to D60 (Shastiamsha).
+   - Interactive house inspection with Vedic Bhava significations and Graha dignities (exalted, debilitated, own sign).
 
-3. **Unified 120-Year Dasha & Gochar Life Timeline (`TimelineView.tsx`)**:
+3. **Dual-System Remedies & Karmic Rectifications (`RemediesView.tsx`)**:
+   - Classical Parashari prescriptions: Vedic Beej Mantras, gemstones with weight (ratti), metal, finger, and day-specific Dāna (charity).
+   - Authentic Lal Kitab Upayas: practical household remedies, symbolic actions (*Jal Pravah*), creature seva (cows, crows, black dogs).
+   - Lal Kitab golden rules & strict precautions: daytime *Surya Prakash* rule, 43-day continuous count, and prohibition against remedying exalted planets.
+   - Saturn Sade Sati Gochar notice banner and severity filtering.
+
+4. **Transits, 30-Day Scanner & Daily Panchanga**:
+   - 30-day transit window scanner (`TransitsView.tsx`) tracking planetary ingresses, retrograde/direct stations, and 54-hour Chandrashtama periods.
+   - Real-time Gochara planetary aspects from Lagna and Moon.
+   - Active 5 limbs of Vedic time (`PanchangaView.tsx`): Tithi, Vara, Nakshatra, Yoga, and Karana with Bhadra alert.
+
+5. **Unified 120-Year Dasha & Gochar Life Timeline (`TimelineView.tsx`)**:
    - Proportional Vimshottari Mahadasha ribbon bar.
    - Click-to-zoom into 9 sub-Antardashas and Pratyantardashas.
    - Seeker's real-time age indicator ("NOW" cursor).
@@ -25,21 +37,22 @@ Modern, high-performance web interface for the **Nakshatra Vedic Astrology AI En
    - Nepali Bikram Sambat (BS) date display badge.
    - Sanskrit Devanagari nomenclature toggle (सूर्य, चन्द्र, मङ्गल, etc.).
 
-4. **Explainable "Why" Astrological Reason Inspector (`ConsultationView.tsx`)**:
+6. **Explainable "Why" Astrological Reason Inspector (`ConsultationView.tsx`)**:
    - Interactive explainability modal breaking down every AI answer into 3 pillars:
      1. **Scriptural Pramana**: Verbatim classical verses, works, chapters, and shlokas.
      2. **Natal Grounding (Yukti)**: Seekers exact degrees, Lagna, operating Dasha, and Gochara transits.
      3. **Ethical / Dharma Guardrail**: Non-fatalistic counseling guidance and licensed boundary disclaimers.
 
-5. **Transits & Daily Panchanga**:
-   - Real-time Gochara planetary aspects from Lagna and Moon (`TransitsView.tsx`).
-   - Active 5 limbs of Vedic time (`PanchangaView.tsx`): Tithi, Vara, Nakshatra, Yoga, and Karana with Bhadra alert.
-
-6. **36-Point Ashtakoota & Muhurtha Scoring**:
+7. **36-Point Ashtakoota & Muhurtha Scoring**:
    - Marriage compatibility with Kuja Dosha (Manglik) detection (`CompatibilityView.tsx`).
    - Auspicious timing engine with Horas, Choghadiya, Abhijit Muhurtha, and Rahu Kalam (`MuhurthaView.tsx`).
 
-7. **Trust & Privacy First**:
+8. **Graded Cosmic Obsidian Glassmorphism Design System**:
+   - Deep cosmic obsidian canvas (`#080b14`) with top-horizon sapphire/indigo ambient glow.
+   - Multi-layer specular glass cards (`border-top: 1px solid rgba(255,255,255,0.12)`, `inset 0 1px 0 rgba(255,255,255,0.08)`, 20px blur saturation).
+   - Refined champagne gold duotone gradients (`#dfb15b` to `#ba892b`).
+
+9. **Trust & Privacy First**:
    - Ephemeral zero-log privacy policy banner.
    - Interactive Legal & Licensing modal disclosing Swiss Ephemeris AGPL-3.0 compliance.
 

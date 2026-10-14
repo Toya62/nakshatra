@@ -72,16 +72,41 @@ license: agpl-3.0
 - **Panchanga Engine**:
   - 5 limbs of Vedic time: Tithi (lunar phase & percentage left), Vara (Vedic weekday from sunrise), Nakshatra (lunar mansion & percentage left), Yoga (solilunar angular sum & percentage left), and Karana (half-tithi & movable/fixed tracking with Bhadra alert).
   - Swiss Ephemeris sunrise and sunset calculations with pre-sunrise solar day rollback.
-- **Classical Yoga Detection**:
-  - Rule-based detection engine over `ChartData`:
+- **Parashari Graha Drishti (Vedic House Aspects)**:
+  - Exact house-to-house aspect engine:
+    - All Grahas cast full 7th house aspect.
+    - Special classical Graha Drishti: Saturn (3rd & 10th houses), Mars (4th & 8th houses), Jupiter (5th & 9th houses), Rahu/Ketu (5th & 9th houses).
+    - Computed directly on `ChartData.vedic_aspects` and injected into deterministic engine and AI consultation prompts.
+- **Classical Yoga Detection & Parivartana Engine**:
+  - Rule-based deterministic detection engine over `ChartData`:
+    - **Parivartana Yogas**: Mutual sign exchanges classified classically into **Maha Yoga** (exchanges between Kendra/Trikona auspicious lords), **Kahala Yoga** (3rd lord exchanges), and **Dainya Yoga** (6th, 8th, or 12th Dusthana lord exchanges).
     - **Pancha Mahapurusha**: Ruchaka (Mars), Bhadra (Mercury), Hamsa (Jupiter), Malavya (Venus), Sasa (Saturn).
     - **Gaja Kesari**: Jupiter in Kendra from Moon.
     - **Kemadruma & Bhanga**: Moon flanking checks with Kendra cancellations.
-    - **Neechabhanga Raja Yoga**: Multi-condition cancellation of planetary debility.
+    - **Strict Neechabhanga Rules**: Classical Phaladeepika criteria (dispositor in Kendra, planet exalted in sign in Kendra, dispositor aspect) with Dusthana friction evaluation; solitary Kendra placement does not falsely cancel debility.
     - **Chandra Yogas**: Sunapha, Anapha, Dhurdhura, Chandra Mangala, Chandradhi Yoga.
     - **Surya Yogas**: Budhaditya, Vesi, Vasi, Ubhayachari.
     - **Viparita Raja Yogas**: Harsha, Sarala, Vimala.
     - **Raja & Dhana Yogas**: Amala Yoga, Kendra-Trikona conjunctions, wealth axis combinations.
+- **30-Day Transit Window Scanner & Chandrashtama Radar**:
+  - Continuous 3-hour precision window scanner (`scan_transit_window`):
+    - Planetary Ingresses (e.g. Sun into Libra, Mars into Cancer).
+    - Planetary Stations (Mercury/Venus retrograde and direct turning points).
+    - **Chandrashtama Periods**: Exact 54-hour lunar transit through the 8th house from natal Moon, flagging heightened emotional vulnerability and trading/travel friction.
+- **Dual-System Karmic Rectifications & Remedies**:
+  - `POST /remedies` dual-system prescription engine:
+    - **Classical Parashari**: Exact Vedic Beej Mantra count, gemstone prescription with weight (ratti), metal, finger, and contraindications, plus day-specific Dāna (charity items).
+    - **Authentic Lal Kitab**: Practical household Upayas, symbolic acts (*Jal Pravah*), creature/animal seva (cows, crows, black dogs), and inviolable golden rules (daytime *Surya Prakash* rule, 43-day continuous count, strict prohibition against remedying exalted planets).
+- **Deterministic Hierarchical Prediction Engine**:
+  - Three-tier synthesis across 5 life domains (Career, Finance, Marriage, Health, Spirituality):
+    1. *Natal Promise*: Planetary yogas, house lords, and SAV bindus evaluated into Purna (Full), Madhyama (Moderate), or Alpa (Weak).
+    2. *Vimshottari Dasha Timing*: Checks whether operating Mahadasha and Antardasha lords activate the required bhava.
+    3. *Gochara Transits*: Real-time transit friction and double transit support.
+- **OCR-Purged BPHS & Classical Corpus Vector RAG**:
+  - Multi-tier chunker over Brihat Parashara Hora Shastra (BPHS), Saravali, and Phaladeepika.
+  - Purged legacy 1980s Indian font glyph noise (`amfwnwTTsirm`, caret clusters, broken hyphens).
+  - Fixed verse range chapter-shift parsing (preserves context on ranges like `1-4. Maitreya said...`).
+  - Modern allegorical translation filter reframing archaic curses into actionable psychological counsel.
 - **Model Context Protocol (MCP) Server**:
   - Exposes 7 registered tools for Claude Desktop, Cursor, and agentic workflows:
     - `calculate_birth_chart`
@@ -91,7 +116,7 @@ license: agpl-3.0
     - `get_transits_gochar`
     - `detect_vedic_yogas`
     - `consult_scripture_rag`
-- **Multi-Format Outputs**: ASCII tables, South Indian chart diagram (any varga), North Indian diamond chart, Markdown, CSV, and JSON.
+- **Multi-Format Outputs**: High-legibility North Indian diamond chart, ASCII tables, Markdown, CSV, and JSON.
 - **REST API**: FastAPI server with interactive Swagger UI at `/docs` and OpenAPI 3.0 spec.
 
 ---
@@ -159,8 +184,11 @@ Add to `claude_desktop_config.json`:
 | :--- | :---: | :--- |
 | `/chart` | `POST` | Calculate Vedic chart, planets, houses, dashas, vargas, and Ashtakavarga |
 | `/transits` | `POST` | Calculate Gochara transits, Sade Sati status, and double transits |
+| `/transits/window` | `POST` | Scan 30-day transit window for ingresses, stations, and Chandrashtama periods |
+| `/predict` | `POST` | Classical hierarchical predictions across Career, Finance, Marriage, Health, Spirituality |
+| `/remedies` | `POST` | Dual-system remedies: Classical Parashari (Mantra, Gem, Dana) & Lal Kitab Upayas |
 | `/panchanga` | `POST` | Compute 5 limbs of Vedic time (Tithi, Vara, Nakshatra, Yoga, Karana) |
-| `/yogas` | `POST` | Detect classical Parashara Raja, Dhana, and Mahapurusha yogas |
+| `/yogas` | `POST` | Detect classical Parashara Raja, Dhana, Mahapurusha, and Parivartana yogas |
 | `/match/compatibility` | `POST` | 36-point Ashtakoota and Kuja Dosha (Manglik) analysis |
 | `/muhurtha` | `POST` | Planetary Horas, Choghadiya, Abhijit, and Rahu Kalam election scoring |
 | `/geocode/search` | `GET` | Autocomplete and resolve cities/coordinates (`?q=Kathmandu`) |
@@ -183,29 +211,34 @@ Add to `claude_desktop_config.json`:
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  [FRONTEND APPS]                                                            │
-│  ├─ Next.js 16.4 Web App (Diamond / Grid Charts, 120-Yr Timeline, BS, Why)  │
+│  ├─ Next.js 16.4 Web App (North Indian Kundali, 120-Yr Timeline, Remedies) │
+│  ├─ Graded Cosmic Glassmorphism UI (Obsidian Slate #080b14, Specular Rims)  │
 │  └─ Hugging Face Space Gradio 6.30 (ZeroGPU keepalive)                      │
 │                                                                             │
 │  [API & PROTOCOLS]                                                          │
 │  ├─ FastAPI REST API (CORS, Ephemeral Privacy Middleware, Rate Limits)       │
 │  └─ Model Context Protocol (MCP) Server (7 Astrological Tools)              │
 │                                                                             │
-│  [ASTRONOMICAL CORE]                                                        │
+│  [ASTRONOMICAL CORE & EPHEMERIS]                                            │
 │  ├─ Swiss Ephemeris Engine (pyswisseph / mayaastrolib)                     │
 │  ├─ Jagannatha Hora Concordance (jhora_lahiri Ayanamsa)                     │
 │  ├─ Vimshottari Dasha Engine (120-year cycle down to second)                │
-│  ├─ Gochara Transits & Sade Sati Resolver                                   │
+│  ├─ Parashari Graha Drishti Engine (Full 7th, Special 3/10, 4/8, 5/9)       │
+│  ├─ 30-Day Transit Window Scanner (Ingresses, Stations, Chandrashtama)      │
 │  └─ Shodashavarga (D1 - D60), Ashtakavarga (337 SAV), Shadbala (6 Balas)     │
 │                                                                             │
-│  [SPECIALIZED ENGINES]                                                      │
-│  ├─ Geocoding & Historical Timezone/DST Resolver (zoneinfo + Nominatim)     │
-│  ├─ Nepali Bikram Sambat (BS) Calendar Converter (nepali-datetime)         │
-│  └─ 36-Point Ashtakoota & Muhurtha Election Engine                          │
+│  [ANALYTICAL & PRESCRIPTIVE ENGINES]                                        │
+│  ├─ Classical Yogas: Parivartana (Maha, Kahala, Dainya) & Neechabhanga      │
+│  ├─ Dual-System Remedies (Parashari Mantras/Gems/Dana + Lal Kitab Upayas)   │
+│  ├─ Deterministic Predictor (Natal Promise x Dasha Timing x Transits)       │
+│  ├─ 36-Point Ashtakoota Compatibility & Muhurtha Election                   │
+│  └─ Geocoding & Historical Timezone/DST Resolver (zoneinfo + Nominatim)     │
 │                                                                             │
 │  [CLASSICAL RAG & SYNTHESIS]                                                │
-│  ├─ Two-Tier Verse Chunker (BPHS, Saravali, Phaladeepika, Brihat Jataka)    │
+│  ├─ OCR-Purged Verse Chunker (BPHS, Saravali, Phaladeepika, Lal Kitab)      │
 │  ├─ Hybrid Vector Store (NumPy Cosine + BM25, RRF Fusion)                   │
-│  └─ Cited LLM Synthesis (OpenAI / Gemini 3.8 / Fallback)                   │
+│  ├─ Modern Allegorical Translation Layer (Archaic Curses -> Behavioral Psy) │
+│  └─ Cited LLM Synthesis (OpenAI / Gemini 3.8 / Verbatim Fallback)           │
 │                                                                             │
 │  [TRUST & SAFETY GUARDRAILS]                                                │
 │  ├─ Explainable Reason Inspector (Pramana, Yukti, Dharma)                   │
@@ -223,20 +256,25 @@ Add to `claude_desktop_config.json`:
 - [x] **Vimshottari Engine**: Exact MD, AD, and PD timestamps down to the second.
 - [x] **Divisional Charts (Shodashavarga)**: D1 through D60 support.
 - [x] **Ashtakavarga & Shadbala**: 337 SAV bindus and 6 classical strength balas.
-- [x] **Multi-format Outputs**: ASCII tables, South Indian diagram, Markdown, CSV, and JSON.
+- [x] **Parashari Graha Drishti**: Complete house aspect engine with special planetary aspects.
+- [x] **Parivartana Yogas**: Classical Maha, Kahala, and Dainya mutual exchange detection.
+- [x] **Strict Neechabhanga Rules**: Phaladeepika dispositor/exaltation Kendra criteria with Dusthana friction.
+- [x] **30-Day Transit Window Scanner**: 3-hour precision window scanner for ingresses, stations, and Chandrashtama.
+- [x] **Dual-System Remedies**: Parashari mantras, gemstones, and charity paired with Lal Kitab Upayas and strict precautions.
+- [x] **Deterministic Prediction Engine**: Natal Promise $\times$ Dasha Timing $\times$ Transit synthesis.
 - [x] **Jagannatha Hora Calibration**: `jhora_lahiri` ayanamsa for 100% concordance.
-- [x] **Gochar (Transit) Engine**: Natal-to-transit planetary aspects, Sade Sati, Jupiter Gochar, Double Transit.
 - [x] **Panchanga Engine**: Exact 5 limbs (Tithi, Vara, Nakshatra, Yoga, Karana) with solar day tracking.
-- [x] **Classical Yoga Detection**: Raja, Dhana, Pancha Mahapurusha, Gaja Kesari, Kemadruma (+ Bhanga), Neechabhanga (+ Raja Yoga).
-- [x] **RAG Corpus Ingestion**: Two-tier verse/paragraph chunker with license-gated works (BPHS, Phaladeepika, Saravali, Crux).
-- [x] **Hybrid Vector Store**: NumPy cosine store + BM25, RRF-fused, with Bhava/Karaka concept expansion.
-- [x] **LLM Integration**: OpenAI + Gemini cited synthesis with deterministic verbatim-reference fallback.
-- [x] **Interactive Frontend**: Next.js 16.4 production application + Hugging Face Spaces Gradio Web UI.
+- [x] **OCR-Purged Corpus RAG**: Purged legacy font noise and preserved verse range chapter mapping.
+- [x] **Modern Allegorical Translation**: Ethical, non-fatalistic psychological framing.
+- [x] **Interactive Frontend**: Next.js 16.4 production application with graded cosmic obsidian UI.
 - [x] **Offline Geocoding & Historical Timezone Resolver**: 100+ global centers with DST resolution.
 - [x] **Explainable Astrological Reason Inspector**: Direct shloka citations (Pramana) and natal grounding (Yukti).
 - [x] **120-Year Life Timeline UI**: Proportional Vimshottari ribbon bar and Sade Sati overlays.
-- [x] **Nepali Bikram Sambat (BS) Calendar**: Bidirectional conversions and Devanagari Sanskrit nomenclature.
 - [x] **Model Context Protocol (MCP) Server**: 7 registered tools for Claude Desktop, Cursor, and agents.
+
+> [!TIP]
+> **Looking for upcoming product expansion plans?**  
+> See [ROADMAP.md](ROADMAP.md) for our detailed future roadmap covering the **Astrology Knowledge Hub**, **KP & Western Astrology**, and **10 Specialized Diagnostic Report Modules** (Mangal Dosha, Kalsarp, Pitra Dosha, Videsh Yoga, Gemstones, Raj Yoga).
 
 ---
 
@@ -248,7 +286,7 @@ Tested against reference charts exported from Jagannatha Hora:
 - **Nakshatras & Padas**: 100% exact match across all bodies.
 - **Ashtakavarga**: 100% exact match for Sun, Mars, Mercury, Jupiter, and Saturn; canonical 337 grand total.
 - **Vimshottari Dasha**: Mahadashas, Antardashas, and Pratyantardashas align to sub-day accuracy.
-- **Test Suite**: 227 automated tests passing across Python 3.10, 3.11, and 3.12.
+- **Test Suite**: 256 automated tests passing across Python 3.10, 3.11, and 3.12.
 
 ---
 

@@ -259,24 +259,25 @@ export const SouthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
           maxWidth: `${size}px`,
           aspectRatio: "1 / 1",
           height: "auto",
-          filter: "drop-shadow(0 16px 40px rgba(0,0,0,0.65))",
+          filter: "drop-shadow(0 20px 48px rgba(0,0,0,0.7))",
           borderRadius: "var(--radius-lg)",
-          background: "linear-gradient(145deg, #07090e 0%, #0c101c 100%)",
+          background: "linear-gradient(150deg, #090e1b 0%, #10162a 50%, #070b16 100%)",
+          border: "1px solid rgba(223, 177, 91, 0.24)",
           userSelect: "none",
         }}
       >
         <title>{`South Indian ${varga} Kundali Chart`}</title>
         <defs>
           <radialGradient id="southCenterGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="rgba(229, 185, 76, 0.16)" />
-            <stop offset="60%" stopColor="rgba(229, 185, 76, 0.04)" />
-            <stop offset="100%" stopColor="rgba(12, 16, 28, 0)" />
+            <stop offset="0%" stopColor="rgba(223, 177, 91, 0.16)" />
+            <stop offset="60%" stopColor="rgba(223, 177, 91, 0.04)" />
+            <stop offset="100%" stopColor="rgba(16, 22, 42, 0)" />
           </radialGradient>
         </defs>
 
         {/* Double Engraved Outer Frame */}
-        <rect x="1" y="1" width={baseSize - 2} height={baseSize - 2} rx="16" fill="none" stroke="rgba(229, 185, 76, 0.45)" strokeWidth="2.5" />
-        <rect x="7" y="7" width={baseSize - 14} height={baseSize - 14} rx="12" fill="none" stroke="rgba(229, 185, 76, 0.22)" strokeWidth="1" strokeDasharray="6 3" />
+        <rect x="1" y="1" width={baseSize - 2} height={baseSize - 2} rx="16" fill="none" stroke="rgba(223, 177, 91, 0.45)" strokeWidth="2.5" />
+        <rect x="7" y="7" width={baseSize - 14} height={baseSize - 14} rx="12" fill="none" stroke="rgba(223, 177, 91, 0.22)" strokeWidth="1" strokeDasharray="6 3" />
 
         {/* Grid lines */}
         {[1, 2, 3].map((i) => (

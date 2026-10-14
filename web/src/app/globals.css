@@ -31,24 +31,24 @@
   --type-micro:   0.80rem;  /* 12.8px - timestamps, metadata, pill tags */
 
   /* Surfaces — Deep Celestial Obsidian & Milled Slate */
-  --bg-void:       #06080e;
-  --bg-base:       rgba(11, 15, 26, 0.9);
-  --bg-card:       rgba(13, 17, 28, 0.84);
-  --bg-card-hover: rgba(19, 25, 42, 0.94);
-  --bg-input:      rgba(8, 11, 20, 0.95);
-  --bg-overlay:    rgba(5, 7, 12, 0.88);
+  --bg-void:       #080b14;
+  --bg-base:       rgba(13, 18, 33, 0.88);
+  --bg-card:       rgba(18, 25, 44, 0.72);
+  --bg-card-hover: rgba(26, 36, 62, 0.85);
+  --bg-input:      rgba(10, 15, 27, 0.92);
+  --bg-overlay:    rgba(6, 9, 18, 0.88);
 
-  /* Gold — active, selected, primary CTA, key data */
-  --gold-vivid:  #e5b94c;
-  --gold-bright: #fbe285;
-  --gold-dim:    rgba(229, 185, 76, 0.12);
-  --gold-border: rgba(229, 185, 76, 0.28);
-  --gold-glow:   0 0 24px rgba(229, 185, 76, 0.22);
+  /* Gold — refined champagne/antique astrolabe metal */
+  --gold-vivid:  #dfb15b;
+  --gold-bright: #fcedbe;
+  --gold-dim:    rgba(223, 177, 91, 0.12);
+  --gold-border: rgba(223, 177, 91, 0.24);
+  --gold-glow:   0 0 32px rgba(223, 177, 91, 0.16);
 
-  /* Cyan — interactive, links, secondary */
+  /* Cyan & Sapphire — celestial coordinates & secondary accents */
   --cyan-vivid:  #38bdf8;
-  --cyan-dim:    rgba(56, 189, 248, 0.12);
-  --cyan-border: rgba(56, 189, 248, 0.28);
+  --cyan-dim:    rgba(56, 189, 248, 0.10);
+  --cyan-border: rgba(56, 189, 248, 0.24);
 
   /* Semantic */
   --emerald:     #10b981;
@@ -58,15 +58,15 @@
   --amber:       #f59e0b;
   --amber-dim:   rgba(245, 158, 11, 0.12);
 
-  /* Text */
-  --text-high:   #f1f5f9;
-  --text-mid:    #8fa3b8;
-  --text-low:    #475569;
+  /* Text — tuned for optical contrast without harsh white glare */
+  --text-high:   #f8fafc;
+  --text-mid:    #94a3b8;
+  --text-low:    #52627a;
 
-  /* Borders */
-  --border-subtle:  rgba(255, 255, 255, 0.06);
-  --border-card:    rgba(229, 185, 76, 0.14);
-  --border-focus:   rgba(229, 185, 76, 0.55);
+  /* Borders — layered specular and subtle boundary lines */
+  --border-subtle:  rgba(148, 163, 184, 0.10);
+  --border-card:    rgba(148, 163, 184, 0.14);
+  --border-focus:   rgba(223, 177, 91, 0.55);
 
   /* Layout */
   --sidebar-w:      240px;
@@ -75,7 +75,29 @@
   --radius-sm:       8px;
   --radius-md:      12px;
   --radius-lg:      16px;
-  --radius-pill:    999px;
+  /* Layout Sizing & Tokens */
+  --size-2xs: 160px;
+  --size-xs:  180px;
+  --size-sm:  210px;
+  --size-md:  240px;
+  --size-lg:  260px;
+  --size-xl:  280px;
+  --size-xxl: 320px;
+  --size-2xl: 420px;
+  --size-container: 980px;
+  --size-container-lg: 1000px;
+  --border-width: 1px;
+  --border-width-2: 2px;
+  --border-width-4: 4px;
+  --space-0: 0px;
+  --space-0-5: 2px;
+  --space-0-75: 3px;
+  --space-1-5: 6px;
+  --space-2-5: 10px;
+  --space-3-5: 14px;
+  --space-4-5: 18px;
+  --size-8: 8px;
+  --size-10: 10px;
 }
 
 /* ─── Reset ─────────────────────────────────────────────────────────────── */
@@ -97,17 +119,18 @@ body {
   line-height: 1.55;
   overflow-x: hidden;
   position: relative;
-  /* Multi-layered Astrolabe Instrument Background:
-     1. Fine 32px celestial coordinate grid (RA/Dec lines)
-     2. Astrolabe brass horizon glow (subtle top rim lighting)
-     3. Deep obsidian vignette
+  /* Multi-layered Astrolabe Celestial Grading:
+     1. Fine 36px coordinate grid in muted slate
+     2. Top-center celestial horizon cone (indigo-sapphire + subtle antique gold wash)
+     3. Bottom-center deep cosmic stellar aura
+     4. Base obsidian vignette
   */
   background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.016) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.016) 1px, transparent 1px),
-    radial-gradient(ellipse 70% 36% at 50% -6%, rgba(229, 185, 76, 0.065) 0%, rgba(56, 189, 248, 0.02) 40%, transparent 70%),
-    radial-gradient(circle 900px at 50% 100%, rgba(6, 8, 14, 0.95) 0%, transparent 100%);
-  background-size: 32px 32px, 32px 32px, 100% 100%, 100% 100%;
+    linear-gradient(to right, rgba(148, 163, 184, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.035) 1px, transparent 1px),
+    radial-gradient(ellipse 90% 55% at 50% -8%, rgba(67, 56, 202, 0.16) 0%, rgba(217, 119, 6, 0.07) 32%, rgba(14, 165, 233, 0.04) 55%, transparent 75%),
+    radial-gradient(ellipse 70% 50% at 50% 108%, rgba(30, 27, 75, 0.28) 0%, transparent 70%);
+  background-size: 36px 36px, 36px 36px, 100% 100%, 100% 100%;
   background-attachment: fixed;
 }
 
@@ -184,39 +207,49 @@ body::before {
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border-card);
+  border-top: 1px solid rgba(255, 255, 255, 0.12); /* specular chamfered top rim */
   border-radius: var(--radius-lg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04), /* crisp top inner bevel */
-    0 4px 20px rgba(0, 0, 0, 0.42);           /* grounded elevation */
-  transition: border-color 0.22s ease, box-shadow 0.22s ease;
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),  /* crisp inner bevel */
+    0 8px 32px -4px rgba(0, 0, 0, 0.45),      /* deep ambient drop */
+    0 2px 6px 0 rgba(0, 0, 0, 0.25);
+  transition: border-color 0.24s ease, box-shadow 0.24s ease, background 0.24s ease;
 }
 
 .card:hover {
-  border-color: rgba(229, 185, 76, 0.28);
+  border-color: rgba(223, 177, 91, 0.28);
+  border-top-color: rgba(255, 255, 255, 0.20);
+  background: var(--bg-card-hover);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 8px 30px rgba(0, 0, 0, 0.55);
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 14px 44px -4px rgba(0, 0, 0, 0.60),
+    0 0 24px rgba(223, 177, 91, 0.08);
 }
 
 /* kept for legacy compatibility */
 .glass-panel {
   background: var(--bg-card);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
   border: 1px solid var(--border-card);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-lg);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 4px 20px rgba(0, 0, 0, 0.42);
-  transition: border-color 0.22s ease, box-shadow 0.22s ease;
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 8px 32px -4px rgba(0, 0, 0, 0.45),
+    0 2px 6px 0 rgba(0, 0, 0, 0.25);
+  transition: border-color 0.24s ease, box-shadow 0.24s ease, background 0.24s ease;
 }
 .glass-panel:hover {
-  border-color: rgba(229, 185, 76, 0.28);
+  border-color: rgba(223, 177, 91, 0.28);
+  border-top-color: rgba(255, 255, 255, 0.20);
+  background: var(--bg-card-hover);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 8px 30px rgba(0, 0, 0, 0.55);
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 14px 44px -4px rgba(0, 0, 0, 0.60),
+    0 0 24px rgba(223, 177, 91, 0.08);
 }
 
 /* ─── Typography helpers ─────────────────────────────────────────────────── */
@@ -249,7 +282,7 @@ body::before {
 }
 
 .gold-gradient-text {
-  background: linear-gradient(135deg, #fff2a3 0%, #e5b94c 50%, #c49520 100%);
+  background: linear-gradient(135deg, #fff2be 0%, #dfb15b 45%, #b28224 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -269,22 +302,22 @@ body::before {
   justify-content: center;
   gap: var(--space-2);
   padding: 10px 20px;
-  background: linear-gradient(135deg, #e5b94c 0%, #c49520 100%);
-  color: #07090e;
+  background: linear-gradient(135deg, #dfb15b 0%, #ba892b 100%);
+  color: #070a12;
   font-family: var(--font-sans);
   font-size: var(--type-body);
   font-weight: 600;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
-  box-shadow: 0 4px 16px rgba(229, 185, 76, 0.28);
+  box-shadow: 0 4px 18px rgba(223, 177, 91, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.28);
 }
 
 .btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 22px rgba(229, 185, 76, 0.42);
-  background: linear-gradient(135deg, #fbe285 0%, #d4a029 100%);
+  box-shadow: 0 6px 26px rgba(223, 177, 91, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  background: linear-gradient(135deg, #fcedbe 0%, #cf9a32 100%);
 }
 
 .btn-primary:active {
@@ -386,33 +419,33 @@ body::before {
 }
 
 .badge-gold {
-  background: rgba(229, 185, 76, 0.15);
+  background: rgba(223, 177, 91, 0.12);
   color: var(--gold-bright);
-  border: 1px solid rgba(229, 185, 76, 0.35);
+  border: 1px solid rgba(223, 177, 91, 0.28);
 }
 
 .badge-cyan {
-  background: rgba(56, 189, 248, 0.15);
+  background: rgba(56, 189, 248, 0.10);
   color: #7dd3fc;
-  border: 1px solid rgba(56, 189, 248, 0.35);
+  border: 1px solid rgba(56, 189, 248, 0.24);
 }
 
 .badge-rose {
-  background: rgba(244, 63, 94, 0.15);
+  background: rgba(244, 63, 94, 0.12);
   color: #fda4af;
-  border: 1px solid rgba(244, 63, 94, 0.35);
+  border: 1px solid rgba(244, 63, 94, 0.28);
 }
 
 .badge-emerald {
-  background: rgba(16, 185, 129, 0.15);
+  background: rgba(16, 185, 129, 0.12);
   color: #6ee7b7;
-  border: 1px solid rgba(16, 185, 129, 0.35);
+  border: 1px solid rgba(16, 185, 129, 0.28);
 }
 
 .badge-amber {
-  background: rgba(245, 158, 11, 0.15);
+  background: rgba(245, 158, 11, 0.12);
   color: #fcd34d;
-  border: 1px solid rgba(245, 158, 11, 0.35);
+  border: 1px solid rgba(245, 158, 11, 0.28);
 }
 
 /* ─── Inputs ─────────────────────────────────────────────────────────────── */

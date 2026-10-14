@@ -542,7 +542,7 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))",
                   gap: "var(--space-2)",
                 }}
               >
@@ -559,22 +559,25 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
                       key={`${pd.lord}-${pidx}`}
                       style={{
                         background: isCurrentPd ? "var(--emerald-dim)" : "rgba(0,0,0,0.25)",
-                        padding: "var(--space-3) var(--space-4)",
+                        padding: "var(--space-2-5) var(--space-3)",
                         borderRadius: "var(--radius-sm)",
                         border: isCurrentPd ? "1px solid var(--emerald)" : "1px solid var(--border-subtle)",
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
-                        gap: "var(--space-2)",
+                        gap: "var(--space-1-5)",
+                        minWidth: 0,
+                        overflow: "hidden",
                       }}
                     >
-                      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-1-5)", minWidth: 0, flexShrink: 0 }}>
                         <span
                           style={{
                             width: "7px",
                             height: "7px",
                             borderRadius: "50%",
                             background: pdStyle.border,
+                            flexShrink: 0,
                           }}
                           aria-hidden="true"
                         />
@@ -582,7 +585,17 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
                           {pdName}
                         </span>
                         {isCurrentPd && (
-                          <span className="badge badge-emerald" style={{ fontSize: "0.6rem", padding: "1px 5px" }}>
+                          <span
+                            className="badge badge-emerald"
+                            style={{
+                              fontSize: "0.58rem",
+                              padding: "1px 5px",
+                              letterSpacing: "0.04em",
+                              fontWeight: 700,
+                              lineHeight: 1.2,
+                              flexShrink: 0,
+                            }}
+                          >
                             NOW
                           </span>
                         )}
@@ -590,10 +603,12 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
 
                       <div
                         style={{
-                          fontSize: "var(--type-micro)",
+                          fontSize: "0.72rem",
                           color: isCurrentPd ? "var(--emerald)" : "var(--text-mid)",
                           fontFamily: "var(--font-mono)",
                           whiteSpace: "nowrap",
+                          letterSpacing: "-0.015em",
+                          flexShrink: 0,
                         }}
                       >
                         {pd.start.slice(0, 10)} → {pd.end.slice(0, 10)}

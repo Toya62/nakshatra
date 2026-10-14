@@ -237,8 +237,8 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
     {
       house: 1,
       polygon: `${cx},0 130,130 ${cx},${cy} 390,130`,
-      contentPos: { x: cx, y: 130 },
-      signPos: { x: 180, y: 130 },
+      contentPos: { x: cx, y: 142 },
+      signPos: { x: 175, y: 140 },
       type: "kendra-trikona" as const,
     },
     // House 2 (Top-left triangle)
@@ -348,9 +348,10 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
           maxWidth: `${size}px`,
           aspectRatio: "1 / 1",
           height: "auto",
-          filter: "drop-shadow(0 16px 40px rgba(0,0,0,0.65))",
+          filter: "drop-shadow(0 20px 48px rgba(0,0,0,0.7))",
           borderRadius: "var(--radius-lg)",
-          background: "linear-gradient(145deg, #07090e 0%, #0c101c 100%)",
+          background: "linear-gradient(150deg, #090e1b 0%, #10162a 50%, #070b16 100%)",
+          border: "1px solid rgba(223, 177, 91, 0.24)",
           userSelect: "none",
         }}
       >
@@ -358,34 +359,34 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
         <defs>
           {/* Kendra Auspicious Radial Warmth */}
           <radialGradient id="kendraGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="rgba(229, 185, 76, 0.14)" />
-            <stop offset="70%" stopColor="rgba(229, 185, 76, 0.04)" />
-            <stop offset="100%" stopColor="rgba(12, 16, 28, 0)" />
+            <stop offset="0%" stopColor="rgba(223, 177, 91, 0.15)" />
+            <stop offset="70%" stopColor="rgba(223, 177, 91, 0.04)" />
+            <stop offset="100%" stopColor="rgba(16, 22, 42, 0)" />
           </radialGradient>
 
           {/* Trikona Grace Indigo/Cyan Tint */}
           <radialGradient id="trikonaGlow" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="rgba(56, 189, 248, 0.12)" />
             <stop offset="70%" stopColor="rgba(56, 189, 248, 0.03)" />
-            <stop offset="100%" stopColor="rgba(12, 16, 28, 0)" />
+            <stop offset="100%" stopColor="rgba(16, 22, 42, 0)" />
           </radialGradient>
 
           {/* Hover highlight illumination */}
           <radialGradient id="hoverGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="rgba(251, 226, 133, 0.22)" />
-            <stop offset="100%" stopColor="rgba(229, 185, 76, 0.08)" />
+            <stop offset="0%" stopColor="rgba(252, 237, 190, 0.22)" />
+            <stop offset="100%" stopColor="rgba(223, 177, 91, 0.08)" />
           </radialGradient>
         </defs>
 
         {/* Double Engraved Frame */}
-        <rect x="1" y="1" width={w - 2} height={h - 2} rx="16" fill="none" stroke="rgba(229, 185, 76, 0.45)" strokeWidth="2.5" />
-        <rect x="7" y="7" width={w - 14} height={h - 14} rx="12" fill="none" stroke="rgba(229, 185, 76, 0.22)" strokeWidth="1" strokeDasharray="6 3" />
+        <rect x="1" y="1" width={w - 2} height={h - 2} rx="16" fill="none" stroke="rgba(223, 177, 91, 0.45)" strokeWidth="2.5" />
+        <rect x="7" y="7" width={w - 14} height={h - 14} rx="12" fill="none" stroke="rgba(223, 177, 91, 0.22)" strokeWidth="1" strokeDasharray="6 3" />
 
         {/* 4 Corner Rosette Accents */}
         {[[10, 10], [w - 10, 10], [10, h - 10], [w - 10, h - 10]].map(([rx, ry], idx) => (
           <g key={idx} transform={`translate(${rx}, ${ry})`}>
-            <circle r="3.5" fill="#e5b94c" />
-            <circle r="1.5" fill="#07090e" />
+            <circle r="3.5" fill="#dfb15b" />
+            <circle r="1.5" fill="#090e1b" />
           </g>
         ))}
 
@@ -422,38 +423,50 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
               {/* Rashi Zodiac Number Badge (Subtle circular seal in designated corner) */}
               <g transform={`translate(${ch.signPos.x}, ${ch.signPos.y})`}>
                 <circle
-                  r="10"
-                  fill="rgba(9, 12, 22, 0.92)"
-                  stroke={isHovered ? "#fbe285" : "rgba(229, 185, 76, 0.5)"}
-                  strokeWidth={isHovered ? "1.4" : "0.9"}
+                  r="13"
+                  fill="rgba(9, 14, 25, 0.95)"
+                  stroke={isHovered ? "#fbe285" : "rgba(223, 177, 91, 0.55)"}
+                  strokeWidth={isHovered ? "1.6" : "1.1"}
                 />
                 <text
                   x="0"
-                  y="3.5"
+                  y="4.5"
                   textAnchor="middle"
-                  fill={isHovered ? "#ffffff" : "#fbe285"}
-                  fontSize="10"
-                  fontWeight="700"
-                  fontFamily="'Cinzel', serif"
+                  fill={isHovered ? "#ffffff" : "#fcedbe"}
+                  fontSize="13.5"
+                  fontWeight="800"
+                  fontFamily="'Outfit', sans-serif"
                 >
                   {data.signNum}
                 </text>
               </g>
 
-              {/* House 1 LAGNA Title */}
+              {/* House 1 LAGNA Title Badge inside House 1 */}
               {ch.house === 1 && (
-                <text
-                  x={cx}
-                  y="28"
-                  textAnchor="middle"
-                  fill="#fbe285"
-                  fontSize="11"
-                  fontWeight="700"
-                  fontFamily="'Cinzel', serif"
-                  letterSpacing="2"
-                >
-                  LAGNA
-                </text>
+                <g transform={`translate(${cx}, 56)`}>
+                  <rect
+                    x="-36"
+                    y="-11"
+                    width="72"
+                    height="22"
+                    rx="11"
+                    fill="rgba(223, 177, 91, 0.16)"
+                    stroke="rgba(223, 177, 91, 0.45)"
+                    strokeWidth="1"
+                  />
+                  <text
+                    x="0"
+                    y="4.5"
+                    textAnchor="middle"
+                    fill="#fcedbe"
+                    fontSize="11.5"
+                    fontWeight="800"
+                    fontFamily="'Outfit', sans-serif"
+                    letterSpacing="2"
+                  >
+                    LAGNA
+                  </text>
+                </g>
               )}
 
               {/* Formatted Planet Micro-Pills */}
@@ -462,11 +475,11 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
                   const n = planets.length;
                   if (n === 0) return null;
 
-                  // 1 to 3 planets: vertical neat stack with 76px wide pills
+                  // 1 to 3 planets: vertical neat stack with 90px wide pills
                   if (n <= 3) {
-                    const stepY = 22;
-                    const pillW = 76;
-                    const pillH = 19;
+                    const stepY = 28;
+                    const pillW = 90;
+                    const pillH = 24;
                     const halfW = pillW / 2;
 
                     return planets.map((p, pIdx) => {
@@ -483,17 +496,17 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
                             y={-pillH / 2}
                             width={pillW}
                             height={pillH}
-                            rx="4"
+                            rx="5"
                             fill={style.bg}
                             stroke={style.border}
-                            strokeWidth="0.8"
+                            strokeWidth="1"
                           />
                           {/* Graha Glyph + Abbreviation */}
                           <text
-                            x={-halfW + 6}
-                            y="4"
+                            x={-halfW + 8}
+                            y="4.5"
                             fill={style.color}
-                            fontSize="9.5"
+                            fontSize="13"
                             fontWeight="700"
                             fontFamily="'Outfit', sans-serif"
                           >
@@ -503,10 +516,10 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
                           {/* Retrograde & Dignity Markers */}
                           {p.isRetro && (
                             <text
-                              x={-halfW + 36}
-                              y="3.5"
+                              x={-halfW + 48}
+                              y="4.5"
                               fill="#f59e0b"
-                              fontSize="8.5"
+                              fontSize="11"
                               fontWeight="800"
                               fontFamily="'JetBrains Mono', monospace"
                             >
@@ -515,10 +528,10 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
                           )}
                           {p.dignity.symbol && (
                             <text
-                              x={-halfW + (p.isRetro ? 45 : 36)}
-                              y="3.5"
+                              x={-halfW + (p.isRetro ? 60 : 48)}
+                              y="4.5"
                               fill={p.dignity.isExalted ? "#34d399" : p.dignity.isDebilitated ? "#f87171" : "#fbe285"}
-                              fontSize="8.5"
+                              fontSize="11"
                               fontWeight="800"
                             >
                               {p.dignity.symbol}
@@ -528,11 +541,11 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
                           {/* Degrees */}
                           {p.degree && (
                             <text
-                              x={halfW - 6}
-                              y="4"
+                              x={halfW - 7}
+                              y="4.5"
                               textAnchor="end"
                               fill="#94a3b8"
-                              fontSize="8.5"
+                              fontSize="11"
                               fontFamily="'JetBrains Mono', monospace"
                             >
                               {p.degree}
@@ -545,15 +558,15 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
 
                   // 4+ planets: compact 2-column grid
                   const half = Math.ceil(n / 2);
-                  const stepY = 20;
-                  const pillW = 68;
-                  const pillH = 17;
+                  const stepY = 24;
+                  const pillW = 80;
+                  const pillH = 22;
                   const halfW = pillW / 2;
 
                   return planets.map((p, pIdx) => {
                     const col = pIdx < half ? 0 : 1;
                     const row = pIdx < half ? pIdx : pIdx - half;
-                    const posX = col === 0 ? -36 : 36;
+                    const posX = col === 0 ? -43 : 43;
                     const posY = (row - (half - 1) / 2) * stepY;
                     const style = GRAHA_STYLES[p.key] || {
                       abbr: p.label, glyph: "•", name: p.name, color: "#f1f5f9", bg: "rgba(255,255,255,0.1)", border: "rgba(255,255,255,0.3)"
@@ -566,33 +579,33 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
                           y={-pillH / 2}
                           width={pillW}
                           height={pillH}
-                          rx="3"
+                          rx="4"
                           fill={style.bg}
                           stroke={style.border}
-                          strokeWidth="0.8"
+                          strokeWidth="0.9"
                         />
                         <text
-                          x={-halfW + 5}
-                          y="3.5"
+                          x={-halfW + 6}
+                          y="4"
                           fill={style.color}
-                          fontSize="9"
+                          fontSize="11.5"
                           fontWeight="700"
                           fontFamily="'Outfit', sans-serif"
                         >
                           {p.isAsc ? "ASC" : p.label}
                         </text>
                         {p.isRetro && (
-                          <text x="-4" y="3.5" fill="#f59e0b" fontSize="8" fontWeight="800">
+                          <text x="-4" y="4" fill="#f59e0b" fontSize="9" fontWeight="800">
                             ℞
                           </text>
                         )}
                         {p.degree && (
                           <text
-                            x={halfW - 5}
-                            y="3.5"
+                            x={halfW - 6}
+                            y="4"
                             textAnchor="end"
                             fill="#94a3b8"
-                            fontSize="8"
+                            fontSize="10"
                             fontFamily="'JetBrains Mono', monospace"
                           >
                             {p.degree}

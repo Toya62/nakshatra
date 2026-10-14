@@ -76,6 +76,8 @@ export const Sidebar: React.FC<Props> = ({
         aria-label="Primary navigation"
         style={{
           background: "var(--bg-base)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
           borderRight: "1px solid var(--border-subtle)",
           display: "flex",
           flexDirection: "column",
@@ -116,8 +118,8 @@ export const Sidebar: React.FC<Props> = ({
                   width: "100%",
                   borderRadius: "var(--radius-md)",
                   border: "none",
-                  borderLeft: active ? "2px solid var(--gold-vivid)" : "2px solid transparent",
-                  background: active ? "var(--gold-dim)" : "transparent",
+                  borderLeft: active ? "3px solid var(--gold-vivid)" : "3px solid transparent",
+                  background: active ? "linear-gradient(90deg, rgba(223, 177, 91, 0.16) 0%, rgba(223, 177, 91, 0.03) 100%)" : "transparent",
                   color: active ? "var(--gold-bright)" : "var(--text-mid)",
                   fontFamily: "var(--font-sans)",
                   fontSize: "var(--type-label)",
@@ -184,10 +186,10 @@ export const Sidebar: React.FC<Props> = ({
                   width: "100%",
                   borderRadius: "var(--radius-md)",
                   border: "none",
-                  borderLeft: active ? "2px solid var(--gold-vivid)" : "2px solid transparent",
+                  borderLeft: active ? "3px solid var(--gold-vivid)" : "3px solid transparent",
                   background: active
-                    ? "var(--gold-dim)"
-                    : "rgba(229, 185, 76, 0.05)",
+                    ? "linear-gradient(90deg, rgba(223, 177, 91, 0.22) 0%, rgba(223, 177, 91, 0.05) 100%)"
+                    : "rgba(223, 177, 91, 0.06)",
                   color: active ? "var(--gold-bright)" : "var(--gold-vivid)",
                   fontFamily: "var(--font-sans)",
                   fontSize: "var(--type-label)",
