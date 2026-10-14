@@ -67,6 +67,16 @@ export interface AshtakavargaData {
   sav: Record<string, number>;
 }
 
+export interface VedicAspect {
+  planet: string;
+  source_house: number;
+  target_house: number;
+  aspect_type: string;
+  target_sign?: string;
+  aspected_planets?: string[];
+  strength?: number;
+}
+
 export interface ChartData {
   ascendant: AscendantData;
   planets: PlanetPosition[];
@@ -78,6 +88,7 @@ export interface ChartData {
   ashtakavarga?: AshtakavargaData;
   ayanamsa: { name: string; value: string };
   birth: BirthDataInput;
+  vedic_aspects?: VedicAspect[];
 }
 
 export interface SadeSatiInfo {

@@ -142,6 +142,18 @@ class Aspect(BaseModel):
     exact_degree: float
 
 
+class VedicAspect(BaseModel):
+    """Parashari Graha Drishti (aspect from a planet to a house and its occupants)."""
+
+    planet: str
+    source_house: int
+    target_house: int
+    aspect_type: str
+    target_sign: str = ""
+    aspected_planets: list[str] = Field(default_factory=list)
+    strength: float = 1.0
+
+
 class DashaPeriod(BaseModel):
     """Single Dasha period (Mahadasha, Antardasha, or Pratyantardasha)."""
 
@@ -227,6 +239,15 @@ class ChartData(BaseModel):
     transits: dict | None = None
     panchanga: Any | None = None
     yogas: list[Any] | None = None
+    vedic_aspects: list[VedicAspect] = Field(default_factory=list)
+
+    def get_house_aspects_received(self) -> dict[int, list[VedicAspect]]:
+        """Map of house number (1-12) to list of Vedic aspects received."""
+        mapping: dict[int, list[VedicAspect]] = {h: [] for h in range(1, 13)}
+        for asp in self.vedic_aspects:
+            if asp.target_house in mapping:
+                mapping[asp.target_house].append(asp)
+        return mapping
 
     def get_panchanga(self) -> Any:
         """Get or calculate Vedic Panchanga."""
@@ -343,6 +364,16 @@ class ChartData(BaseModel):
             transit_latitude=transit_latitude,
             transit_longitude=transit_longitude,
         )
+
+    def get_transit_window(
+        self,
+        start_date: datetime | None = None,
+        days: int = 30,
+    ) -> Any:
+        """Scan monthly transit window for ingresses, retrograde stations, and Chandrashtama."""
+        from nakshatra.transits import scan_transit_window
+
+        return scan_transit_window(natal_chart=self, start_date=start_date, days=days)
 
     def get_predictions(
         self,
@@ -620,6 +651,71 @@ def _convert_dasha_period(period: vdasha.DashaPeriod, include_subs: bool = True)
         duration_years=dur,
         subs=subs_models,
     )
+
+
+VEDIC_ASPECT_OFFSETS: dict[str, list[int]] = {
+    "Sun": [7],
+    "Moon": [7],
+    "Mars": [4, 7, 8],
+    "Mercury": [7],
+    "Jupiter": [5, 7, 9],
+    "Venus": [7],
+    "Saturn": [3, 7, 10],
+    "Rahu": [5, 7, 9],
+    "Ketu": [5, 7, 9],
+}
+
+_ASPECT_NAMES: dict[int, str] = {
+    3: "3rd",
+    4: "4th",
+    5: "5th",
+    7: "7th",
+    8: "8th",
+    9: "9th",
+    10: "10th",
+}
+
+
+def calculate_vedic_aspects(
+    planets: list[PlanetPosition],
+    houses: list[HouseCusp] | None = None,
+) -> list[VedicAspect]:
+    """Calculate classical Parashari Graha Drishti (house-to-house aspects).
+
+    All planets cast full aspect on the 7th house from their position.
+    Special aspects (Vishesha Drishti):
+    - Mars: 4th, 7th, 8th
+    - Jupiter: 5th, 7th, 9th
+    - Saturn: 3rd, 7th, 10th
+    - Rahu & Ketu: 5th, 7th, 9th
+    """
+    aspects: list[VedicAspect] = []
+    house_signs = {h.house: h.sign for h in houses} if houses else {}
+
+    for p in planets:
+        offsets = VEDIC_ASPECT_OFFSETS.get(p.name)
+        if not offsets:
+            continue
+        for offset in offsets:
+            target_house = ((p.house - 1 + (offset - 1)) % 12) + 1
+            target_sign = house_signs.get(target_house, "")
+            aspected_planets = [
+                other.name
+                for other in planets
+                if other.house == target_house and other.name != p.name
+            ]
+            aspects.append(
+                VedicAspect(
+                    planet=p.name,
+                    source_house=p.house,
+                    target_house=target_house,
+                    aspect_type=_ASPECT_NAMES.get(offset, f"{offset}th"),
+                    target_sign=target_sign,
+                    aspected_planets=aspected_planets,
+                    strength=1.0,
+                )
+            )
+    return aspects
 
 
 def calculate_chart(
@@ -917,6 +1013,9 @@ def calculate_chart(
                         )
                     )
 
+    # 7b. Vedic Graha Drishti (Parashari House Aspects)
+    vedic_aspects = calculate_vedic_aspects(planets + [rahu, ketu], houses_list)
+
     # 8. Vimshottari Dashas
     dashas_data = None
     if include_dashas:
@@ -1083,14 +1182,18 @@ def calculate_chart(
         ashtakavarga=ashtakavarga_data,
         shadbala=shadbala_data,
         upagrahas=upagrahas_data,
+        vedic_aspects=vedic_aspects,
     )
 
     if include_transits:
         try:
-            from nakshatra.transits import calculate_transits
+            from nakshatra.transits import calculate_transits, scan_transit_window
 
             transit_report = calculate_transits(res_chart, transit_date=target_date)
-            res_chart.transits = transit_report.model_dump()
+            t_dict = transit_report.model_dump()
+            transit_win = scan_transit_window(res_chart, start_date=target_date, days=30)
+            t_dict["window"] = transit_win.model_dump()
+            res_chart.transits = t_dict
         except Exception:
             pass
 

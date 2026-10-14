@@ -198,6 +198,29 @@ class TestTransitsEndpoint:
         r = client.post("/transits", json=bad)
         assert r.status_code == 422
 
+    def test_transits_window_endpoint(self, client: TestClient, chart_payload: dict):
+        payload = {
+            **chart_payload,
+            "start_date": "2026-10-01T00:00:00",
+            "days": 30,
+        }
+        r = client.post("/transits/window", json=payload)
+        assert r.status_code == 200
+        body = r.json()
+        assert body["success"] is True
+        data = body["data"]
+        assert data["days_scanned"] == 30
+        assert data["natal_lagna_sign"] == "Aries"
+        assert data["natal_moon_sign"] == "Scorpio"
+        assert len(data["events"]) > 0
+
+        # Check that Sun ingress into Libra or Venus station is captured
+        event_planets = [e["planet"] for e in data["events"]]
+        assert "Sun" in event_planets
+        assert len(data["chandrashtama_periods"]) > 0
+        for cp in data["chandrashtama_periods"]:
+            assert cp["sign"] == "Gemini"
+
 
 class TestPanchangaEndpoints:
     """Tests for GET/POST /panchanga endpoints."""

@@ -50,9 +50,27 @@ def test_tnp_chart_neechabhanga_raja_yoga(tnp_chart: ChartData):
 
     # Check Jupiter Neechabhanga details
     jup_nb = next(y for y in yogas if "Neechabhanga Raja Yoga (Jupiter)" in y.name)
-    assert jup_nb.strength == "Strong"
-    assert "House 10" in jup_nb.cancellation_reason or "Kendra" in jup_nb.cancellation_reason
+    assert jup_nb.strength in ("Moderate", "Mild")
+    assert "Kendra" in jup_nb.cancellation_reason
+    assert "Dusthana" in jup_nb.cancellation_reason
     assert "Jupiter" in jup_nb.planets_involved
+
+
+def test_tnp_chart_parivartana_yoga(tnp_chart: ChartData):
+    """
+    In TNP chart:
+    Jupiter (lord of 12th Pisces) is in 10th Capricorn (ruled by Saturn).
+    Saturn (lord of 10th Capricorn) is in 12th Pisces (ruled by Jupiter).
+    Mutual sign exchange between 10th and 12th lords forms Dainya Parivartana Yoga!
+    """
+    yogas = detect_yogas(tnp_chart)
+    parivartana = [y for y in yogas if y.category == YogaCategory.PARIVARTANA]
+    assert len(parivartana) >= 1
+    py = next(y for y in parivartana if "Jupiter" in y.name and "Saturn" in y.name)
+    assert "Dainya Parivartana Yoga" in py.name
+    assert 10 in py.houses_involved
+    assert 12 in py.houses_involved
+    assert set(py.planets_involved) == {"Jupiter", "Saturn"}
 
 
 def test_tnp_chart_kemadruma_bhanga(tnp_chart: ChartData):

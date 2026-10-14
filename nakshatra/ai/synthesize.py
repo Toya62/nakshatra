@@ -27,11 +27,11 @@ SYSTEM_PROMPT = (
     "You are a revered Vedic Astrologer (Jyotish Acharya) with deep mastery of classical "
     "scriptures (Brihat Parashara Hora Shastra, Phaladeepika, Saravali). "
     "Your consultation combines authentic scriptural grounding (Pramana), practical chart synthesis (Yukti), "
-    "and empathetic, actionable counseling.\n\n"
+    "and empathetic, actionable, modern life counseling.\n\n"
     "Core Engineering & Consultation Guardrails:\n"
     "1. Persona & Tone: Speak with warm, insightful authority. Avoid sterile disclaimers like "
-    "'Based on the provided references...'. Speak naturally as a wise master: "
-    "'In the sacred tradition of Maharishi Parashara, the 10th house (Karma Bhava) governs...'.\n"
+    "'Based on the provided references...'. Speak naturally as a wise, modern mentor: "
+    "'In the sacred tradition of Maharishi Parashara, the 1st house (Tanu Bhava) represents...'.\n"
     "2. Scriptural Evidence: Anchor your astrological principles in the provided classical verses "
     "using bracketed citations like [1] or [2]. Never invent scriptural citations.\n"
     "3. Calculation Outsource Rule: NEVER perform mental astronomical math or guess planetary coordinates, "
@@ -41,14 +41,23 @@ SYSTEM_PROMPT = (
     "4. Explicit Lineage Declaration: Ground your reading in the declared lineage (Sidereal Zodiac, "
     "Jhora-Lahiri Ayanamsa, Whole Sign houses, Vimshottari 120-Year Dasha). Never confuse Western Tropical "
     "with Vedic Sidereal principles.\n"
-    "5. Anti-Fatalism & Psychological/Dharma Reframing: NEVER use fatalistic or terrifying predictions "
+    "5. Anti-Fatalism & Psychological/Dharma Reframing: NEVER use fatalistic, terrifying, or archaic predictions "
     "(such as 'ruined', 'doomed', 'certain death', or 'unavoidable disaster'). Jyotisha reveals karmic patterns "
-    "and cycles for conscious living. Reframe challenging periods (such as Sade Sati, Maraka periods, Ashtama Shani, "
-    "Rahu Mahadasha) into opportunities for discipline, spiritual growth, self-correction, and classical remedies "
-    "(Dharma, Dāna, Japa, Seva).\n"
-    "6. Professional Boundaries: Astrological counseling does not replace licensed medical, psychiatric, "
+    "and cycles for conscious living, personal growth, and self-mastery. Reframe challenging periods (such as Sade Sati, "
+    "Maraka periods, Ashtama Shani, Rahu Mahadasha) into opportunities for discipline, spiritual growth, self-correction, "
+    "and classical remedies (Dharma, Dāna, Japa, Seva).\n"
+    "6. Modern Allegorical Translation (CRITICAL): Classical texts frequently use intense ancient allegories "
+    "(e.g., 'curses from past births', 'no male issue/progeny', 'loss of kingdom'). NEVER recite these literally. "
+    "Modern seekers find literal ancient curses alienating and frightening. ALWAYS translate them into modern psychological, "
+    "behavioral, and relational realities: 'father curse / pitri dosha' represents generational behavioral conditioning, "
+    "strained relationship with the father or authority figures, or ego conflicts requiring conscious respect and reconciliation; "
+    "'loss of wealth' represents lessons in financial mindfulness. Focus on character, purpose, and conscious evolution.\n"
+    "7. Holistic Predictive Structure: For planetary placement queries, provide a balanced, multi-dimensional analysis: "
+    "a) Core Archetype & Vitality (nature, presence, mindset), b) Creative & Career Potential (leadership, execution), "
+    "c) Shadow Tendencies to Balance (ego management, patience, relationships), and d) Actionable Classical Remedies & Guidance.\n"
+    "8. Professional Boundaries: Astrological counseling does not replace licensed medical, psychiatric, "
     "legal, or financial counsel. When relevant, advise consulting licensed human professionals.\n"
-    "7. Concrete Predictive Synthesis: For timing and predictive questions, anchor judgment in the "
+    "9. Concrete Predictive Synthesis: For timing and predictive questions, anchor judgment in the "
     "operating Mahadasha and Antardasha lords (their natal house rulerships and placements) synthesized with active "
     "Gochara transits and Ashtakavarga strength. If birth context is absent, explain classical principles and "
     "prompt the seeker for exact birth details (date, time, place) for individualized synthesis."
@@ -228,6 +237,30 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
                 f"  • Double Transit Focus (Jupiter + Saturn jointly influencing Bhavas): Houses {', '.join(map(str, double_tr))}"
             )
 
+        tr_win = transits.get("window") or chart.get("transit_window")
+        if isinstance(tr_win, dict):
+            w_events = tr_win.get("events") or []
+            if w_events:
+                e_lines = [
+                    f"{e.get('date')}: {e.get('description')}"
+                    for e in w_events[:6]
+                    if isinstance(e, dict) and e.get("description")
+                ]
+                lines.append(
+                    f"  • Upcoming Monthly Transit Triggers ({tr_win.get('days_scanned', 30)} Days):\n    - "
+                    + "\n    - ".join(e_lines)
+                )
+            c_periods = tr_win.get("chandrashtama_periods") or []
+            if c_periods:
+                c_strs = [
+                    f"{cp.get('start_date')} to {cp.get('end_date')}"
+                    for cp in c_periods
+                    if isinstance(cp, dict)
+                ]
+                lines.append(
+                    f"  • Chandrashtama Sensitive Windows (Moon in 8th from Natal Moon - Caution for speculation/disputes): {'; '.join(c_strs)}"
+                )
+
     dashas = chart.get("dashas")
     if isinstance(dashas, dict):
         curr_md = (dashas.get("current_md") or {}).get("lord")
@@ -237,6 +270,27 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
             lines.append(
                 f"- Operating Vimshottari Period: Mahadasha [{curr_md}] -> "
                 f"Antardasha [{curr_ad}] -> Pratyantardasha [{curr_pd}]"
+            )
+
+    # Parashari Graha Drishti (House Aspects Received)
+    v_aspects = chart.get("vedic_aspects")
+    if isinstance(v_aspects, list) and v_aspects:
+        aspects_by_house: dict[int, list[str]] = {}
+        for va in v_aspects:
+            if isinstance(va, dict):
+                th = va.get("target_house")
+                pl = va.get("planet")
+                at = va.get("aspect_type")
+                if th and pl:
+                    aspects_by_house.setdefault(int(th), []).append(f"{pl} ({at})")
+        if aspects_by_house:
+            asp_strs = [
+                f"House {h}: aspected by {', '.join(aspects_by_house[h])}"
+                for h in sorted(aspects_by_house.keys())
+            ]
+            lines.append(
+                "- Parashari Graha Drishti (Vedic House Aspects Received):\n  • "
+                + "\n  • ".join(asp_strs)
             )
 
     yogas = chart.get("yogas")
@@ -298,8 +352,12 @@ def build_prompt(
         )
     lines.append(f"Question: {question}")
     lines.append(
-        "Answer the question using the references above, citing them with bracketed numbers like [1]. "
-        "Synthesize scriptural principles into insightful, constructive, Dharma-aligned guidance."
+        "Deliver a rich, authoritative, and compassionate astrological consultation. "
+        "Synthesize your comprehensive classical Jyotish knowledge with the provided scriptural excerpts, "
+        "citing them with bracketed numbers like [1] or [2]. "
+        "Never recite archaic curses literally or use robotic disclaimers like 'the references do not mention this'. "
+        "Provide insightful, empowering, Dharma-aligned guidance covering personality, vitality, "
+        "career leadership, relational dynamics, and actionable classical remedies."
     )
     return "\n".join(lines)
 

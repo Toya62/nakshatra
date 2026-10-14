@@ -300,3 +300,40 @@ class TestIngestCorpus:
         chunk = json.loads(lines[0])
         assert chunk["char_start"] >= 0
         assert chunk["char_end"] >= chunk["char_start"]
+
+    def test_clean_corpus_glyph_junk(self):
+        """Verify that legacy font ASCII noise and OCR glyph corruptions are purged."""
+        raw = (
+            "Chapter 73\n"
+            "amfwnwTTsirm: uv^n\n"
+            "IK tf^FJTT f^SrUT ! I\n"
+            "*71 7#: tl*)1l\n"
+            "sftWRT T^VVI^?RRR I\n"
+            "msfftl* TOfk^ftSI^T ll^u\n"
+            "1-2. The Sage said— O Brahmin ! Now I am going to tell you.\n"
+        )
+        chunks, stats = chunk_text(raw, work="BPHS", source_file="bphs_vol2.txt")
+        assert len(chunks) == 1
+        chunk = chunks[0]
+        assert chunk.chapter == "73"
+        assert chunk.verse == "1-2"
+        assert "amfwnwTTsirm" not in chunk.text
+        assert "tf^FJTT" not in chunk.text
+        assert "O Brahmin" in chunk.text
+
+    def test_verse_range_preserves_chapter_context(self):
+        """Ensure Santhanam-style verse range 1-4. does not override active Chapter 66 to Chapter 1."""
+        raw = (
+            "Chapter 66\n"
+            "Ashtakavarga\n"
+            "1-4. Maitreya said — O Venerable Sage ! Describe the auspiciousness of Ashtakavarga.\n"
+            "5-8. Parasara answered — Listen to the Bindus and Rekhas.\n"
+        )
+        chunks, _ = chunk_text(raw, work="BPHS", source_file="bphs_vol2.txt")
+        assert len(chunks) >= 2
+        for c in chunks:
+            assert c.chapter == "66"
+        v_chunks = [c for c in chunks if c.verse]
+        assert len(v_chunks) == 2
+        assert v_chunks[0].verse == "1-4"
+        assert v_chunks[1].verse == "5-8"

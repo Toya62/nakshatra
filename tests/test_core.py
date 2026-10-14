@@ -614,6 +614,37 @@ class TestVedicExtensions:
         assert "JUPITER GOCHAR" in tbl
         assert "DOUBLE TRANSIT" in tbl
 
+    def test_vedic_aspects(self):
+        """Test classical Parashari Graha Drishti calculations."""
+        birth = BirthData(
+            year=1997,
+            month=5,
+            day=22,
+            hour=4,
+            minute=53,
+            second=0,
+            latitude=27.8667,
+            longitude=83.4833,
+            timezone="Asia/Kathmandu",
+        )
+        chart = calculate_chart(birth)
+        assert len(chart.vedic_aspects) > 0
+
+        # Check Saturn aspects from 12th house (Pisces)
+        saturn_aspects = [a for a in chart.vedic_aspects if a.planet == "Saturn"]
+        assert len(saturn_aspects) == 3
+        types = {a.aspect_type: a.target_house for a in saturn_aspects}
+        assert types["3rd"] == 2
+        assert types["7th"] == 6
+        assert types["10th"] == 9
+
+        # Check aspects received mapping
+        received = chart.get_house_aspects_received()
+        assert 2 in received
+        planets_aspecting_h2 = [a.planet for a in received[2]]
+        assert "Saturn" in planets_aspecting_h2
+        assert "Jupiter" in planets_aspecting_h2
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

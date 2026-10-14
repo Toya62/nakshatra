@@ -7,7 +7,7 @@ and Double Transit (Jupiter + Saturn) detection.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import mayaastrolib.vedic.ashtakavarga as vav
@@ -219,6 +219,46 @@ class TransitReport(BaseModel):
             lines.append("=" * 86)
 
         return "\n".join(lines)
+
+
+class TransitEvent(BaseModel):
+    """An astrological transit event (ingress, station, or Chandrashtama)."""
+
+    event_type: str = Field(..., description="ingress, station, or chandrashtama")
+    planet: str
+    date: str
+    sign_from: str | None = None
+    sign_to: str | None = None
+    house_from_lagna: int | None = None
+    house_from_moon: int | None = None
+    direction: str | None = None  # "retrograde" or "direct"
+    description: str
+
+
+class ChandrashtamaPeriod(BaseModel):
+    """Period where transiting Moon occupies the 8th house from natal Moon."""
+
+    sign: str
+    start_date: str
+    end_date: str
+    house_from_moon: int = 8
+    description: str = (
+        "Moon transiting 8th from natal Moon; classical period of heightened emotional volatility; "
+        "avoid high-risk speculation and impulsive contracts."
+    )
+
+
+class TransitWindowReport(BaseModel):
+    """Multi-day transit window scan (ingresses, planetary stations, Chandrashtama)."""
+
+    start_date: str
+    end_date: str
+    days_scanned: int
+    natal_lagna_sign: str
+    natal_moon_sign: str
+    events: list[TransitEvent] = Field(default_factory=list)
+    chandrashtama_periods: list[ChandrashtamaPeriod] = Field(default_factory=list)
+    summary: str = ""
 
 
 def calculate_transits(
@@ -491,4 +531,234 @@ def calculate_transits(
         jupiter_gochar=jupiter_gochar,
         double_transit_houses=double_transit_houses,
         kakshya_summary=kakshya_summary_list,
+    )
+
+
+def scan_transit_window(
+    natal_chart: ChartData,
+    start_date: datetime | None = None,
+    days: int = 30,
+) -> TransitWindowReport:
+    """Scan upcoming transit window for planetary ingresses, stations, and Chandrashtama.
+
+    Parameters:
+        natal_chart: Seeker's natal ChartData
+        start_date: Starting datetime (defaults to now in natal timezone)
+        days: Number of days to scan (default 30 days)
+
+    Returns:
+        TransitWindowReport containing list of events, Chandrashtama periods, and summary.
+    """
+    b = natal_chart.birth_data
+    if start_date is None:
+        start_dt = datetime.now(ZoneInfo(b.timezone))
+    elif start_date.tzinfo is None:
+        start_dt = start_date.replace(tzinfo=ZoneInfo(b.timezone))
+    else:
+        start_dt = start_date
+
+    end_dt = start_dt + timedelta(days=days)
+
+    # Use natal ayanamsa (e.g. JHora Lahiri)
+    swe.set_sid_mode(swe.SIDM_LAHIRI)
+
+    # Initial JD at start date 12:00 UTC
+    t_start_utc = start_dt.astimezone(ZoneInfo("UTC"))
+    jd_0 = swe.julday(
+        t_start_utc.year,
+        t_start_utc.month,
+        t_start_utc.day,
+        t_start_utc.hour + (t_start_utc.minute / 60.0) + (t_start_utc.second / 3600.0),
+    )
+
+    natal_asc_idx = ZODIAC_SIGNS.index(natal_chart.ascendant.sign)
+    natal_moon = next(p for p in natal_chart.planets if p.name == "Moon")
+    natal_moon_idx = ZODIAC_SIGNS.index(natal_moon.sign)
+    chandrashtama_sign_idx = (natal_moon_idx + 7) % 12
+    chandrashtama_sign_name = ZODIAC_SIGNS[chandrashtama_sign_idx]
+
+    swe_bodies: dict[str, int] = {
+        "Sun": swe.SUN,
+        "Mars": swe.MARS,
+        "Mercury": swe.MERCURY,
+        "Jupiter": swe.JUPITER,
+        "Venus": swe.VENUS,
+        "Saturn": swe.SATURN,
+        "Rahu": swe.MEAN_NODE,
+    }
+
+    # Record initial states (sign_index, is_retrograde)
+    prev_states: dict[str, tuple[int, bool]] = {}
+    for name, p_id in swe_bodies.items():
+        res, _ = swe.calc_ut(jd_0, p_id, swe.FLG_SIDEREAL | swe.FLG_SWIEPH | swe.FLG_SPEED)
+        lon = res[0] % 360.0
+        s_idx = int(lon // 30)
+        speed = res[3]
+        prev_states[name] = (s_idx, speed < 0)
+
+    events: list[TransitEvent] = []
+
+    # Step through daily windows
+    for d in range(1, days + 1):
+        jd_d = jd_0 + d
+        dt_d = start_dt + timedelta(days=d)
+        date_str = dt_d.strftime("%Y-%m-%d")
+
+        for name, p_id in swe_bodies.items():
+            res, _ = swe.calc_ut(jd_d, p_id, swe.FLG_SIDEREAL | swe.FLG_SWIEPH | swe.FLG_SPEED)
+            lon = res[0] % 360.0
+            s_idx = int(lon // 30)
+            speed = res[3]
+            is_retro = speed < 0
+
+            p_s_idx, p_retro = prev_states[name]
+
+            # Ingress check
+            if s_idx != p_s_idx:
+                sign_from = ZODIAC_SIGNS[p_s_idx]
+                sign_to = ZODIAC_SIGNS[s_idx]
+                h_lagna = ((s_idx - natal_asc_idx) % 12) + 1
+                h_moon = ((s_idx - natal_moon_idx) % 12) + 1
+                desc = (
+                    f"{name} ingresses from {sign_from} into {sign_to} "
+                    f"(House {h_lagna} from Lagna, House {h_moon} from Moon)"
+                )
+                if name == "Sun" and sign_to == "Libra":
+                    desc += " [Debilitation / Neecha - vitality & authority stress]"
+                elif name == "Sun" and sign_to == "Aries":
+                    desc += " [Exaltation / Uccha - peak vitality & executive power]"
+                elif name == "Jupiter" and sign_to == "Cancer":
+                    desc += " [Exaltation / Uccha - peak wisdom & divine grace]"
+                elif name == "Jupiter" and sign_to == "Capricorn":
+                    desc += " [Debilitation / Neecha - ethics & financial caution]"
+
+                events.append(
+                    TransitEvent(
+                        event_type="ingress",
+                        planet=name,
+                        date=date_str,
+                        sign_from=sign_from,
+                        sign_to=sign_to,
+                        house_from_lagna=h_lagna,
+                        house_from_moon=h_moon,
+                        description=desc,
+                    )
+                )
+
+            # Planetary station check (retrograde / direct)
+            if name not in ("Sun", "Rahu"):
+                if not p_retro and is_retro:
+                    h_lagna = ((s_idx - natal_asc_idx) % 12) + 1
+                    h_moon = ((s_idx - natal_moon_idx) % 12) + 1
+                    events.append(
+                        TransitEvent(
+                            event_type="station",
+                            planet=name,
+                            date=date_str,
+                            direction="retrograde",
+                            sign_to=ZODIAC_SIGNS[s_idx],
+                            house_from_lagna=h_lagna,
+                            house_from_moon=h_moon,
+                            description=f"{name} halts and turns RETROGRADE in {ZODIAC_SIGNS[s_idx]} (House {h_lagna} from Lagna)",
+                        )
+                    )
+                elif p_retro and not is_retro:
+                    h_lagna = ((s_idx - natal_asc_idx) % 12) + 1
+                    h_moon = ((s_idx - natal_moon_idx) % 12) + 1
+                    events.append(
+                        TransitEvent(
+                            event_type="station",
+                            planet=name,
+                            date=date_str,
+                            direction="direct",
+                            sign_to=ZODIAC_SIGNS[s_idx],
+                            house_from_lagna=h_lagna,
+                            house_from_moon=h_moon,
+                            description=f"{name} stations and resumes DIRECT motion in {ZODIAC_SIGNS[s_idx]} (House {h_lagna} from Lagna)",
+                        )
+                    )
+
+            prev_states[name] = (s_idx, is_retro)
+
+    # Chandrashtama scan (Moon in 8th from natal Moon) at 3-hour resolution
+    chandrashtama_periods: list[ChandrashtamaPeriod] = []
+    in_c = False
+    start_c_dt: datetime | None = None
+    steps = days * 8
+
+    for s in range(steps + 1):
+        jd_s = jd_0 + (s * 0.125)
+        dt_s = start_dt + timedelta(hours=s * 3)
+        res_m, _ = swe.calc_ut(jd_s, swe.MOON, swe.FLG_SIDEREAL | swe.FLG_SWIEPH)
+        m_s_idx = int((res_m[0] % 360.0) // 30)
+
+        if m_s_idx == chandrashtama_sign_idx:
+            if not in_c:
+                in_c = True
+                start_c_dt = dt_s
+        else:
+            if in_c and start_c_dt is not None:
+                in_c = False
+                cp = ChandrashtamaPeriod(
+                    sign=chandrashtama_sign_name,
+                    start_date=start_c_dt.strftime("%Y-%m-%d %H:%M"),
+                    end_date=dt_s.strftime("%Y-%m-%d %H:%M"),
+                )
+                chandrashtama_periods.append(cp)
+                events.append(
+                    TransitEvent(
+                        event_type="chandrashtama",
+                        planet="Moon",
+                        date=start_c_dt.strftime("%Y-%m-%d"),
+                        sign_to=chandrashtama_sign_name,
+                        house_from_moon=8,
+                        description=(
+                            f"Chandrashtama begins: Transiting Moon occupies 8th from natal Moon ({chandrashtama_sign_name}) "
+                            f"from {cp.start_date} to {cp.end_date}. Heightened sensitivity; avoid volatile speculation or disputes."
+                        ),
+                    )
+                )
+
+    if in_c and start_c_dt is not None:
+        cp = ChandrashtamaPeriod(
+            sign=chandrashtama_sign_name,
+            start_date=start_c_dt.strftime("%Y-%m-%d %H:%M"),
+            end_date=end_dt.strftime("%Y-%m-%d %H:%M"),
+        )
+        chandrashtama_periods.append(cp)
+        events.append(
+            TransitEvent(
+                event_type="chandrashtama",
+                planet="Moon",
+                date=start_c_dt.strftime("%Y-%m-%d"),
+                sign_to=chandrashtama_sign_name,
+                house_from_moon=8,
+                description=(
+                    f"Chandrashtama active: Transiting Moon in 8th from natal Moon ({chandrashtama_sign_name}) "
+                    f"from {cp.start_date} to {cp.end_date}."
+                ),
+            )
+        )
+
+    # Sort events chronologically
+    events.sort(key=lambda e: e.date)
+
+    # Format summary
+    summary_parts = [
+        f"Window {start_dt.strftime('%Y-%m-%d')} to {end_dt.strftime('%Y-%m-%d')} ({days} days):",
+        f"{len(events)} planetary transit triggers detected for {natal_chart.ascendant.sign} Lagna / {natal_moon.sign} Chandra Lagna.",
+    ]
+    if chandrashtama_periods:
+        c_strs = [f"{p.start_date} to {p.end_date}" for p in chandrashtama_periods]
+        summary_parts.append(f"Chandrashtama (Moon in {chandrashtama_sign_name}): {'; '.join(c_strs)}.")
+
+    return TransitWindowReport(
+        start_date=start_dt.strftime("%Y-%m-%d"),
+        end_date=end_dt.strftime("%Y-%m-%d"),
+        days_scanned=days,
+        natal_lagna_sign=natal_chart.ascendant.sign,
+        natal_moon_sign=natal_moon.sign,
+        events=events,
+        chandrashtama_periods=chandrashtama_periods,
+        summary=" ".join(summary_parts),
     )

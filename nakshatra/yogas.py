@@ -87,6 +87,7 @@ class YogaCategory(str, Enum):
     VIPARITA = "Viparita Raja Yoga"
     RAJA = "Raja Yoga"
     DHANA = "Dhana Yoga"
+    PARIVARTANA = "Parivartana Yoga"
 
 
 class YogaResult(BaseModel):
@@ -329,6 +330,15 @@ def _detect_kemadruma(chart: ChartData) -> list[YogaResult]:
 
 # 4. Neechabhanga Raja Yoga
 def _detect_neechabhanga(chart: ChartData) -> list[YogaResult]:
+    """Detect classical Phaladeepika & BPHS Neechabhanga Raja Yoga.
+
+    Cancellation requires genuine external strength from dispositor or exaltation lords:
+    1. Dispositor of debilitated sign is in Kendra from Lagna or Moon.
+    2. Planet exalted in that sign is in Kendra from Lagna or Moon.
+    3. Lord of the planet's own exaltation sign is in Kendra from Lagna or Moon.
+    4. Dispositor directly aspects the debilitated planet.
+    5. Dispositor in Dusthana (6/8/12) is flagged as delaying/moderating full manifestation.
+    """
     results: list[YogaResult] = []
     debilitated_planets = [p for p in chart.planets if p.dignity == "debilitated"]
     moon = _get_planet(chart, "Moon")
@@ -336,12 +346,15 @@ def _detect_neechabhanga(chart: ChartData) -> list[YogaResult]:
     for p in debilitated_planets:
         cancellation_rules: list[str] = []
         rule_planets: list[str] = [p.name]
+        dispositor_in_dusthana = False
 
         # 1. Sign lord (dispositor) of debilitated sign
         dispositor_name = SIGN_LORDS.get(p.sign)
         dispositor = _get_planet(chart, dispositor_name) if dispositor_name else None
 
         if dispositor and dispositor_name:
+            if dispositor.house in DUSTHANA_HOUSES:
+                dispositor_in_dusthana = True
             # Rule 1a: Dispositor in Kendra from Lagna
             if dispositor.house in KENDRA_HOUSES:
                 cancellation_rules.append(
@@ -356,8 +369,7 @@ def _detect_neechabhanga(chart: ChartData) -> list[YogaResult]:
                 if dispositor_name not in rule_planets:
                     rule_planets.append(dispositor_name)
 
-        # 2. Lord of the exaltation sign of the debilitated sign
-        # Which planet is exalted in p.sign?
+        # 2. Planet that is exalted in the debilitated sign
         exalted_in_sign = None
         for plan, ex_sign in EXALTATION_SIGNS.items():
             if ex_sign == p.sign:
@@ -381,20 +393,48 @@ def _detect_neechabhanga(chart: ChartData) -> list[YogaResult]:
                     if exalted_in_sign not in rule_planets:
                         rule_planets.append(exalted_in_sign)
 
-        # 3. Debilitated planet itself in Kendra from Lagna
-        if p.house in KENDRA_HOUSES:
-            cancellation_rules.append(
-                f"Debilitated planet {p.name} itself occupies Kendra (House {p.house}) from Lagna"
-            )
+        # 3. Lord of the planet's own exaltation sign is in Kendra from Lagna or Moon
+        own_ex_sign = EXALTATION_SIGNS.get(p.name)
+        if own_ex_sign:
+            ex_sign_lord = SIGN_LORDS.get(own_ex_sign)
+            if ex_sign_lord:
+                ex_lord_planet = _get_planet(chart, ex_sign_lord)
+                if ex_lord_planet:
+                    if ex_lord_planet.house in KENDRA_HOUSES:
+                        cancellation_rules.append(
+                            f"Lord of {p.name}'s exaltation sign ({ex_sign_lord}) in Kendra (House {ex_lord_planet.house}) from Lagna"
+                        )
+                        if ex_sign_lord not in rule_planets:
+                            rule_planets.append(ex_sign_lord)
+                    if moon and _house_distance(moon.house, ex_lord_planet.house) in KENDRA_HOUSES:
+                        cancellation_rules.append(
+                            f"Lord of {p.name}'s exaltation sign ({ex_sign_lord}) in Kendra ({_ordinal(_house_distance(moon.house, ex_lord_planet.house))}) from Moon"
+                        )
+                        if ex_sign_lord not in rule_planets:
+                            rule_planets.append(ex_sign_lord)
 
-        # 4. Debilitated planet itself in Kendra from Moon (if planet is not Moon itself)
-        if moon and p.name != "Moon" and _house_distance(moon.house, p.house) in KENDRA_HOUSES:
-            cancellation_rules.append(
-                f"Debilitated planet {p.name} occupies Kendra ({_ordinal(_house_distance(moon.house, p.house))}) from Moon"
-            )
+        # 4. Dispositor aspects the debilitated planet (Vedic Graha Drishti)
+        if dispositor:
+            vedic_asps = getattr(chart, "vedic_aspects", [])
+            for asp in vedic_asps:
+                asp_p = getattr(asp, "planet", None) or (asp.get("planet") if isinstance(asp, dict) else None)
+                asp_th = getattr(asp, "target_house", None) or (asp.get("target_house") if isinstance(asp, dict) else None)
+                if asp_p == dispositor.name and asp_th == p.house:
+                    cancellation_rules.append(
+                        f"Dispositor {dispositor.name} casts Graha Drishti on debilitated {p.name} in House {p.house}"
+                    )
+                    if dispositor.name not in rule_planets:
+                        rule_planets.append(dispositor.name)
 
         if cancellation_rules:
-            strength = "Strong" if len(cancellation_rules) >= 2 else "Moderate"
+            if dispositor_in_dusthana:
+                strength = "Moderate" if len(cancellation_rules) >= 2 else "Mild"
+                cancellation_rules.append(
+                    f"Note: Dispositor {dispositor_name} situated in Dusthana (House {dispositor.house}) moderates early manifestation with initial friction"
+                )
+            else:
+                strength = "Strong" if len(cancellation_rules) >= 2 else "Moderate"
+
             results.append(
                 YogaResult(
                     name=f"Neechabhanga Raja Yoga ({p.name})",
@@ -751,6 +791,89 @@ def _detect_raja_and_dhana(chart: ChartData) -> list[YogaResult]:
     return results
 
 
+# 9. Parivartana Yogas (Mutual Sign Exchange)
+def _detect_parivartana(chart: ChartData) -> list[YogaResult]:
+    """Detect classical Parivartana Yogas (mutual sign exchange between two planet lords).
+
+    Phaladeepika Ch 6 & BPHS:
+    1. Maha Yoga (Exchanges between Kendra/Trikona/2nd/11th lords: 1, 2, 4, 5, 7, 9, 10, 11):
+       Bestows enduring prosperity, sovereignty, status, and divine protection.
+    2. Kahala Yoga (Exchange involving 3rd house lord with 1, 2, 4, 5, 7, 9, 10, 11 lords):
+       Bestows valor, fighting spirit, persistence, bold initiatives, self-made fortune.
+    3. Dainya Yoga (Exchange involving any Dusthana house lord: 6, 8, 12 with any house):
+       Indicates struggle, expenditure, spiritual renunciation, unconventional career paths, or sudden reversals.
+    """
+    results: list[YogaResult] = []
+    classical_planets = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"]
+    planet_objs = {p.name: p for p in chart.planets if p.name in classical_planets}
+    seen_pairs: set[tuple[str, str]] = set()
+
+    for p1_name in classical_planets:
+        p1 = planet_objs.get(p1_name)
+        if not p1:
+            continue
+        p2_name = SIGN_LORDS.get(p1.sign)
+        if not p2_name or p2_name == p1_name or p2_name not in planet_objs:
+            continue
+        p2 = planet_objs[p2_name]
+        if SIGN_LORDS.get(p2.sign) == p1_name:
+            pair_key = tuple(sorted([p1_name, p2_name]))
+            if pair_key in seen_pairs:
+                continue
+            seen_pairs.add(pair_key)
+
+            h1 = p1.house
+            h2 = p2.house
+
+            if h1 in DUSTHANA_HOUSES or h2 in DUSTHANA_HOUSES:
+                yoga_name = f"Dainya Parivartana Yoga ({p1_name} & {p2_name})"
+                strength = "Moderate"
+                desc = (
+                    f"Mutual sign exchange (Parivartana) involving Dusthana house(s): "
+                    f"{p1_name} (in House {h1}, sign of {p2_name}) and {p2_name} (in House {h2}, sign of {p1_name})."
+                )
+                effects = (
+                    f"Karmic exchange between House {h1} and House {h2}. Generates volatile experiences, "
+                    "transformations through adversity, expenditures, or unconventional paths, "
+                    "with deep potential for spiritual awakening and detachment."
+                )
+            elif h1 == 3 or h2 == 3:
+                yoga_name = f"Kahala Parivartana Yoga ({p1_name} & {p2_name})"
+                strength = "Strong"
+                desc = (
+                    f"Mutual sign exchange involving the 3rd house of courage: "
+                    f"{p1_name} (in House {h1}) and {p2_name} (in House {h2})."
+                )
+                effects = (
+                    "Endows courageous determination, entrepreneurial valor, self-made success through relentless effort."
+                )
+            else:
+                yoga_name = f"Maha Parivartana Yoga ({p1_name} & {p2_name})"
+                strength = "Strong"
+                desc = (
+                    f"Auspicious mutual sign exchange between benefic houses: "
+                    f"{p1_name} (in House {h1}) and {p2_name} (in House {h2})."
+                )
+                effects = (
+                    "Highly auspicious classical Raja-Dhana yoga. Bestows enduring leadership, prestige, wealth, and sovereign authority."
+                )
+
+            results.append(
+                YogaResult(
+                    name=yoga_name,
+                    category=YogaCategory.PARIVARTANA,
+                    description=desc,
+                    is_formed=True,
+                    strength=strength,
+                    planets_involved=[p1_name, p2_name],
+                    houses_involved=[h1, h2],
+                    effects=effects,
+                )
+            )
+
+    return results
+
+
 def detect_yogas(chart: ChartData) -> list[YogaResult]:
     """
     Execute complete rule-based Vedic Yoga detection over ChartData.
@@ -764,6 +887,7 @@ def detect_yogas(chart: ChartData) -> list[YogaResult]:
     yogas.extend(_detect_surya_yogas(chart))
     yogas.extend(_detect_viparita_raja(chart))
     yogas.extend(_detect_raja_and_dhana(chart))
+    yogas.extend(_detect_parivartana(chart))
     return yogas
 
 

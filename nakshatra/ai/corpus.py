@@ -63,35 +63,107 @@ YOGA_TERMS = [
 # Bodies for topic tagging (grahas + nodes + angles)
 TOPIC_BODIES = VEDIC_PLANETS + ["Rahu", "Ketu", "Lagna", "Ascendant"]
 
+COMMON_CORPUS_WORDS = {
+    "the", "in", "of", "and", "to", "a", "is", "will", "he", "lord", "house", "planet",
+    "planets", "sign", "signs", "sage", "maitreya", "parasara", "ascendant", "moon",
+    "sun", "mars", "jupiter", "venus", "saturn", "rahu", "ketu", "from", "with", "by",
+    "for", "as", "his", "her", "that", "this", "be", "are", "or", "an", "at", "if",
+    "born", "native", "effects", "results", "chapter", "verse", "shloka", "bhavas",
+    "bhava", "rasi", "degrees", "dasha", "ashtakavarga", "bindus", "yoga", "yogas",
+    "good", "wealth", "gives", "full", "aspect", "also", "person", "said", "tell",
+    "brahmin", "venerable", "who", "when", "one", "all", "its", "not", "have", "been",
+}
+
+
+def is_corrupted_glyph_line(line_s: str) -> bool:
+    """Detect non-Unicode / legacy font Sanskrit glyph noise and scanner running headers."""
+    if not line_s:
+        return False
+    # Standalone line numbers, page numbers, or legacy sloka markers like 'ii^ii', 'll^u', '|| 1 ||'
+    if re.match(
+        r"^(?:[0-9]{1,4}|[ivxlcdm]{1,6}|ii\^?ii|ll\^?[u\d]|\|\|.*\|\||\*.*\*|!\s*[I|])$",
+        line_s,
+        re.I,
+    ):
+        return True
+    # Book running headers
+    if re.match(
+        r"^(?:Brihat Parasara Hora Sastra|Hora Sastra|BPHS|Maharishi Parasara)\s*$",
+        line_s,
+        re.I,
+    ):
+        return True
+    # Chapter with page number running headers, e.g. 'Chapter 6 83'
+    if re.match(r"^(?:Chapter|Ch\.?)\s*\d+\s+\d+\s*$", line_s, re.I):
+        return True
+    if "^" in line_s or "~" in line_s:
+        words = re.findall(r"[a-zA-Z]+", line_s.lower())
+        has_english = any(w in COMMON_CORPUS_WORDS for w in words)
+        if not has_english:
+            return True
+        if any(len(w) > 3 and not re.search(r"[aeiouy]", w) for w in words):
+            return True
+    words = re.findall(r"[a-zA-Z]+", line_s.lower())
+    if not words:
+        return True
+    has_english = any(w in COMMON_CORPUS_WORDS for w in words)
+    if not has_english:
+        if re.search(r"[\*?|\\#~:]", line_s):
+            return True
+        if len(line_s) < 60 and any(len(w) > 3 and not re.search(r"[aeiouy]", w) for w in words):
+            return True
+    return False
+
+
+def clean_corpus_text(text: str) -> str:
+    """Sanitize scanned astrological texts: strip font glyph noise and re-join hyphenated words."""
+    # 1. Reconnect hyphenated words split across lines (e.g. ex- \n altation -> exaltation)
+    text = re.sub(r"([a-zA-Z]{2,})-\s*\n\s*([a-zA-Z]{2,})", r"\1\2\n", text)
+    # 2. Fix carets embedded inside words (e.g. the^situations -> the situations)
+    text = re.sub(r"([a-zA-Z]+)\^([a-zA-Z]+)", r"\1 \2", text)
+
+    cleaned_lines: list[str] = []
+    for line in text.splitlines():
+        line_s = line.strip()
+        if not line_s:
+            cleaned_lines.append("")
+            continue
+        if is_corrupted_glyph_line(line_s):
+            continue
+        cleaned_lines.append(line)
+    return "\n".join(cleaned_lines)
+
+
 VERSE_HEADER_PATTERNS: list[re.Pattern[str]] = [
     # "Chapter 3, Verse 12:" / "Ch. 3, Shloka 12:" / "Chapter 3 - Verse 12:"
     re.compile(
         r"^\s*\[?\s*(?:chapter|ch\.?)\s*(?P<chapter>\d+)\s*[,.\-–—]?\s*"
-        r"(?:verse|shloka|sloka|sutra|v\.?)\s*(?P<verse>\d+)\s*[:.\-–—]?\s*\]?\s*(?P<text>.*)$",
+        r"(?:verse|shloka|sloka|sutra|v\.?)\s*(?P<verse>\d+(?:[-–—]\d+)?)\s*[:.\-–—]?\s*\]?\s*(?P<text>.*)$",
         re.IGNORECASE,
     ),
     # "Verse 12:" / "Shloka 12:" (chapter from surrounding context)
     re.compile(
-        r"^\s*\[?\s*(?:verse|shloka|sloka|sutra)\s*(?P<verse>\d+)\s*[:.\-–—]?\s*\]?\s*(?P<text>.*)$",
+        r"^\s*\[?\s*(?:verse|shloka|sloka|sutra)\s*(?P<verse>\d+(?:[-–—]\d+)?)\s*[:.\-–—]?\s*\]?\s*(?P<text>.*)$",
         re.IGNORECASE,
     ),
     # "Rule 12:" / "Aphorism 12:" / "Principle 12:" (for rule-by-rule texts like Majumdar)
     re.compile(
-        r"^\s*\[?\s*(?:rule|aphorism|principle)\s*(?P<verse>\d+)\s*[:.\-–—]?\s*\]?\s*(?P<text>.*)$",
+        r"^\s*\[?\s*(?:rule|aphorism|principle)\s*(?P<verse>\d+(?:[-–—]\d+)?)\s*[:.\-–—]?\s*\]?\s*(?P<text>.*)$",
         re.IGNORECASE,
     ),
-    # "3.12:" decimal chapter.verse numbering (short lines only to avoid
-    # false positives on decimals in prose; chapter 1-99, verse 1-999)
+    # "3.12:" decimal chapter.verse numbering with colon (chapter 1-99, verse 1-999)
     re.compile(
         r"^\s*(?P<chapter>[1-9]\d{0,1})\.(?P<verse>[1-9]\d{0,2})"
-        r"\s*[:.\-–—]?\s*(?P<text>\S.*)$",
+        r"\s*[:]\s*(?P<text>\S.*)$",
     ),
-    # "3-12:" hyphen chapter-verse numbering (Santhanam e-text style,
-    # short lines only to avoid prose ranges like "pages 145-148";
-    # chapter 1-99, verse 1-999)
+    # "3-12:" hyphen chapter-verse numbering with colon (e.g. "3-12: Saturn...")
     re.compile(
         r"^\s*(?P<chapter>[1-9]\d{0,1})[-–—](?P<verse>[1-9]\d{0,2})"
-        r"\s*[:.\-–—]?\s*(?P<text>\S.*)$",
+        r"\s*[:]\s*(?P<text>\S.*)$",
+    ),
+    # Verse range in current chapter (e.g. "1-4. Maitreya said..." or "5. The Sage said..." or "-9-12. Sri Vishnu...")
+    re.compile(
+        r"^\s*[-–—]?\s*(?P<verse>\d+(?:[-–—]\d+)?)\.\s+(?P<text>[A-Za-z‘'\"“].*)$",
     ),
 ]
 
@@ -250,7 +322,8 @@ def chunk_text(
             chunks.append(chunk)
             stats[tier] += 1
 
-    for line in text.splitlines():
+    sanitized = clean_corpus_text(text)
+    for line in sanitized.splitlines():
         line_len = len(line) + 1  # +1 for the newline
 
         chapter_match = CHAPTER_HEADER_PATTERN.match(line)

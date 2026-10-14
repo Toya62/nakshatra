@@ -56,7 +56,12 @@ from nakshatra.muhurtha import (
 )
 from nakshatra.panchanga import PanchangaData, calculate_panchanga
 from nakshatra.privacy import PrivacyMiddleware, get_privacy_statement
-from nakshatra.transits import TransitReport, calculate_transits
+from nakshatra.transits import (
+    TransitReport,
+    TransitWindowReport,
+    calculate_transits,
+    scan_transit_window,
+)
 from nakshatra.yogas import (
     YogaResult,
     detect_yogas,
@@ -154,6 +159,33 @@ class TransitResponse(BaseModel):
 
     success: bool = True
     data: TransitReport
+    meta: dict = Field(default_factory=dict)
+
+
+class TransitWindowRequest(BaseModel):
+    """Monthly transit window scan request."""
+
+    year: int = Field(..., ge=1, le=3000, description="Natal birth year")
+    month: int = Field(..., ge=1, le=12, description="Natal birth month")
+    day: int = Field(..., ge=1, le=31, description="Natal birth day")
+    hour: int = Field(..., ge=0, le=23, description="Natal birth hour (24-hour format)")
+    minute: int = Field(..., ge=0, le=59, description="Natal birth minute")
+    second: int = Field(0, ge=0, le=59, description="Natal birth second")
+    latitude: float = Field(..., ge=-90, le=90, description="Natal birth latitude")
+    longitude: float = Field(..., ge=-180, le=180, description="Natal birth longitude")
+    timezone: str = Field(..., description="IANA timezone")
+    place_name: str | None = Field(None, description="Place name")
+    ayanamsa: Ayanamsa = Field(Ayanamsa.JHORA_LAHIRI)
+    house_system: HouseSystem = Field(HouseSystem.WHOLE_SIGN)
+    start_date: datetime | None = Field(None, description="Start datetime of window (defaults to now)")
+    days: int = Field(30, ge=1, le=180, description="Number of days to scan (default: 30)")
+
+
+class TransitWindowResponse(BaseModel):
+    """Monthly transit window scan response."""
+
+    success: bool = True
+    data: TransitWindowReport
     meta: dict = Field(default_factory=dict)
 
 
@@ -597,6 +629,35 @@ async def create_transits(request: TransitRequest) -> TransitResponse:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Calculation error: {str(e)}")
+
+
+@app.post("/transits/window", response_model=TransitWindowResponse, tags=["Transits"])
+async def scan_transit_window_endpoint(request: TransitWindowRequest) -> TransitWindowResponse:
+    """
+    Scan upcoming monthly transit window (default 30 days) for a natal chart:
+    - Planetary Ingresses (sign changes, e.g. Sun into Libra)
+    - Planetary Stations (planets turning Retrograde or Direct)
+    - Chandrashtama periods (Moon transiting 8th from natal Moon)
+    """
+    try:
+        natal_chart = _build_chart(request)
+        report = scan_transit_window(
+            natal_chart=natal_chart,
+            start_date=request.start_date,
+            days=request.days,
+        )
+        return TransitWindowResponse(
+            data=report,
+            meta={
+                "ayanamsa_used": request.ayanamsa.value,
+                "days_scanned": request.days,
+                "zodiac": "sidereal",
+            },
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Scan error: {str(e)}")
 
 
 @app.get("/panchanga", response_model=PanchangaResponse, tags=["Panchanga"])
