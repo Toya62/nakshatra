@@ -49,6 +49,7 @@ from nakshatra.geocoding import (
     resolve_timezone_offset,
     search_places,
 )
+from nakshatra.licensing import get_licensing_statement
 from nakshatra.muhurtha import (
     MuhurthaReport,
     calculate_muhurtha,
@@ -267,9 +268,14 @@ app = FastAPI(
     title="Nakshatra - Vedic Astrology AI Engine",
     description=(
         "JSON API for Vedic birth charts with Vimshottari Dashas, Vargas, "
-        "Ashtakavarga, Shadbala, and Gochar Transits"
+        "Ashtakavarga, Shadbala, and Gochar Transits. Compliant with AGPL-3.0 and ephemeral GDPR zero-logging policy."
     ),
     version="0.1.0",
+    license_info={
+        "name": "GNU Affero General Public License v3.0 (AGPL-3.0)",
+        "url": "https://www.gnu.org/licenses/agpl-3.0.en.html",
+    },
+    terms_of_service="https://toya62-nakshatra.hf.space/privacy",
     lifespan=lifespan,
 )
 
@@ -289,6 +295,12 @@ _rag_service = RAGService()
 async def privacy_policy() -> dict[str, Any]:
     """Return explicit GDPR data handling and zero-log guarantee."""
     return get_privacy_statement()
+
+
+@app.get("/legal/licensing", tags=["System"])
+async def licensing_policy() -> dict[str, Any]:
+    """Return Swiss Ephemeris and classical corpus licensing disclosures."""
+    return get_licensing_statement()
 
 
 def _format_chart(chart: ChartData, fmt: str) -> Response:
