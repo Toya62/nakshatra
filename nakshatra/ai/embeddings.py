@@ -172,8 +172,8 @@ class EmbeddingStore:
         norm = float(np.linalg.norm(query_vec))
         if norm == 0.0:
             return []
-        query_vec = query_vec / norm
-        scores = self._vectors @ query_vec
+        normalized_vec = query_vec / norm
+        scores = self._vectors @ normalized_vec
         top_indices = np.argsort(-scores)[:top_k]
         return [
             SearchResult(
