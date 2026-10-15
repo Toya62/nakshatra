@@ -427,7 +427,7 @@ def _detect_neechabhanga(chart: ChartData) -> list[YogaResult]:
                         rule_planets.append(dispositor.name)
 
         if cancellation_rules:
-            if dispositor_in_dusthana:
+            if dispositor_in_dusthana and dispositor:
                 strength = "Moderate" if len(cancellation_rules) >= 2 else "Mild"
                 cancellation_rules.append(
                     f"Note: Dispositor {dispositor_name} situated in Dusthana (House {dispositor.house}) moderates early manifestation with initial friction"
@@ -806,7 +806,7 @@ def _detect_parivartana(chart: ChartData) -> list[YogaResult]:
     results: list[YogaResult] = []
     classical_planets = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"]
     planet_objs = {p.name: p for p in chart.planets if p.name in classical_planets}
-    seen_pairs: set[tuple[str, str]] = set()
+    seen_pairs: set[tuple[str, ...]] = set()
 
     for p1_name in classical_planets:
         p1 = planet_objs.get(p1_name)

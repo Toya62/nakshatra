@@ -59,7 +59,7 @@ jobs:
 
       - name: Install Node dependencies
         working-directory: web
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Build Next.js Web App
         working-directory: web

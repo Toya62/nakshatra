@@ -23,9 +23,7 @@ from typing import TYPE_CHECKING, Any
 from pydantic import BaseModel, Field
 
 from nakshatra.core import (
-    CHART_BODIES,
     SIGN_LORDS,
-    VEDIC_PLANETS,
     ZODIAC_SIGNS,
     ChartData,
     HouseCusp,
@@ -33,12 +31,9 @@ from nakshatra.core import (
     calculate_dignity,
 )
 from nakshatra.yogas import (
-    EXALTATION_SIGNS,
     NATURAL_BENEFICS,
     NATURAL_MALEFICS,
-    OWN_SIGNS,
     YogaResult,
-    detect_yogas,
 )
 
 if TYPE_CHECKING:
@@ -263,7 +258,7 @@ def filter_active_yogas(
         # If no active dasha specified, return all prominent formed yogas
         return formed_yogas[:6]
 
-    active_lords = {l.strip().lower() for l in (md_lord, ad_lord) if l}
+    active_lords = {lord.strip().lower() for lord in (md_lord, ad_lord) if lord}
     triggered: list[YogaResult] = []
     for y in formed_yogas:
         planets_in_yoga = {p.strip().lower() for p in y.planets_involved}
@@ -302,12 +297,10 @@ def evaluate_career(
     karakas = ["Sun", "Saturn", "Mercury"]
 
     # 1. 10th House & Lord analysis
-    h10 = get_house_by_number(chart, 10)
     lord10_name = get_house_lord(chart, 10)
     p_lord10 = get_planet_by_name(chart, lord10_name) if lord10_name else None
     occupants = get_house_occupants(chart, 10)
     sav10 = get_house_sav(chart, 10)
-    sav11 = get_house_sav(chart, 11)
 
     promise_parts: list[str] = []
     if lord10_name and p_lord10:
@@ -480,7 +473,6 @@ def evaluate_relationship(
     primary_houses = [7, 1, 2, 11]
     karakas = ["Venus", "Jupiter"]
 
-    h7 = get_house_by_number(chart, 7)
     lord7_name = get_house_lord(chart, 7)
     p_lord7 = get_planet_by_name(chart, lord7_name) if lord7_name else None
     occupants = get_house_occupants(chart, 7)
@@ -634,7 +626,6 @@ def evaluate_wealth(
     lord11_name = get_house_lord(chart, 11)
     p_lord2 = get_planet_by_name(chart, lord2_name) if lord2_name else None
     p_lord11 = get_planet_by_name(chart, lord11_name) if lord11_name else None
-    sav2 = get_house_sav(chart, 2)
     sav11 = get_house_sav(chart, 11)
     sav12 = get_house_sav(chart, 12)
 
@@ -714,7 +705,7 @@ def evaluate_wealth(
             )
 
     tier = _score_to_tier(score)
-    primary_lords = [l for l in (lord2_name, lord11_name) if l]
+    primary_lords = [lord for lord in (lord2_name, lord11_name) if lord]
     act_yogas = filter_active_yogas(chart, md_lord, ad_lord)
     dhana_yogas = [y.name for y in act_yogas if y.category.value == "Dhana Yoga"]
 
@@ -821,7 +812,7 @@ def evaluate_spiritual_dharma(
             transit_parts.append("Double transit activates Dharma / Moksha Bhavas, awakening deeper purpose.")
 
     tier = _score_to_tier(score)
-    primary_lords = [l for l in (lord9_name, lord12_name) if l]
+    primary_lords = [lord for lord in (lord9_name, lord12_name) if lord]
     act_yogas = filter_active_yogas(chart, md_lord, ad_lord)
 
     return DomainPrediction(
@@ -939,7 +930,7 @@ def evaluate_health(
             transit_parts.append(f"Sade Sati ({ss.phase}) advises pacing mental energy.")
 
     tier = _score_to_tier(score)
-    primary_lords = [l for l in (lord1_name, lord6_name) if l]
+    primary_lords = [lord for lord in (lord1_name, lord6_name) if lord]
     act_yogas = filter_active_yogas(chart, md_lord, ad_lord)
 
     return DomainPrediction(

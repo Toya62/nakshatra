@@ -450,6 +450,8 @@ class LLMSynthesizer(BaseSynthesizer):
                     "The openai package is required for the openai/ollama "
                     "provider. Install it with: pip install 'nakshatra[ai]'"
                 ) from e
+            base_url: str | None
+            api_key: str | None
             if self.provider == "ollama":
                 base_url = (
                     self._base_url

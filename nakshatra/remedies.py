@@ -13,12 +13,9 @@ from __future__ import annotations
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from nakshatra.core import (
-    SIGN_LORDS,
-    VEDIC_PLANETS,
-    ZODIAC_SIGNS,
     ChartData,
     PlanetPosition,
     calculate_dignity,

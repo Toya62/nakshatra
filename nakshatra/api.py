@@ -389,7 +389,7 @@ def _format_chart(chart: ChartData, fmt: str) -> Response:
     return Response(content=content, media_type=media_type)
 
 
-def _build_chart(request: ChartRequest | TransitRequest) -> ChartData:
+def _build_chart(request: ChartRequest | TransitRequest | TransitWindowRequest) -> ChartData:
     """Calculate a natal chart from a ChartRequest or TransitRequest."""
     birth = BirthData(
         year=request.year,
