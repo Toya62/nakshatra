@@ -2,18 +2,20 @@
 
 import React from "react";
 import {
-  Sparkles,
-  Moon,
-  Compass,
-  Clock,
-  BookOpen,
-  Heart,
-  Sun,
   ChevronLeft,
   ChevronRight,
   Menu,
-  ShieldCheck,
 } from "lucide-react";
+import {
+  KundaliIcon,
+  GocharIcon,
+  DashaIcon,
+  PanchangaIcon,
+  MatchingIcon,
+  MuhurthaIcon,
+  RemediesIcon,
+  ConsultationIcon,
+} from "@/components/VedicIcons";
 
 export type TabId =
   | "chart"
@@ -35,16 +37,16 @@ interface Props {
 }
 
 const TABS: { id: TabId; label: string; Icon: React.ElementType; hint?: string }[] = [
-  { id: "chart",         label: "Birth Chart",        Icon: Sparkles },
-  { id: "transits",      label: "Transits (Gochar)",  Icon: Compass  },
-  { id: "dasha",         label: "Vimshottari Dasha",  Icon: Clock    },
-  { id: "panchanga",     label: "Daily Panchanga",    Icon: Moon     },
-  { id: "compatibility", label: "Kundali Matching",   Icon: Heart    },
-  { id: "muhurtha",      label: "Muhurtha & Horas",   Icon: Sun      },
-  { id: "remedies",      label: "Remedies & Upayas",  Icon: ShieldCheck, hint: "Parashari & Lal Kitab" },
+  { id: "chart",         label: "Birth Chart",        Icon: KundaliIcon },
+  { id: "transits",      label: "Transits (Gochar)",  Icon: GocharIcon  },
+  { id: "dasha",         label: "Vimshottari Dasha",  Icon: DashaIcon   },
+  { id: "panchanga",     label: "Daily Panchanga",    Icon: PanchangaIcon },
+  { id: "compatibility", label: "Kundali Matching",   Icon: MatchingIcon },
+  { id: "muhurtha",      label: "Muhurtha & Horas",   Icon: MuhurthaIcon },
+  { id: "remedies",      label: "Remedies & Upayas",  Icon: RemediesIcon, hint: "Parashari & Lal Kitab" },
 ];
 
-const CONSULT = { id: "consult" as TabId, label: "AI Consultation", Icon: BookOpen };
+const CONSULT = { id: "consult" as TabId, label: "AI Consultation", Icon: ConsultationIcon };
 
 export const Sidebar: React.FC<Props> = ({
   activeTab,

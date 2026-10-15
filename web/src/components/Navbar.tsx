@@ -62,30 +62,28 @@ export const Navbar: React.FC<Props> = ({
         {/* Logo mark */}
         <div
           style={{
-            width: "32px",
-            height: "32px",
-            borderRadius: "9px",
-            background: "linear-gradient(135deg, #e5b94c 0%, #7c3aed 100%)",
+            width: "34px",
+            height: "34px",
+            borderRadius: "8px",
+            overflow: "hidden",
+            border: "1px solid rgba(223, 177, 91, 0.4)",
+            boxShadow: "0 0 12px rgba(223, 177, 91, 0.25)",
+            flexShrink: 0,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            flexShrink: 0,
-            boxShadow: "var(--gold-glow)",
+            background: "#080c16",
           }}
           aria-hidden="true"
         >
-          {/* Nakshatra glyph — ✦ */}
-          <span
-            style={{
-              color: "#fff",
-              fontSize: "14px",
-              fontWeight: 700,
-              lineHeight: 1,
-              fontFamily: "var(--font-serif)",
-            }}
-          >
-            ✦
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/app-icon.jpg"
+            alt="Nakshatra Emblem"
+            width={34}
+            height={34}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
         </div>
 
         <div>

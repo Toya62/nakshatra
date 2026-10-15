@@ -688,7 +688,6 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
           type="submit"
           disabled={loading || !input.trim()}
           className="btn-primary"
-          style={{ padding: "0 22px", borderRadius: "var(--radius-md)" }}
           aria-label="Send question"
         >
           <Send size={16} aria-hidden="true" />

@@ -5,7 +5,8 @@ export const metadata: Metadata = {
   title: "Nakshatra | Vedic Astrology AI Engine",
   description: "Swiss Ephemeris Birth Charts, Shodashavarga, Gochar Transits, Vimshottari Dashas, and Scripture-Grounded AI Consultations",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/app-icon.jpg",
+    apple: "/app-icon.jpg",
   },
 };
 

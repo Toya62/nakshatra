@@ -98,6 +98,28 @@
   --space-4-5: 18px;
   --size-8: 8px;
   --size-10: 10px;
+
+  /* ─── Graha (Planetary) Design Tokens ─────────────────────────────────────── */
+  --graha-pill-width: 80px;
+  --graha-pill-height: 22px;
+  --graha-pill-radius: 4px;
+  --graha-pill-stroke: 0.9px;
+  --graha-font-name: 11.5px;
+  --graha-font-retro: 9px;
+  --graha-font-degree: 10px;
+
+
+  /* Graha Palette Tokens */
+  --graha-asc: #fde047;
+  --graha-sun: #f59e0b;
+  --graha-moon: #e2e8f0;
+  --graha-mars: #f87171;
+  --graha-mercury: #34d399;
+  --graha-jupiter: #fbbf24;
+  --graha-venus: #f472b6;
+  --graha-saturn: #818cf8;
+  --graha-rahu: #c084fc;
+  --graha-ketu: #94a3b8;
 }
 
 /* ─── Reset ─────────────────────────────────────────────────────────────── */
@@ -301,13 +323,13 @@ body::before {
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  padding: 10px 20px;
-  background: linear-gradient(135deg, #dfb15b 0%, #ba892b 100%);
+  padding: var(--space-2-5) var(--space-4);
+  background: linear-gradient(135deg, var(--gold-vivid) 0%, var(--gold-dim) 100%);
   color: #070a12;
   font-family: var(--font-sans);
   font-size: var(--type-body);
   font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: var(--border-width) solid rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
@@ -333,34 +355,47 @@ body::before {
 .btn-secondary {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-2);
-  padding: 8px 16px;
+  padding: var(--space-2) var(--space-3-5);
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-high);
   font-family: var(--font-sans);
   font-size: var(--type-body);
   font-weight: 500;
-  border: 1px solid var(--border-subtle);
+  border: var(--border-width) solid var(--border-subtle);
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: background 0.18s ease, border-color 0.18s ease;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
 
 .btn-secondary:hover {
   background: rgba(255, 255, 255, 0.09);
   border-color: var(--gold-border);
+  color: var(--text-bright);
+}
+
+.btn-secondary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-ghost {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: 6px 10px;
+  justify-content: center;
+  gap: var(--space-1-5);
+  padding: var(--space-1-5) var(--space-2-5);
   background: transparent;
   color: var(--text-mid);
   font-family: var(--font-sans);
   font-size: var(--type-label);
-  border: none;
+  font-weight: 500;
+  border: var(--border-width) solid transparent;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
@@ -369,6 +404,50 @@ body::before {
 .btn-ghost:hover {
   background: rgba(255, 255, 255, 0.06);
   color: var(--text-high);
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3-5);
+  background: transparent;
+  color: var(--gold-bright);
+  font-family: var(--font-sans);
+  font-size: var(--type-body);
+  font-weight: 600;
+  border: var(--border-width) solid var(--gold-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.btn-outline:hover {
+  background: rgba(223, 177, 91, 0.12);
+  border-color: var(--gold-vivid);
+  box-shadow: 0 0 16px rgba(223, 177, 91, 0.2);
+}
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-high);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.btn-icon:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--border-medium);
+  color: var(--text-bright);
 }
 
 /* ─── Chip (replaces badge-as-button) ───────────────────────────────────── */
@@ -447,6 +526,19 @@ body::before {
   color: #fcd34d;
   border: 1px solid rgba(245, 158, 11, 0.28);
 }
+
+/* ─── Graha Chart SVG Classes ────────────────────────────────────────────── */
+.graha-pill {
+  rx: var(--graha-pill-radius);
+  stroke-width: var(--graha-pill-stroke);
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.graha-pill:hover {
+  filter: brightness(1.22) drop-shadow(0 0 6px rgba(223, 177, 91, 0.45));
+  cursor: pointer;
+}
+
 
 /* ─── Inputs ─────────────────────────────────────────────────────────────── */
 input, select, textarea {

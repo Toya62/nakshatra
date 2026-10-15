@@ -13,9 +13,9 @@ const BENEFICS  = new Set(["Jupiter", "Venus", "Moon", "Mercury"]);
 const MALEFICS  = new Set(["Sun", "Mars", "Saturn", "Rahu", "Ketu"]);
 
 function planetColor(name: string, isAsc: boolean): string {
-  if (isAsc) return "var(--gold-bright)";
-  if (BENEFICS.has(name))  return "#6ee7b7"; // emerald tint
-  if (MALEFICS.has(name))  return "#fda4af"; // rose tint
+  if (isAsc) return "var(--graha-asc, var(--gold-bright))";
+  if (BENEFICS.has(name))  return "var(--emerald, #6ee7b7)";
+  if (MALEFICS.has(name))  return "var(--rose, #fda4af)";
   return "var(--text-high)";
 }
 

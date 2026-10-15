@@ -61,16 +61,16 @@ interface GrahaStyle {
 }
 
 const GRAHA_STYLES: Record<string, GrahaStyle> = {
-  Asc: { abbr: "ASC", glyph: "👑", name: "Ascendant", color: "#fde047", bg: "rgba(253, 224, 71, 0.18)", border: "rgba(253, 224, 71, 0.55)" },
-  Su:  { abbr: "Su",  glyph: "☉",  name: "Sun",       color: "#f59e0b", bg: "rgba(245, 158, 11, 0.16)", border: "rgba(245, 158, 11, 0.45)" },
-  Mo:  { abbr: "Mo",  glyph: "☽",  name: "Moon",      color: "#e2e8f0", bg: "rgba(226, 232, 240, 0.16)", border: "rgba(226, 232, 240, 0.45)" },
-  Ma:  { abbr: "Ma",  glyph: "♂",  name: "Mars",      color: "#f87171", bg: "rgba(248, 113, 113, 0.16)", border: "rgba(248, 113, 113, 0.45)" },
-  Me:  { abbr: "Me",  glyph: "☿",  name: "Mercury",   color: "#34d399", bg: "rgba(52, 211, 153, 0.16)", border: "rgba(52, 211, 153, 0.45)" },
-  Ju:  { abbr: "Ju",  glyph: "♃",  name: "Jupiter",   color: "#fbbf24", bg: "rgba(251, 191, 36, 0.16)", border: "rgba(251, 191, 36, 0.45)" },
-  Ve:  { abbr: "Ve",  glyph: "♀",  name: "Venus",     color: "#f472b6", bg: "rgba(244, 114, 182, 0.16)", border: "rgba(244, 114, 182, 0.45)" },
-  Sa:  { abbr: "Sa",  glyph: "♄",  name: "Saturn",    color: "#818cf8", bg: "rgba(129, 140, 248, 0.16)", border: "rgba(129, 140, 248, 0.45)" },
-  Ra:  { abbr: "Ra",  glyph: "☊",  name: "Rahu",      color: "#c084fc", bg: "rgba(192, 132, 252, 0.16)", border: "rgba(192, 132, 252, 0.45)" },
-  Ke:  { abbr: "Ke",  glyph: "☋",  name: "Ketu",      color: "#94a3b8", bg: "rgba(148, 163, 184, 0.16)", border: "rgba(148, 163, 184, 0.45)" },
+  Asc: { abbr: "ASC", glyph: "👑", name: "Ascendant", color: "var(--graha-asc, #fde047)", bg: "rgba(253, 224, 71, 0.18)", border: "rgba(253, 224, 71, 0.55)" },
+  Su:  { abbr: "Su",  glyph: "☉",  name: "Sun",       color: "var(--graha-sun, #f59e0b)", bg: "rgba(245, 158, 11, 0.16)", border: "rgba(245, 158, 11, 0.45)" },
+  Mo:  { abbr: "Mo",  glyph: "☽",  name: "Moon",      color: "var(--graha-moon, #e2e8f0)", bg: "rgba(226, 232, 240, 0.16)", border: "rgba(226, 232, 240, 0.45)" },
+  Ma:  { abbr: "Ma",  glyph: "♂",  name: "Mars",      color: "var(--graha-mars, #f87171)", bg: "rgba(248, 113, 113, 0.16)", border: "rgba(248, 113, 113, 0.45)" },
+  Me:  { abbr: "Me",  glyph: "☿",  name: "Mercury",   color: "var(--graha-mercury, #34d399)", bg: "rgba(52, 211, 153, 0.16)", border: "rgba(52, 211, 153, 0.45)" },
+  Ju:  { abbr: "Ju",  glyph: "♃",  name: "Jupiter",   color: "var(--graha-jupiter, #fbbf24)", bg: "rgba(251, 191, 36, 0.16)", border: "rgba(251, 191, 36, 0.45)" },
+  Ve:  { abbr: "Ve",  glyph: "♀",  name: "Venus",     color: "var(--graha-venus, #f472b6)", bg: "rgba(244, 114, 182, 0.16)", border: "rgba(244, 114, 182, 0.45)" },
+  Sa:  { abbr: "Sa",  glyph: "♄",  name: "Saturn",    color: "var(--graha-saturn, #818cf8)", bg: "rgba(129, 140, 248, 0.16)", border: "rgba(129, 140, 248, 0.45)" },
+  Ra:  { abbr: "Ra",  glyph: "☊",  name: "Rahu",      color: "var(--graha-rahu, #c084fc)", bg: "rgba(192, 132, 252, 0.16)", border: "rgba(192, 132, 252, 0.45)" },
+  Ke:  { abbr: "Ke",  glyph: "☋",  name: "Ketu",      color: "var(--graha-ketu, #94a3b8)", bg: "rgba(148, 163, 184, 0.16)", border: "rgba(148, 163, 184, 0.45)" },
 };
 
 const SIGN_NAMES_TO_NUM: Record<string, number> = {
@@ -492,6 +492,7 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
                         <g key={pIdx} transform={`translate(0, ${posY})`}>
                           {/* Pill Base */}
                           <rect
+                            className="graha-pill"
                             x={-halfW}
                             y={-pillH / 2}
                             width={pillW}
@@ -575,6 +576,7 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
                     return (
                       <g key={pIdx} transform={`translate(${posX}, ${posY})`}>
                         <rect
+                          className="graha-pill"
                           x={-halfW}
                           y={-pillH / 2}
                           width={pillW}

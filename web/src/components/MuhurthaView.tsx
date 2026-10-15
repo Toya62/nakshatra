@@ -3,11 +3,6 @@
 import React, { useState, useEffect } from "react";
 import {
   Sun,
-  Moon,
-  Clock,
-  AlertOctagon,
-  Sparkles,
-  ShieldAlert,
   Calendar,
   Briefcase,
   Plane,
