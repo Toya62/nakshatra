@@ -4,9 +4,9 @@ version = "0.1.0"
 description = "Vedic Astrology AI Engine - Swiss Ephemeris birth charts, Vimshottari dashas, Shodashavarga, Ashtakavarga, Shadbala, and Gochar transits"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "MIT" }
+license = "MIT"
 authors = [
-    {name = "Toya", email = "toya@example.com"}
+    {name = "Toya", email = "pandey.ramu62@gmail.com"}
 ]
 dependencies = [
     "mayaastrolib>=0.1.0",
@@ -47,6 +47,11 @@ nakshatra-mcp = "nakshatra.mcp_server:main"
 [build-system]
 requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["nakshatra*"]
+exclude = ["web*", "frontend*", "tests*"]
 
 [tool.ruff]
 line-length = 100
