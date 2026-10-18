@@ -1,4 +1,18 @@
 services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: nakshatra-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+
   backend:
     build:
       context: .
@@ -20,10 +34,12 @@ services:
       dockerfile: Dockerfile
     container_name: nakshatra-frontend
     restart: unless-stopped
-    ports:
-      - "80:3000"
     environment:
       - BACKEND_URL=http://backend:8004
       - PORT=3000
     depends_on:
       - backend
+
+volumes:
+  caddy_data:
+  caddy_config:
