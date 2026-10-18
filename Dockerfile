@@ -9,8 +9,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY pyproject.toml README.md ./
 COPY nakshatra ./nakshatra
-COPY corpus ./corpus
-COPY index ./index
+
+# Ensure runtime data directories exist without requiring uncommitted git assets
+RUN mkdir -p corpus index
 
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
     pip install --no-cache-dir .
