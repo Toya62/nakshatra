@@ -11,13 +11,27 @@ interface Props {
   apiStatus: "connected" | "offline" | "checking";
   mobileMenuOpen: boolean;
   onToggleMobile: () => void;
+  onToggleSlim?: () => void;
+  sidebarSlim?: boolean;
 }
 
 export const Navbar: React.FC<Props> = ({
   apiStatus,
   mobileMenuOpen,
   onToggleMobile,
+  onToggleSlim,
+  sidebarSlim = false,
 }) => {
+  const handleToggle = () => {
+    if (typeof window !== "undefined" && window.innerWidth <= 768) {
+      onToggleMobile();
+    } else if (onToggleSlim) {
+      onToggleSlim();
+    } else {
+      onToggleMobile();
+    }
+  };
+
   return (
     <header
       className="app-header"
@@ -36,28 +50,45 @@ export const Navbar: React.FC<Props> = ({
         gap: "var(--space-3)",
       }}
     >
-      {/* Left — hamburger (mobile) + wordmark */}
+      {/* Left — 3 lines sidebar toggle + wordmark */}
       <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
-        {/* Hamburger — visible only on mobile via CSS */}
+        {/* 3 lines toggle button — collapses/opens sidebar on desktop, toggles drawer on mobile */}
         <button
-          onClick={onToggleMobile}
-          aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"}
-          aria-expanded={mobileMenuOpen}
+          type="button"
+          onClick={handleToggle}
+          aria-label={mobileMenuOpen ? "Close navigation" : sidebarSlim ? "Expand sidebar" : "Collapse sidebar"}
+          aria-expanded={mobileMenuOpen || !sidebarSlim}
           aria-controls="app-sidebar"
+          title={mobileMenuOpen ? "Close navigation" : sidebarSlim ? "Expand sidebar" : "Collapse sidebar"}
+          className="btn-icon hamburger-btn"
           style={{
-            background: "transparent",
-            border: "none",
-            color: "var(--text-mid)",
+            background: "var(--bg-subtle)",
+            border: "1px solid var(--border-subtle)",
+            color: "var(--text-high)",
             cursor: "pointer",
-            padding: "6px",
-            borderRadius: "var(--radius-sm)",
-            display: "none", /* shown via media query below */
+            width: "36px",
+            height: "36px",
+            borderRadius: "var(--radius-md)",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "all 0.18s ease",
+            flexShrink: 0,
           }}
-          className="hamburger-btn"
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = "var(--gold-border)";
+            e.currentTarget.style.color = "var(--gold-vivid)";
+            e.currentTarget.style.background = "var(--bg-input)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = "var(--border-subtle)";
+            e.currentTarget.style.color = "var(--text-high)";
+            e.currentTarget.style.background = "var(--bg-subtle)";
+          }}
         >
           {mobileMenuOpen
-            ? <X size={20} aria-hidden="true" />
-            : <Menu size={20} aria-hidden="true" />}
+            ? <X size={18} aria-hidden="true" />
+            : <Menu size={18} aria-hidden="true" />}
         </button>
 
         {/* Logo mark */}
@@ -67,13 +98,13 @@ export const Navbar: React.FC<Props> = ({
             height: "34px",
             borderRadius: "8px",
             overflow: "hidden",
-            border: "1px solid rgba(223, 177, 91, 0.4)",
-            boxShadow: "0 0 12px rgba(223, 177, 91, 0.25)",
+            border: "1px solid var(--gold-border)",
+            boxShadow: "0 0 12px var(--gold-dim)",
             flexShrink: 0,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "#080c16",
+            background: "var(--bg-input)",
           }}
           aria-hidden="true"
         >

@@ -321,16 +321,16 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
                         fontWeight: 600,
                         background:
                           pred.promise_tier === "Exceptional" || pred.promise_tier === "Favorable"
-                            ? "rgba(34, 197, 94, 0.2)"
+                            ? "var(--emerald-dim)"
                             : pred.promise_tier === "Mixed"
-                            ? "rgba(234, 179, 8, 0.2)"
-                            : "rgba(239, 68, 68, 0.2)",
+                            ? "var(--amber-dim)"
+                            : "var(--rose-dim)",
                         color:
                           pred.promise_tier === "Exceptional" || pred.promise_tier === "Favorable"
-                            ? "var(--gold-vivid)"
+                            ? "var(--emerald)"
                             : pred.promise_tier === "Mixed"
-                            ? "#eab308"
-                            : "#f87171",
+                            ? "var(--amber)"
+                            : "var(--rose)",
                       }}
                     >
                       {pred.promise_tier}
@@ -347,8 +347,8 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
               style={{
                 marginTop: "var(--space-3)",
                 padding: "var(--space-4)",
-                background: "rgba(10, 15, 29, 0.85)",
-                border: "1px solid rgba(212, 160, 23, 0.25)",
+                background: "var(--bg-input)",
+                border: "1px solid var(--gold-border)",
                 borderRadius: "var(--radius-md)",
                 display: "flex",
                 flexDirection: "column",
@@ -400,19 +400,19 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
                   fontSize: "var(--type-micro)",
                 }}
               >
-                <div style={{ background: "rgba(255,255,255,0.02)", padding: "var(--space-2) var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
+                <div style={{ background: "var(--bg-subtle)", padding: "var(--space-2) var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
                   <strong style={{ color: "var(--cyan-vivid)", display: "block", marginBottom: "2px" }}>1. Natal Promise (D1):</strong>
                   <span style={{ color: "var(--text-mid)" }}>{predictions[selectedDomain].promise_summary}</span>
                 </div>
-                <div style={{ background: "rgba(255,255,255,0.02)", padding: "var(--space-2) var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
+                <div style={{ background: "var(--bg-subtle)", padding: "var(--space-2) var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
                   <strong style={{ color: "var(--cyan-vivid)", display: "block", marginBottom: "2px" }}>2. Varga Confirmation:</strong>
                   <span style={{ color: "var(--text-mid)" }}>{predictions[selectedDomain].varga_confirmation}</span>
                 </div>
-                <div style={{ background: "rgba(255,255,255,0.02)", padding: "var(--space-2) var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
+                <div style={{ background: "var(--bg-subtle)", padding: "var(--space-2) var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
                   <strong style={{ color: "var(--gold-vivid)", display: "block", marginBottom: "2px" }}>3. Operating Dasha Trigger:</strong>
                   <span style={{ color: "var(--text-mid)" }}>{predictions[selectedDomain].dasha_timing}</span>
                 </div>
-                <div style={{ background: "rgba(255,255,255,0.02)", padding: "var(--space-2) var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
+                <div style={{ background: "var(--bg-subtle)", padding: "var(--space-2) var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
                   <strong style={{ color: "var(--gold-vivid)", display: "block", marginBottom: "2px" }}>4. Astronomical Gochar Transits:</strong>
                   <span style={{ color: "var(--text-mid)" }}>{predictions[selectedDomain].active_transits.join(" ")}</span>
                 </div>
@@ -508,7 +508,7 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
                   }}
                   aria-hidden="true"
                 >
-                  <Bot size={17} color="#07090e" />
+                  <Bot size={17} color="var(--bg-base)" />
                 </div>
               )}
 
@@ -635,7 +635,8 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
                     width: "32px",
                     height: "32px",
                     borderRadius: "50%",
-                    background: "rgba(255, 255, 255, 0.1)",
+                    background: "var(--gold-dim)",
+                    border: "1px solid var(--gold-border)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -700,7 +701,7 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
           style={{
             position: "fixed",
             inset: 0,
-            backgroundColor: "rgba(5, 7, 9, 0.8)",
+            backgroundColor: "var(--bg-overlay)",
             backdropFilter: "blur(8px)",
             display: "flex",
             alignItems: "center",
@@ -791,7 +792,7 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
                       <div
                         key={i}
                         style={{
-                          background: "rgba(255,255,255,0.03)",
+                          background: "var(--bg-subtle)",
                           border: "1px solid var(--gold-border)",
                           borderRadius: "var(--radius-sm)",
                           padding: "var(--space-3) var(--space-4)",
@@ -827,13 +828,13 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
                 </div>
                 {birth ? (
                   <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)", fontSize: "var(--type-label)" }}>
-                    <div style={{ background: "rgba(255,255,255,0.03)", padding: "var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
+                    <div style={{ background: "var(--bg-subtle)", padding: "var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
                       <strong style={{ color: "var(--gold-bright)" }}>Epoch:</strong> {birth.year}-{birth.month}-{birth.day} {birth.hour}:{birth.minute} ({birth.timezone})
                     </div>
-                    <div style={{ background: "rgba(255,255,255,0.03)", padding: "var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
+                    <div style={{ background: "var(--bg-subtle)", padding: "var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
                       <strong style={{ color: "var(--gold-bright)" }}>Coordinates:</strong> {birth.latitude}° N, {birth.longitude}° E ({birth.place_name || "Custom"})
                     </div>
-                    <div style={{ background: "rgba(255,255,255,0.03)", padding: "var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
+                    <div style={{ background: "var(--bg-subtle)", padding: "var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
                       <strong style={{ color: "var(--gold-bright)" }}>Lineage Calibration:</strong> Sidereal Zodiac • {birth.ayanamsa || "jhora_lahiri"} Ayanamsa • {birth.house_system || "WholeSign"} Houses
                     </div>
                     <div style={{ background: "var(--cyan-dim)", padding: "var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid rgba(56,189,248,0.2)", color: "var(--cyan-vivid)" }}>
@@ -864,7 +865,7 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
                     </div>
                   </div>
 
-                  <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-sm)", padding: "var(--space-3) var(--space-4)" }}>
+                  <div style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-sm)", padding: "var(--space-3) var(--space-4)" }}>
                     <div style={{ fontWeight: 600, color: "var(--gold-bright)", marginBottom: "var(--space-1)" }}>
                       Professional Counseling Boundary
                     </div>

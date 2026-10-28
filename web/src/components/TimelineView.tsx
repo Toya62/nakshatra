@@ -11,17 +11,17 @@ interface Props {
 }
 
 const GRAHA_COLORS: Record<string, { bg: string; border: string; text: string }> = {
-  Sun: { bg: "rgba(245, 158, 11, 0.25)", border: "#f59e0b", text: "#fbbf24" },
-  Moon: { bg: "rgba(56, 189, 248, 0.25)", border: "#38bdf8", text: "#7dd3fc" },
-  Mars: { bg: "rgba(239, 68, 68, 0.25)", border: "#ef4444", text: "#f87171" },
-  Mercury: { bg: "rgba(16, 185, 129, 0.25)", border: "#10b981", text: "#34d399" },
-  Jupiter: { bg: "rgba(229, 185, 76, 0.28)", border: "#e5b94c", text: "#fbe285" },
-  Venus: { bg: "rgba(236, 72, 153, 0.25)", border: "#ec4899", text: "#f472b6" },
-  Saturn: { bg: "rgba(99, 102, 241, 0.28)", border: "#6366f1", text: "#818cf8" },
-  Rahu: { bg: "rgba(168, 85, 247, 0.25)", border: "#a855f7", text: "#c084fc" },
-  "North Node": { bg: "rgba(168, 85, 247, 0.25)", border: "#a855f7", text: "#c084fc" },
-  Ketu: { bg: "rgba(148, 163, 184, 0.25)", border: "#94a3b8", text: "#cbd5e1" },
-  "South Node": { bg: "rgba(148, 163, 184, 0.25)", border: "#94a3b8", text: "#cbd5e1" },
+  Sun: { bg: "var(--amber-dim)", border: "var(--graha-sun)", text: "var(--graha-sun)" },
+  Moon: { bg: "var(--cyan-dim)", border: "var(--graha-moon)", text: "var(--graha-moon)" },
+  Mars: { bg: "var(--rose-dim)", border: "var(--graha-mars)", text: "var(--graha-mars)" },
+  Mercury: { bg: "var(--emerald-dim)", border: "var(--graha-mercury)", text: "var(--graha-mercury)" },
+  Jupiter: { bg: "var(--gold-dim)", border: "var(--graha-jupiter)", text: "var(--graha-jupiter)" },
+  Venus: { bg: "var(--rose-dim)", border: "var(--graha-venus)", text: "var(--graha-venus)" },
+  Saturn: { bg: "rgba(99, 102, 241, 0.15)", border: "var(--graha-saturn)", text: "var(--graha-saturn)" },
+  Rahu: { bg: "rgba(168, 85, 247, 0.15)", border: "var(--graha-rahu)", text: "var(--graha-rahu)" },
+  "North Node": { bg: "rgba(168, 85, 247, 0.15)", border: "var(--graha-rahu)", text: "var(--graha-rahu)" },
+  Ketu: { bg: "var(--bg-subtle)", border: "var(--graha-ketu)", text: "var(--graha-ketu)" },
+  "South Node": { bg: "var(--bg-subtle)", border: "var(--graha-ketu)", text: "var(--graha-ketu)" },
 };
 
 const ZODIAC_SIGNS = [
@@ -136,7 +136,7 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px" }}>
-              <Clock size={22} color="#e5b94c" />
+              <Clock size={22} color="var(--gold-vivid)" />
               <h2 className="title-serif gold-gradient-text" style={{ fontSize: "1.35rem", fontWeight: 700 }}>
                 Unified 120-Year Dasha & Gochar Life Timeline
               </h2>
@@ -156,14 +156,14 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
                   gap: "8px",
                   padding: "6px 14px",
                   borderRadius: "20px",
-                  background: "rgba(229, 185, 76, 0.12)",
-                  border: "1px solid rgba(229, 185, 76, 0.4)",
+                  background: "var(--gold-dim)",
+                  border: "1px solid var(--gold-border)",
                   fontSize: "0.82rem",
-                  color: "#fbe285",
+                  color: "var(--gold-bright)",
                   fontWeight: 600,
                 }}
               >
-                <Calendar size={14} color="#e5b94c" />
+                <Calendar size={14} color="var(--gold-vivid)" />
                 <span>BS: {useDevanagari ? bsDate.formatted_ne : bsDate.formatted}</span>
               </div>
             )}
@@ -179,7 +179,7 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
                 display: "flex",
                 alignItems: "center",
                 gap: "6px",
-                background: useDevanagari ? "rgba(229,185,76,0.3)" : "rgba(255,255,255,0.05)",
+                background: useDevanagari ? "var(--gold-dim)" : "var(--bg-subtle)",
                 fontWeight: 600,
               }}
             >
@@ -198,7 +198,7 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
                 display: "flex",
                 alignItems: "center",
                 gap: "6px",
-                background: showSadeSati ? "rgba(244,63,94,0.2)" : "rgba(255,255,255,0.05)",
+                background: showSadeSati ? "var(--rose-dim)" : "var(--bg-subtle)",
                 fontWeight: 600,
               }}
             >
@@ -235,7 +235,7 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
               }}
             />
             <span style={{ fontSize: "0.85rem", color: "var(--text-main)", fontWeight: 600 }}>
-              Current Age: <strong style={{ color: "#fbe285" }}>{currentAgeYears.toFixed(2)} years</strong>
+              Current Age: <strong style={{ color: "var(--gold-bright)" }}>{currentAgeYears.toFixed(2)} years</strong>
             </span>
           </div>
 
@@ -263,7 +263,7 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
       <div className="card" style={{ padding: "24px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
           <h3 className="title-serif" style={{ fontSize: "1.1rem", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "8px" }}>
-            <Compass size={18} color="#e5b94c" />
+            <Compass size={18} color="var(--gold-vivid)" />
             Vimshottari 120-Year Macro Timeline (Click any Mahadasha block to inspect)
           </h3>
           <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
@@ -289,7 +289,7 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
               const startMs = new Date(md.start.replace("Z", "")).getTime();
               const endMs = new Date(md.end.replace("Z", "")).getTime();
               const widthPct = Math.max(1, ((endMs - startMs) / totalTimelineSpanMs) * 100);
-              const style = GRAHA_COLORS[md.lord] || { bg: "rgba(255,255,255,0.1)", border: "#fff", text: "#fff" };
+              const style = GRAHA_COLORS[md.lord] || { bg: "var(--bg-subtle)", border: "var(--border-subtle)", text: "var(--text-high)" };
               const isSelected = selectedMd?.lord === md.lord && selectedMd?.start === md.start;
 
               return (
@@ -307,8 +307,8 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
                     width: `${widthPct}%`,
                     height: "100%",
                     background: isSelected ? style.border : style.bg,
-                    borderRight: "1px solid rgba(0,0,0,0.5)",
-                    borderTop: isSelected ? `4px solid #fff` : "none",
+                    borderRight: "1px solid var(--border-subtle)",
+                    borderTop: isSelected ? `4px solid var(--text-high)` : "none",
                     cursor: "pointer",
                     display: "flex",
                     flexDirection: "column",
@@ -323,7 +323,7 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
                     style={{
                       fontSize: "0.82rem",
                       fontWeight: 700,
-                      color: isSelected ? "#07090e" : style.text,
+                      color: isSelected ? "#ffffff" : style.text,
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
@@ -334,7 +334,7 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
                   <span
                     style={{
                       fontSize: "0.68rem",
-                      color: isSelected ? "#07090e" : "var(--text-dim)",
+                      color: isSelected ? "rgba(255,255,255,0.9)" : "var(--text-dim)",
                       fontFamily: "var(--font-mono)",
                     }}
                   >
@@ -370,7 +370,7 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
                       top: 0,
                       left: "-16px",
                       background: "var(--gold-vivid)",
-                      color: "#07090e",
+                      color: "var(--bg-base)",
                       fontSize: "0.62rem",
                       fontWeight: 800,
                       padding: "1px 5px",
@@ -391,8 +391,8 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
         {/* Sade Sati Historical & Future Windows Overlay */}
         {showSadeSati && sadeSatiWindows.length > 0 && (
           <div style={{ marginTop: "16px" }}>
-            <div style={{ fontSize: "0.78rem", color: "#f87171", fontWeight: 700, marginBottom: "8px", display: "flex", alignItems: "center", gap: "6px" }}>
-              <AlertCircle size={14} color="#f87171" />
+            <div style={{ fontSize: "0.78rem", color: "var(--rose)", fontWeight: 700, marginBottom: "8px", display: "flex", alignItems: "center", gap: "6px" }}>
+              <AlertCircle size={14} color="var(--rose)" />
               Transiting Saturn Sade Sati Windows (Age-calibrated 7.5-Year Cycles):
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
@@ -402,10 +402,10 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
                   style={{
                     padding: "6px 12px",
                     borderRadius: "8px",
-                    background: "rgba(239, 68, 68, 0.12)",
-                    border: "1px solid rgba(239, 68, 68, 0.35)",
+                    background: "var(--rose-dim)",
+                    border: "1px solid var(--rose)",
                     fontSize: "0.76rem",
-                    color: "#fca5a5",
+                    color: "var(--rose)",
                   }}
                 >
                   <strong>Age {win.startAge.toFixed(1)} – {win.endAge.toFixed(1)}</strong> (~{win.approxYear} AD)
@@ -455,7 +455,7 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
           >
             {(selectedMd.subs || []).map((ad, idx) => {
               const adName = translateGraha(ad.lord);
-              const adStyle = GRAHA_COLORS[ad.lord] || GRAHA_COLORS[adName] || { bg: "rgba(255,255,255,0.05)", border: "#fff", text: "#fff" };
+              const adStyle = GRAHA_COLORS[ad.lord] || GRAHA_COLORS[adName] || { bg: "var(--bg-subtle)", border: "var(--border-subtle)", text: "var(--text-high)" };
               const isSelectedAd = selectedAd?.lord === ad.lord && selectedAd?.start === ad.start;
               const isCurrent =
                 dashas?.current_md?.lord === selectedMd.lord &&
@@ -548,7 +548,7 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
               >
                 {selectedAd.subs.map((pd, pidx) => {
                   const pdName = translateGraha(pd.lord);
-                  const pdStyle = GRAHA_COLORS[pd.lord] || GRAHA_COLORS[pdName] || { bg: "rgba(255,255,255,0.05)", border: "#fff", text: "#fff" };
+                  const pdStyle = GRAHA_COLORS[pd.lord] || GRAHA_COLORS[pdName] || { bg: "var(--bg-subtle)", border: "var(--border-subtle)", text: "var(--text-high)" };
                   const isCurrentPd =
                     dashas?.current_md?.lord === selectedMd.lord &&
                     dashas?.current_ad?.lord === selectedAd.lord &&

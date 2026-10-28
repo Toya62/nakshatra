@@ -114,7 +114,7 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToC
                     {dashas.current_md.lord}
                   </h4>
                   <div style={{ width: "100%", height: "6px", background: "var(--border-subtle)", borderRadius: "3px", overflow: "hidden", marginBottom: "var(--space-2)" }}>
-                    <div style={{ width: `${mdProgress}%`, height: "100%", background: "linear-gradient(90deg, #e5b94c, #fbe285)" }} />
+                    <div style={{ width: `${mdProgress}%`, height: "100%", background: "var(--gold-vivid)" }} />
                   </div>
                   <p style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", fontFamily: "var(--font-mono)" }}>
                     {dashas.current_md.start.slice(0, 10)} → {dashas.current_md.end.slice(0, 10)}
@@ -133,7 +133,7 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToC
                     {dashas.current_ad.lord}
                   </h4>
                   <div style={{ width: "100%", height: "6px", background: "var(--border-subtle)", borderRadius: "3px", overflow: "hidden", marginBottom: "var(--space-2)" }}>
-                    <div style={{ width: `${adProgress}%`, height: "100%", background: "linear-gradient(90deg, #0284c7, #38bdf8)" }} />
+                    <div style={{ width: `${adProgress}%`, height: "100%", background: "var(--cyan-vivid)" }} />
                   </div>
                   <p style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", fontFamily: "var(--font-mono)" }}>
                     {dashas.current_ad.start.slice(0, 10)} → {dashas.current_ad.end.slice(0, 10)}
@@ -178,7 +178,7 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToC
                   <div
                     key={itemKey}
                     style={{
-                      background: isCurrent ? "var(--gold-dim)" : "rgba(255,255,255,0.02)",
+                      background: isCurrent ? "var(--gold-dim)" : "var(--bg-subtle)",
                       border: isCurrent ? "1px solid var(--gold-border)" : "1px solid var(--border-subtle)",
                       borderRadius: "var(--radius-sm)",
                       overflow: "hidden",
@@ -222,7 +222,7 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToC
                           <div
                             key={`${ad.lord}-${ad.start}-${adIdx}`}
                             style={{
-                              background: "rgba(0,0,0,0.35)",
+                              background: "var(--bg-input)",
                               padding: "var(--space-2) var(--space-3)",
                               borderRadius: "var(--radius-sm)",
                               border: "1px solid var(--border-subtle)",

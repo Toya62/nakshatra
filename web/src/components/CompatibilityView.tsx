@@ -100,13 +100,13 @@ Recommendation: ${report.recommendation}
               width: "36px",
               height: "36px",
               borderRadius: "10px",
-              background: "linear-gradient(135deg, #e5b94c 0%, #ec4899 100%)",
+              background: "linear-gradient(135deg, var(--gold-vivid) 0%, var(--rose) 100%)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Heart size={20} color="#07090e" />
+            <Heart size={20} color="#ffffff" />
           </div>
           <h2 className="title-serif gold-gradient-text" style={{ fontSize: "1.4rem", fontWeight: 700 }}>
             Ashtakoota Kundali Matching & Kuja Dosha
@@ -124,7 +124,7 @@ Recommendation: ${report.recommendation}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))", gap: "20px" }}>
           {/* Bride Card */}
           <div className="card" style={{ padding: "20px" }}>
-            <h3 style={{ fontSize: "1.05rem", color: "#ec4899", fontWeight: 700, marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
+            <h3 style={{ fontSize: "1.05rem", color: "var(--rose)", fontWeight: 700, marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
               <span>Bride&apos;s Profile (Kanya)</span>
             </h3>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
@@ -136,15 +136,7 @@ Recommendation: ${report.recommendation}
                   type="text"
                   value={brideName}
                   onChange={(e) => setBrideName(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "8px 12px",
-                    borderRadius: "8px",
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    color: "var(--text-bright)",
-                    fontSize: "0.88rem",
-                  }}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: "8px", fontSize: "0.88rem" }}
                 />
               </div>
               <div>
@@ -158,15 +150,7 @@ Recommendation: ${report.recommendation}
                     const [y, m, d] = e.target.value.split("-").map(Number);
                     if (y && m && d) setBrideData({ ...brideData, year: y, month: m, day: d });
                   }}
-                  style={{
-                    width: "100%",
-                    padding: "8px 12px",
-                    borderRadius: "8px",
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    color: "var(--text-bright)",
-                    fontSize: "0.88rem",
-                  }}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: "8px", fontSize: "0.88rem" }}
                 />
               </div>
               <div>
@@ -181,15 +165,7 @@ Recommendation: ${report.recommendation}
                     const parts = e.target.value.split(":").map(Number);
                     setBrideData({ ...brideData, hour: parts[0] || 0, minute: parts[1] || 0, second: parts[2] || 0 });
                   }}
-                  style={{
-                    width: "100%",
-                    padding: "8px 12px",
-                    borderRadius: "8px",
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    color: "var(--text-bright)",
-                    fontSize: "0.88rem",
-                  }}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: "8px", fontSize: "0.88rem" }}
                 />
               </div>
               <div>
@@ -201,15 +177,7 @@ Recommendation: ${report.recommendation}
                   step="0.0001"
                   value={brideData.latitude}
                   onChange={(e) => setBrideData({ ...brideData, latitude: parseFloat(e.target.value) || 0 })}
-                  style={{
-                    width: "100%",
-                    padding: "8px 12px",
-                    borderRadius: "8px",
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    color: "var(--text-bright)",
-                    fontSize: "0.88rem",
-                  }}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: "8px", fontSize: "0.88rem" }}
                 />
               </div>
               <div>
@@ -221,15 +189,7 @@ Recommendation: ${report.recommendation}
                   step="0.0001"
                   value={brideData.longitude}
                   onChange={(e) => setBrideData({ ...brideData, longitude: parseFloat(e.target.value) || 0 })}
-                  style={{
-                    width: "100%",
-                    padding: "8px 12px",
-                    borderRadius: "8px",
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    color: "var(--text-bright)",
-                    fontSize: "0.88rem",
-                  }}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: "8px", fontSize: "0.88rem" }}
                 />
               </div>
               <div style={{ gridColumn: "span 2" }}>
@@ -240,15 +200,7 @@ Recommendation: ${report.recommendation}
                   type="text"
                   value={brideData.timezone}
                   onChange={(e) => setBrideData({ ...brideData, timezone: e.target.value })}
-                  style={{
-                    width: "100%",
-                    padding: "8px 12px",
-                    borderRadius: "8px",
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    color: "var(--text-bright)",
-                    fontSize: "0.88rem",
-                  }}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: "8px", fontSize: "0.88rem" }}
                 />
               </div>
             </div>
@@ -256,7 +208,7 @@ Recommendation: ${report.recommendation}
 
           {/* Groom Card */}
           <div className="card" style={{ padding: "20px" }}>
-            <h3 style={{ fontSize: "1.05rem", color: "#38bdf8", fontWeight: 700, marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
+            <h3 style={{ fontSize: "1.05rem", color: "var(--cyan-vivid)", fontWeight: 700, marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
               <span>Groom&apos;s Profile (Vara)</span>
             </h3>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
@@ -268,15 +220,7 @@ Recommendation: ${report.recommendation}
                   type="text"
                   value={groomName}
                   onChange={(e) => setGroomName(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "8px 12px",
-                    borderRadius: "8px",
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    color: "var(--text-bright)",
-                    fontSize: "0.88rem",
-                  }}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: "8px", fontSize: "0.88rem" }}
                 />
               </div>
               <div>
@@ -290,15 +234,7 @@ Recommendation: ${report.recommendation}
                     const [y, m, d] = e.target.value.split("-").map(Number);
                     if (y && m && d) setGroomData({ ...groomData, year: y, month: m, day: d });
                   }}
-                  style={{
-                    width: "100%",
-                    padding: "8px 12px",
-                    borderRadius: "8px",
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    color: "var(--text-bright)",
-                    fontSize: "0.88rem",
-                  }}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: "8px", fontSize: "0.88rem" }}
                 />
               </div>
               <div>
@@ -313,15 +249,7 @@ Recommendation: ${report.recommendation}
                     const parts = e.target.value.split(":").map(Number);
                     setGroomData({ ...groomData, hour: parts[0] || 0, minute: parts[1] || 0, second: parts[2] || 0 });
                   }}
-                  style={{
-                    width: "100%",
-                    padding: "8px 12px",
-                    borderRadius: "8px",
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    color: "var(--text-bright)",
-                    fontSize: "0.88rem",
-                  }}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: "8px", fontSize: "0.88rem" }}
                 />
               </div>
               <div>
@@ -333,15 +261,7 @@ Recommendation: ${report.recommendation}
                   step="0.0001"
                   value={groomData.latitude}
                   onChange={(e) => setGroomData({ ...groomData, latitude: parseFloat(e.target.value) || 0 })}
-                  style={{
-                    width: "100%",
-                    padding: "8px 12px",
-                    borderRadius: "8px",
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    color: "var(--text-bright)",
-                    fontSize: "0.88rem",
-                  }}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: "8px", fontSize: "0.88rem" }}
                 />
               </div>
               <div>
@@ -353,15 +273,7 @@ Recommendation: ${report.recommendation}
                   step="0.0001"
                   value={groomData.longitude}
                   onChange={(e) => setGroomData({ ...groomData, longitude: parseFloat(e.target.value) || 0 })}
-                  style={{
-                    width: "100%",
-                    padding: "8px 12px",
-                    borderRadius: "8px",
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    color: "var(--text-bright)",
-                    fontSize: "0.88rem",
-                  }}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: "8px", fontSize: "0.88rem" }}
                 />
               </div>
               <div style={{ gridColumn: "span 2" }}>
@@ -372,15 +284,7 @@ Recommendation: ${report.recommendation}
                   type="text"
                   value={groomData.timezone}
                   onChange={(e) => setGroomData({ ...groomData, timezone: e.target.value })}
-                  style={{
-                    width: "100%",
-                    padding: "8px 12px",
-                    borderRadius: "8px",
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    color: "var(--text-bright)",
-                    fontSize: "0.88rem",
-                  }}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: "8px", fontSize: "0.88rem" }}
                 />
               </div>
             </div>
@@ -390,7 +294,7 @@ Recommendation: ${report.recommendation}
         <button
           type="submit"
           disabled={loading}
-          className="badge-gold"
+          className="btn-primary"
           style={{
             padding: "14px 28px",
             fontSize: "0.95rem",
@@ -401,8 +305,6 @@ Recommendation: ${report.recommendation}
             alignItems: "center",
             justifyContent: "center",
             gap: "10px",
-            boxShadow: "0 4px 20px rgba(229,185,76,0.25)",
-            border: "1px solid rgba(229,185,76,0.6)",
           }}
         >
           <Sparkles size={18} />
@@ -446,10 +348,10 @@ Recommendation: ${report.recommendation}
                     fontWeight: 900,
                     color:
                       report.ashtakoota.verdict === "Uttama"
-                        ? "#e5b94c"
+                        ? "var(--gold-vivid)"
                         : report.ashtakoota.verdict === "Madhyama"
-                        ? "#38bdf8"
-                        : "#f43f5e",
+                        ? "var(--cyan-vivid)"
+                        : "var(--rose)",
                   }}
                 >
                   {report.ashtakoota.total_score}
@@ -476,18 +378,8 @@ Recommendation: ${report.recommendation}
             <div style={{ display: "flex", gap: "10px" }}>
               <button
                 onClick={handleCopy}
-                style={{
-                  padding: "8px 16px",
-                  borderRadius: "8px",
-                  background: "rgba(255,255,255,0.06)",
-                  border: "1px solid rgba(255,255,255,0.15)",
-                  color: "var(--text-bright)",
-                  cursor: "pointer",
-                  fontSize: "0.85rem",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                }}
+                className="btn-secondary"
+                style={{ fontSize: "0.85rem" }}
               >
                 <Copy size={14} />
                 {copied ? "Copied!" : "Copy Report"}
@@ -498,7 +390,7 @@ Recommendation: ${report.recommendation}
           {/* Couple Moon Sign / Nakshatra Cards */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px" }}>
             <div className="card" style={{ padding: "18px" }}>
-              <h4 style={{ color: "#ec4899", fontSize: "0.95rem", fontWeight: 700, marginBottom: "8px" }}>
+              <h4 style={{ color: "var(--rose)", fontSize: "0.95rem", fontWeight: 700, marginBottom: "8px" }}>
                 {report.bride_name} (Bride)
               </h4>
               <p style={{ fontSize: "0.88rem", color: "var(--text-bright)" }}>
@@ -507,7 +399,7 @@ Recommendation: ${report.recommendation}
             </div>
 
             <div className="card" style={{ padding: "18px" }}>
-              <h4 style={{ color: "#38bdf8", fontSize: "0.95rem", fontWeight: 700, marginBottom: "8px" }}>
+              <h4 style={{ color: "var(--cyan-vivid)", fontSize: "0.95rem", fontWeight: 700, marginBottom: "8px" }}>
                 {report.groom_name} (Groom)
               </h4>
               <p style={{ fontSize: "0.88rem", color: "var(--text-bright)" }}>
@@ -544,16 +436,16 @@ Recommendation: ${report.recommendation}
                     report.ashtakoota.bhakoot,
                     report.ashtakoota.nadi,
                   ].map((k) => (
-                    <tr key={k.name} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                    <tr key={k.name} style={{ borderBottom: "1px solid var(--border-subtle)" }}>
                       <td style={{ padding: "12px", fontWeight: 600, color: "var(--text-bright)" }}>{k.name}</td>
                       <td style={{ padding: "12px" }}>
-                        <span style={{ fontWeight: 700, color: k.obtained_score > 0 ? "#e5b94c" : "var(--accent-rose)" }}>
+                        <span style={{ fontWeight: 700, color: k.obtained_score > 0 ? "var(--gold-vivid)" : "var(--rose)" }}>
                           {k.obtained_score}
                         </span>
                         <span style={{ color: "var(--text-dim)", fontSize: "0.8rem" }}> / {k.max_score}</span>
                       </td>
-                      <td style={{ padding: "12px", color: "#ec4899" }}>{k.bride_val}</td>
-                      <td style={{ padding: "12px", color: "#38bdf8" }}>{k.groom_val}</td>
+                      <td style={{ padding: "12px", color: "var(--rose)", fontWeight: 500 }}>{k.bride_val}</td>
+                      <td style={{ padding: "12px", color: "var(--cyan-vivid)", fontWeight: 500 }}>{k.groom_val}</td>
                       <td style={{ padding: "12px" }}>
                         {k.is_favorable ? (
                           <span className="badge badge-emerald" style={{ gap: "4px" }}>
@@ -581,7 +473,7 @@ Recommendation: ${report.recommendation}
           <div className="card" style={{ padding: "22px" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
               <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-bright)", display: "flex", alignItems: "center", gap: "8px" }}>
-                <ShieldCheck size={18} color="#e5b94c" />
+                <ShieldCheck size={18} color="var(--gold-vivid)" />
                 <span>Kuja Dosha (Manglik) Evaluation</span>
               </h3>
               <span
@@ -598,8 +490,8 @@ Recommendation: ${report.recommendation}
             </p>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-              <div style={{ padding: "14px", borderRadius: "10px", background: "rgba(236,72,153,0.06)", border: "1px solid rgba(236,72,153,0.2)" }}>
-                <div style={{ fontWeight: 600, color: "#ec4899", marginBottom: "4px" }}>Bride Kuja Dosha</div>
+              <div style={{ padding: "14px", borderRadius: "10px", background: "var(--rose-dim)", border: "1px solid var(--border-subtle)" }}>
+                <div style={{ fontWeight: 600, color: "var(--rose)", marginBottom: "4px" }}>Bride Kuja Dosha</div>
                 <div style={{ fontSize: "0.88rem", color: "var(--text-bright)" }}>
                   Severity: <strong>{report.kuja_dosha.bride.severity}</strong> (Cancelled: {report.kuja_dosha.bride.is_cancelled ? "Yes" : "No"})
                 </div>
@@ -610,8 +502,8 @@ Recommendation: ${report.recommendation}
                 )}
               </div>
 
-              <div style={{ padding: "14px", borderRadius: "10px", background: "rgba(56,189,248,0.06)", border: "1px solid rgba(56,189,248,0.2)" }}>
-                <div style={{ fontWeight: 600, color: "#38bdf8", marginBottom: "4px" }}>Groom Kuja Dosha</div>
+              <div style={{ padding: "14px", borderRadius: "10px", background: "var(--cyan-dim)", border: "1px solid var(--cyan-border)" }}>
+                <div style={{ fontWeight: 600, color: "var(--cyan-vivid)", marginBottom: "4px" }}>Groom Kuja Dosha</div>
                 <div style={{ fontSize: "0.88rem", color: "var(--text-bright)" }}>
                   Severity: <strong>{report.kuja_dosha.groom.severity}</strong> (Cancelled: {report.kuja_dosha.groom.is_cancelled ? "Yes" : "No"})
                 </div>
@@ -658,16 +550,16 @@ Recommendation: ${report.recommendation}
                     style={{
                       padding: "12px",
                       borderRadius: "8px",
-                      background: "rgba(255,255,255,0.03)",
-                      border: "1px solid rgba(255,255,255,0.07)",
+                      background: "var(--bg-subtle)",
+                      border: "1px solid var(--border-subtle)",
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
                       <span style={{ fontWeight: 600, color: "var(--text-bright)" }}>{k.name}</span>
                       {k.is_favorable ? (
-                        <CheckCircle2 size={14} color="#10b981" />
+                        <CheckCircle2 size={14} color="var(--emerald)" />
                       ) : (
-                        <AlertTriangle size={14} color="#f43f5e" />
+                        <AlertTriangle size={14} color="var(--rose)" />
                       )}
                     </div>
                     <p style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>{k.notes}</p>
@@ -682,16 +574,16 @@ Recommendation: ${report.recommendation}
             className="card"
             style={{
               padding: "20px 24px",
-              background: "rgba(229,185,76,0.05)",
-              border: "1px solid rgba(229,185,76,0.3)",
+              background: "var(--gold-dim)",
+              border: "1px solid var(--gold-border)",
               display: "flex",
               alignItems: "center",
               gap: "14px",
             }}
           >
-            <Sparkles size={24} color="#e5b94c" />
+            <Sparkles size={24} color="var(--gold-vivid)" />
             <div>
-              <div style={{ fontWeight: 700, color: "#e5b94c", fontSize: "0.98rem", marginBottom: "2px" }}>
+              <div style={{ fontWeight: 700, color: "var(--gold-vivid)", fontSize: "0.98rem", marginBottom: "2px" }}>
                 Final Astrological Recommendation
               </div>
               <div style={{ fontSize: "0.9rem", color: "var(--text-bright)" }}>

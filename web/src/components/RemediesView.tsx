@@ -163,7 +163,7 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
         className="card"
         style={{
           padding: "var(--space-4) var(--space-5)",
-          background: "linear-gradient(135deg, rgba(223, 177, 91, 0.10) 0%, rgba(18, 25, 44, 0.88) 100%)",
+          background: "linear-gradient(135deg, var(--gold-dim) 0%, var(--bg-card) 100%)",
            border: "1px solid var(--gold-border)",
         }}
       >
@@ -291,7 +291,7 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
                          style={{
                            fontSize: "var(--type-micro)",
                            color: "var(--text-mid)",
-                           background: "rgba(255,255,255,0.03)",
+                           background: "var(--bg-subtle)",
                            padding: "var(--space-0) var(--space-2)",
                            borderRadius: "var(--radius-sm)",
                            border: "1px solid var(--border-subtle)",
@@ -368,12 +368,12 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
                           fontFamily: "var(--font-mono)",
                           fontSize: "var(--type-small)",
                           color: "var(--gold-bright)",
-                          background: "rgba(10, 15, 27, 0.85)",
-                           padding: "var(--size-8) var(--size-10)",
-                           borderRadius: "var(--radius-sm)",
-                           border: "1px solid var(--gold-border)",
-                           marginTop: "var(--space-0-75)",
-                           whiteSpace: "pre-wrap",
+                          background: "var(--bg-input)",
+                          padding: "var(--size-8) var(--size-10)",
+                          borderRadius: "var(--radius-sm)",
+                          border: "1px solid var(--gold-border)",
+                          marginTop: "var(--space-0-75)",
+                          whiteSpace: "pre-wrap",
                         }}
                       >
                         {p.parashari.beej_mantra}
@@ -400,7 +400,7 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
                        </div>
                      )}
 
-                     <div style={{ fontSize: "var(--type-small)", borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: "var(--space-2)" }}>
+                     <div style={{ fontSize: "var(--type-small)", borderTop: "1px solid var(--border-subtle)", paddingTop: "var(--space-2)" }}>
                       <span style={{ color: "var(--text-low)" }}>Dāna ({p.parashari.charity_day}): </span>
                       <span style={{ color: "var(--text-mid)" }}>{p.parashari.charity_items.join(", ")}</span>
                     </div>

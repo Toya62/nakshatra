@@ -166,30 +166,30 @@
 
   /* Gold — Warm Antique Vedic Brass & Saffron Amber */
   --gold-primary: #b45309;
-  --gold-vivid:  #c26a0a;
-  --gold-bright: #854d0e;
+  --gold-vivid:  #b45309;
+  --gold-bright: #78350f;
   --gold-deep:   #78350f;
-  --gold-dim:    rgba(194, 106, 10, 0.12);
-  --gold-border: rgba(180, 115, 20, 0.32);
-  --gold-glow:   0 0 24px rgba(194, 106, 10, 0.18);
+  --gold-dim:    rgba(180, 83, 9, 0.12);
+  --gold-border: rgba(180, 83, 9, 0.35);
+  --gold-glow:   0 0 24px rgba(180, 83, 9, 0.18);
 
   /* Cyan & Sapphire */
   --cyan-vivid:  #0284c7;
-  --cyan-dim:    rgba(2, 132, 199, 0.09);
-  --cyan-border: rgba(2, 132, 199, 0.28);
+  --cyan-dim:    rgba(2, 132, 199, 0.10);
+  --cyan-border: rgba(2, 132, 199, 0.32);
 
   /* Semantic */
-  --emerald:     #059669;
-  --emerald-dim: rgba(5, 150, 105, 0.12);
-  --rose:        #e11d48;
-  --rose-dim:    rgba(225, 29, 72, 0.10);
-  --amber:       #d97706;
-  --amber-dim:   rgba(217, 119, 6, 0.12);
+  --emerald:     #047857;
+  --emerald-dim: rgba(4, 120, 87, 0.12);
+  --rose:        #be123c;
+  --rose-dim:    rgba(190, 18, 60, 0.12);
+  --amber:       #b45309;
+  --amber-dim:   rgba(180, 83, 9, 0.14);
 
-  /* Text — tuned for WCAG AAA 14:1 contrast */
-  --text-high:   #1c1917;  /* warm charcoal stone */
-  --text-mid:    #57534e;  /* warm cedar slate */
-  --text-low:    #857d75;  /* muted stone */
+  /* Text — tuned for WCAG AAA 14:1 contrast in Light Mode */
+  --text-high:   #1c1917;  /* deep charcoal stone */
+  --text-mid:    #44403c;  /* rich cedar slate (9:1 contrast) */
+  --text-low:    #68625b;  /* clear stone label (5.2:1 contrast) */
 
   /* Aliases */
   --text-main:   var(--text-high);
@@ -852,7 +852,7 @@ button:focus-visible {
 .markdown-chat-body h4 { font-size: 0.92rem;}
 
 .markdown-chat-body strong { color: var(--gold-bright); font-weight: 600; }
-.markdown-chat-body em     { color: #cbd5e1; font-style: italic; }
+.markdown-chat-body em     { color: var(--text-mid); font-style: italic; }
 
 .markdown-chat-body ul,
 .markdown-chat-body ol {
@@ -865,22 +865,28 @@ button:focus-visible {
 
 .markdown-chat-body blockquote {
   border-left: 3px solid var(--gold-vivid);
-  background: rgba(229, 185, 76, 0.06);
+  background: var(--gold-dim);
   padding: 8px 14px;
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   margin: 0.8rem 0;
-  color: #e2e8f0;
+  color: var(--text-high);
   font-style: italic;
 }
 
 .markdown-chat-body code {
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.35);
   color: var(--cyan-vivid);
   padding: 2px 5px;
   border-radius: 4px;
   font-family: var(--font-mono);
   font-size: 0.84em;
-  border: 1px solid rgba(56, 189, 248, 0.2);
+  border: 1px solid var(--cyan-border);
+}
+
+[data-theme="light"] .markdown-chat-body code {
+  background: rgba(2, 132, 199, 0.08);
+  color: var(--cyan-vivid);
+  border: 1px solid var(--cyan-border);
 }
 
 .markdown-chat-body hr {
@@ -889,13 +895,15 @@ button:focus-visible {
   margin: 1rem 0;
 }
 
+/* ─── Hamburger navigation button (visible on all breakpoints) ──────────── */
+.hamburger-btn {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
 /* ─── Mobile utilities ───────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  /* Show hamburger button */
-  .hamburger-btn {
-    display: flex !important;
-  }
-
   /* Chart grid: stack to single column */
   .chart-grid {
     grid-template-columns: 1fr !important;
@@ -916,13 +924,6 @@ button:focus-visible {
     flex-direction: column;
     text-align: center;
     gap: var(--space-2) !important;
-  }
-}
-
-/* Ensure hamburger hidden on desktop */
-@media (min-width: 769px) {
-  .hamburger-btn {
-    display: none !important;
   }
 }
 

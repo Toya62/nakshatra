@@ -262,7 +262,7 @@ export const MuhurthaView: React.FC<Props> = ({
                  <span style={{ color: "var(--amber)", fontWeight: 600 }}>Sunrise:</span> {report.sunrise_time}
               </div>
               <div>
-                <span style={{ color: "#ec4899", fontWeight: 600 }}>Sunset:</span> {report.sunset_time}
+                <span style={{ color: "var(--rose)", fontWeight: 600 }}>Sunset:</span> {report.sunset_time}
               </div>
             </div>
           </div>
@@ -402,7 +402,7 @@ export const MuhurthaView: React.FC<Props> = ({
               </div>
 
                {/* Yamaganda */}
-               <div style={{ padding: "var(--space-3-5)", borderRadius: "var(--radius-md)", background: "rgba(255,255,255,0.03)", border: "var(--border-width) solid rgba(255,255,255,0.08)" }}>
+               <div style={{ padding: "var(--space-3-5)", borderRadius: "var(--radius-md)", background: "var(--bg-subtle)", border: "var(--border-width) solid var(--border-subtle)" }}>
                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-0-5)" }}>
                    <span style={{ fontWeight: 600, color: "var(--text-bright)", fontSize: "var(--type-body)" }}>Yamaganda (Avoid)</span>
                    {report.yamaganda.is_active && <span className="badge badge-rose">ACTIVE</span>}
@@ -430,7 +430,7 @@ export const MuhurthaView: React.FC<Props> = ({
                    style={{
                      cursor: "pointer",
                      padding: "var(--space-1-5) var(--space-3-5)",
-                     background: timelineTab === "horas" ? "rgba(229,185,76,0.3)" : "transparent",
+                     background: timelineTab === "horas" ? "var(--gold-dim)" : "transparent",
                    }}
                 >
                   Planetary Horas (24)
@@ -441,7 +441,7 @@ export const MuhurthaView: React.FC<Props> = ({
                    style={{
                      cursor: "pointer",
                      padding: "var(--space-1-5) var(--space-3-5)",
-                     background: timelineTab === "choghadiyas" ? "rgba(229,185,76,0.3)" : "transparent",
+                     background: timelineTab === "choghadiyas" ? "var(--gold-dim)" : "transparent",
                    }}
                 >
                   Choghadiya Cycles (16)

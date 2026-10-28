@@ -173,7 +173,7 @@ export const TransitsView: React.FC<Props> = ({ birth, onNavigateToChart }) => {
                       key={`${p.name}-${idx}`}
                       style={{
                         borderBottom: "1px solid var(--border-subtle)",
-                        background: idx % 2 === 0 ? "transparent" : "rgba(255, 255, 255, 0.015)",
+                        background: idx % 2 === 0 ? "transparent" : "var(--bg-subtle)",
                       }}
                     >
                       <td style={{ padding: "var(--space-3) var(--space-2)", fontWeight: 600 }}>{p.name}</td>

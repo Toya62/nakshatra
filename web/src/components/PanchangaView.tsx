@@ -174,7 +174,7 @@ export const PanchangaView: React.FC<Props> = ({
                     <span>Remaining</span>
                     <span>{data.tithi.percentage_left.toFixed(1)}%</span>
                   </div>
-                  <div style={{ height: "4px", background: "rgba(255,255,255,0.08)", borderRadius: "2px" }}>
+                  <div style={{ height: "4px", background: "var(--border-subtle)", borderRadius: "2px" }}>
                     <div style={{ width: `${data.tithi.percentage_left}%`, height: "100%", background: "var(--cyan-vivid)", borderRadius: "2px" }} />
                   </div>
                 </div>
@@ -196,7 +196,7 @@ export const PanchangaView: React.FC<Props> = ({
                     <span>Remaining</span>
                     <span>{data.nakshatra.percentage_left.toFixed(1)}%</span>
                   </div>
-                  <div style={{ height: "4px", background: "rgba(255,255,255,0.08)", borderRadius: "2px" }}>
+                  <div style={{ height: "4px", background: "var(--border-subtle)", borderRadius: "2px" }}>
                     <div style={{ width: `${data.nakshatra.percentage_left}%`, height: "100%", background: "var(--gold-vivid)", borderRadius: "2px" }} />
                   </div>
                 </div>
@@ -206,7 +206,7 @@ export const PanchangaView: React.FC<Props> = ({
             {/* 4. YOGA */}
             <div className="card" style={{ padding: "var(--space-5)" }}>
               <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", letterSpacing: "0.06em" }}>4. YOGA (ANGULAR)</span>
-              <h3 style={{ fontSize: "1.2rem", fontWeight: 700, color: "#c084fc", margin: "8px 0 4px" }}>
+              <h3 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--graha-rahu)", margin: "8px 0 4px" }}>
                 {data.yoga.name}
               </h3>
               <p style={{ fontSize: "var(--type-body)", color: "var(--text-mid)" }}>
@@ -218,8 +218,8 @@ export const PanchangaView: React.FC<Props> = ({
                     <span>Remaining</span>
                     <span>{data.yoga.percentage_left.toFixed(1)}%</span>
                   </div>
-                  <div style={{ height: "4px", background: "rgba(255,255,255,0.08)", borderRadius: "2px" }}>
-                    <div style={{ width: `${data.yoga.percentage_left}%`, height: "100%", background: "#a855f7", borderRadius: "2px" }} />
+                  <div style={{ height: "4px", background: "var(--border-subtle)", borderRadius: "2px" }}>
+                    <div style={{ width: `${data.yoga.percentage_left}%`, height: "100%", background: "var(--graha-rahu)", borderRadius: "2px" }} />
                   </div>
                 </div>
               )}
@@ -247,7 +247,7 @@ export const PanchangaView: React.FC<Props> = ({
                     <span>Remaining</span>
                     <span>{data.karana.percentage_left.toFixed(1)}%</span>
                   </div>
-                  <div style={{ height: "4px", background: "rgba(255,255,255,0.08)", borderRadius: "2px" }}>
+                  <div style={{ height: "4px", background: "var(--border-subtle)", borderRadius: "2px" }}>
                     <div style={{ width: `${data.karana.percentage_left}%`, height: "100%", background: "var(--emerald)", borderRadius: "2px" }} />
                   </div>
                 </div>

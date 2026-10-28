@@ -63,7 +63,7 @@ interface GrahaStyle {
 const GRAHA_STYLES: Record<string, GrahaStyle> = {
   Asc: { abbr: "ASC", glyph: "👑", name: "Ascendant", color: "var(--graha-asc, #fde047)", bg: "rgba(253, 224, 71, 0.18)", border: "rgba(253, 224, 71, 0.55)" },
   Su:  { abbr: "Su",  glyph: "☉",  name: "Sun",       color: "var(--graha-sun, #f59e0b)", bg: "rgba(245, 158, 11, 0.16)", border: "rgba(245, 158, 11, 0.45)" },
-  Mo:  { abbr: "Mo",  glyph: "☽",  name: "Moon",      color: "var(--graha-moon, #e2e8f0)", bg: "rgba(226, 232, 240, 0.16)", border: "rgba(226, 232, 240, 0.45)" },
+  Mo:  { abbr: "Mo",  glyph: "☽",  name: "Moon",      color: "var(--graha-moon, #e2e8f0)", bg: "rgba(148, 163, 184, 0.16)", border: "rgba(148, 163, 184, 0.45)" },
   Ma:  { abbr: "Ma",  glyph: "♂",  name: "Mars",      color: "var(--graha-mars, #f87171)", bg: "rgba(248, 113, 113, 0.16)", border: "rgba(248, 113, 113, 0.45)" },
   Me:  { abbr: "Me",  glyph: "☿",  name: "Mercury",   color: "var(--graha-mercury, #34d399)", bg: "rgba(52, 211, 153, 0.16)", border: "rgba(52, 211, 153, 0.45)" },
   Ju:  { abbr: "Ju",  glyph: "♃",  name: "Jupiter",   color: "var(--graha-jupiter, #fbbf24)", bg: "rgba(251, 191, 36, 0.16)", border: "rgba(251, 191, 36, 0.45)" },
@@ -458,7 +458,7 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
                     x="0"
                     y="4.5"
                     textAnchor="middle"
-                    fill="#fcedbe"
+                    fill="var(--gold-bright)"
                     fontSize="11.5"
                     fontWeight="800"
                     fontFamily="'Outfit', sans-serif"
@@ -485,7 +485,7 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
                     return planets.map((p, pIdx) => {
                       const posY = (pIdx - (n - 1) / 2) * stepY;
                       const style = GRAHA_STYLES[p.key] || {
-                        abbr: p.label, glyph: "•", name: p.name, color: "#f1f5f9", bg: "rgba(255,255,255,0.1)", border: "rgba(255,255,255,0.3)"
+                        abbr: p.label, glyph: "•", name: p.name, color: "var(--text-high)", bg: "var(--bg-subtle)", border: "var(--border-subtle)"
                       };
 
                       return (
@@ -519,7 +519,7 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
                             <text
                               x={-halfW + 48}
                               y="4.5"
-                              fill="#f59e0b"
+                              fill="var(--amber)"
                               fontSize="11"
                               fontWeight="800"
                               fontFamily="'JetBrains Mono', monospace"
@@ -531,7 +531,7 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
                             <text
                               x={-halfW + (p.isRetro ? 60 : 48)}
                               y="4.5"
-                              fill={p.dignity.isExalted ? "#34d399" : p.dignity.isDebilitated ? "#f87171" : "#fbe285"}
+                              fill={p.dignity.isExalted ? "var(--emerald)" : p.dignity.isDebilitated ? "var(--rose)" : "var(--gold-vivid)"}
                               fontSize="11"
                               fontWeight="800"
                             >
@@ -545,7 +545,7 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
                               x={halfW - 7}
                               y="4.5"
                               textAnchor="end"
-                              fill="#94a3b8"
+                              fill="var(--text-mid)"
                               fontSize="11"
                               fontFamily="'JetBrains Mono', monospace"
                             >
@@ -570,7 +570,7 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
                     const posX = col === 0 ? -43 : 43;
                     const posY = (row - (half - 1) / 2) * stepY;
                     const style = GRAHA_STYLES[p.key] || {
-                      abbr: p.label, glyph: "•", name: p.name, color: "#f1f5f9", bg: "rgba(255,255,255,0.1)", border: "rgba(255,255,255,0.3)"
+                      abbr: p.label, glyph: "•", name: p.name, color: "var(--text-high)", bg: "var(--bg-subtle)", border: "var(--border-subtle)"
                     };
 
                     return (
@@ -597,7 +597,7 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
                           {p.isAsc ? "ASC" : p.label}
                         </text>
                         {p.isRetro && (
-                          <text x="-4" y="4" fill="#f59e0b" fontSize="9" fontWeight="800">
+                          <text x="-4" y="4" fill="var(--amber)" fontSize="9" fontWeight="800">
                             ℞
                           </text>
                         )}
@@ -606,7 +606,7 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
                             x={halfW - 6}
                             y="4"
                             textAnchor="end"
-                            fill="#94a3b8"
+                            fill="var(--text-mid)"
                             fontSize="10"
                             fontFamily="'JetBrains Mono', monospace"
                           >

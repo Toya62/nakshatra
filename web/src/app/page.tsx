@@ -209,6 +209,8 @@ export default function Home() {
         apiStatus={apiStatus}
         mobileMenuOpen={mobileMenuOpen}
         onToggleMobile={() => setMobileMenuOpen((v) => !v)}
+        onToggleSlim={handleToggleSlim}
+        sidebarSlim={sidebarSlim}
       />
 
       {/* ── Sidebar ── */}

@@ -121,7 +121,7 @@ export const Sidebar: React.FC<Props> = ({
                   borderRadius: "var(--radius-md)",
                   border: "none",
                   borderLeft: active ? "3px solid var(--gold-vivid)" : "3px solid transparent",
-                  background: active ? "linear-gradient(90deg, rgba(223, 177, 91, 0.16) 0%, rgba(223, 177, 91, 0.03) 100%)" : "transparent",
+                  background: active ? "linear-gradient(90deg, var(--gold-dim) 0%, transparent 100%)" : "transparent",
                   color: active ? "var(--gold-bright)" : "var(--text-mid)",
                   fontFamily: "var(--font-sans)",
                   fontSize: "var(--type-label)",
@@ -190,8 +190,8 @@ export const Sidebar: React.FC<Props> = ({
                   border: "none",
                   borderLeft: active ? "3px solid var(--gold-vivid)" : "3px solid transparent",
                   background: active
-                    ? "linear-gradient(90deg, rgba(223, 177, 91, 0.22) 0%, rgba(223, 177, 91, 0.05) 100%)"
-                    : "rgba(223, 177, 91, 0.06)",
+                    ? "linear-gradient(90deg, var(--gold-dim) 0%, transparent 100%)"
+                    : "var(--gold-dim)",
                   color: active ? "var(--gold-bright)" : "var(--gold-vivid)",
                   fontFamily: "var(--font-sans)",
                   fontSize: "var(--type-label)",
