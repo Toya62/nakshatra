@@ -355,6 +355,13 @@ export interface BikramSambatDate {
   formatted_ne: string;
 }
 
+export interface GregorianDate {
+  year: number;
+  month: number;
+  day: number;
+  formatted: string;
+}
+
 export interface DevanagariNomenclature {
   planets: Record<string, string>;
   signs: Record<string, string>;

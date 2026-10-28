@@ -41,6 +41,7 @@ from nakshatra.compatibility import (
     CompatibilityReport,
     calculate_compatibility,
 )
+from nakshatra.config import settings
 from nakshatra.core import (
     Ayanamsa,
     BirthData,
@@ -438,6 +439,19 @@ def _build_chart(request: ChartRequest | TransitRequest | TransitWindowRequest) 
 async def health_check() -> HealthResponse:
     """Health check endpoint."""
     return HealthResponse()
+
+
+@app.get("/config/defaults", tags=["System"])
+async def get_config_defaults() -> dict[str, Any]:
+    """Return default configuration parameters."""
+    return {
+        "default_lat": settings.default_lat,
+        "default_lon": settings.default_lon,
+        "default_timezone": settings.default_timezone,
+        "default_place_name": settings.default_place_name,
+        "default_ayanamsa": settings.default_ayanamsa,
+        "default_house_system": settings.default_house_system,
+    }
 
 
 @app.get("/geocode/search", response_model=list[PlaceResult], tags=["Geocoding"])

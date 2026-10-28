@@ -61,8 +61,8 @@ def match_compatibility_ui(b_y, b_m, b_d, b_h, b_min, b_lat, b_lon, b_tz,
                            g_y, g_m, g_d, g_h, g_min, g_lat, g_lon, g_tz,
                            b_name, g_name):
     try:
-        bride = BirthData(int(b_y), int(b_m), int(b_d), int(b_h), int(b_min), 0, float(b_lat), float(b_lon), str(b_tz).strip(), person_name=b_name)
-        groom = BirthData(int(g_y), int(g_m), int(g_d), int(g_h), int(g_min), 0, float(g_lat), float(g_lon), str(g_tz).strip(), person_name=g_name)
+        bride = BirthData(int(b_y), int(b_m), int(b_d), int(b_h), int(b_min), 0, float(b_lat), float(b_lon), str(b_tz).strip())
+        groom = BirthData(int(g_y), int(g_m), int(g_d), int(g_h), int(g_min), 0, float(g_lat), float(g_lon), str(g_tz).strip())
         b_c = calculate_chart(bride)
         g_c = calculate_chart(groom)
         res = calculate_compatibility(b_c, g_c)
@@ -73,15 +73,14 @@ def match_compatibility_ui(b_y, b_m, b_d, b_h, b_min, b_lat, b_lon, b_tz,
 
 def calculate_muhurtha_ui(year, month, day, hour, minute, lat, lon, tz):
     try:
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+        dt = datetime(int(year), int(month), int(day), int(hour), int(minute), tzinfo=ZoneInfo(str(tz).strip()))
         res = calculate_muhurtha(
-            year=int(year),
-            month=int(month),
-            day=int(day),
-            hour=int(hour),
-            minute=int(minute),
+            dt=dt,
             latitude=float(lat),
             longitude=float(lon),
-            timezone=str(tz).strip(),
+            timezone_str=str(tz).strip(),
         )
         return res.to_markdown()
     except Exception as e:

@@ -18,6 +18,7 @@ import { RemediesView } from "@/components/RemediesView";
 import { BirthDataInput, ChartData, getBirthKey } from "@/lib/types";
 import { fetchChart, checkApiHealth } from "@/lib/api";
 import { Sparkles, Layers } from "lucide-react";
+import { DEFAULT_LOCATION, DEFAULT_AYANAMSA, DEFAULT_HOUSE_SYSTEM } from "@/config/defaults";
 
 const VARGAS = [
   "D1", "D2", "D3", "D4", "D7", "D9", "D10",
@@ -31,12 +32,12 @@ const DEFAULT_BIRTH_DATA: BirthDataInput = {
   hour: 4,
   minute: 53,
   second: 0,
-  latitude: 27.8667,
-  longitude: 83.4833,
-  timezone: "Asia/Kathmandu",
-  place_name: "Palpa, Nepal",
-  ayanamsa: "jhora_lahiri",
-  house_system: "WholeSign",
+  latitude: DEFAULT_LOCATION.lat || 27.8667,
+  longitude: DEFAULT_LOCATION.lon || 83.4833,
+  timezone: DEFAULT_LOCATION.tz || "Asia/Kathmandu",
+  place_name: DEFAULT_LOCATION.place || "Palpa, Nepal",
+  ayanamsa: DEFAULT_AYANAMSA,
+  house_system: DEFAULT_HOUSE_SYSTEM,
 };
 
 const VALID_TABS: TabId[] = [

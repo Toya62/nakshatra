@@ -4,6 +4,7 @@ import {
   ChartData,
   CompatibilityReport,
   DevanagariNomenclature,
+  GregorianDate,
   MuhurthaReport,
   PanchangaData,
   PlaceResult,
@@ -406,6 +407,17 @@ export async function fetchBikramSambat(
 ): Promise<BikramSambatDate | null> {
   const baseUrl = getApiBaseUrl();
   const res = await fetch(`${baseUrl}/calendar/bs?year=${year}&month=${month}&day=${day}`);
+  if (!res.ok) return null;
+  return res.json();
+}
+
+export async function fetchGregorianDate(
+  year: number,
+  month: number,
+  day: number
+): Promise<GregorianDate | null> {
+  const baseUrl = getApiBaseUrl();
+  const res = await fetch(`${baseUrl}/calendar/ad?year=${year}&month=${month}&day=${day}`);
   if (!res.ok) return null;
   return res.json();
 }

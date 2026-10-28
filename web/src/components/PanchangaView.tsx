@@ -5,6 +5,7 @@ import { PanchangaData } from "@/lib/types";
 import { fetchPanchanga } from "@/lib/api";
 import { Skeleton } from "@/components/Skeleton";
 import { Moon, Sun, AlertTriangle, Calendar, Clock } from "lucide-react";
+import { DEFAULT_LOCATION } from "@/config/defaults";
 
 interface Props {
   defaultLat?: number;
@@ -13,9 +14,9 @@ interface Props {
 }
 
 export const PanchangaView: React.FC<Props> = ({
-  defaultLat = 27.8667,
-  defaultLon = 83.4833,
-  defaultTz = "Asia/Kathmandu",
+  defaultLat = DEFAULT_LOCATION.lat || 27.8667,
+  defaultLon = DEFAULT_LOCATION.lon || 83.4833,
+  defaultTz = DEFAULT_LOCATION.tz || "Asia/Kathmandu",
 }) => {
   const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [time, setTime] = useState("12:00");

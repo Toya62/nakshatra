@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { BirthDataInput, MuhurthaReport } from "@/lib/types";
 import { fetchMuhurtha } from "@/lib/api";
+import { DEFAULT_LOCATION } from "@/config/defaults";
 
 interface Props {
   defaultLat?: number;
@@ -21,9 +22,9 @@ interface Props {
 }
 
 export const MuhurthaView: React.FC<Props> = ({
-  defaultLat = 28.6139,
-  defaultLon = 77.209,
-  defaultTz = "Asia/Kolkata",
+  defaultLat = DEFAULT_LOCATION.lat || 28.6139,
+  defaultLon = DEFAULT_LOCATION.lon || 77.209,
+  defaultTz = DEFAULT_LOCATION.tz || "Asia/Kolkata",
 }) => {
   const [input, setInput] = useState<BirthDataInput>({
     year: 2026,

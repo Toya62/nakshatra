@@ -31,7 +31,7 @@ import swisseph as swe
 from mayaastrolib.datetime import Datetime
 from pydantic import BaseModel, Field
 
-from nakshatra.core import Ayanamsa
+from nakshatra.core import Ayanamsa, format_tz_offset
 from nakshatra.panchanga import (
     PanchangaData,
     calculate_panchanga,
@@ -372,7 +372,7 @@ def calculate_muhurtha(
     # Convert local_dt into UTC offset seconds
     utcoffset = local_dt.utcoffset()
     offset_sec = utcoffset.total_seconds() if utcoffset is not None else 0.0
-    t_tz_str = f"{int(offset_sec // 3600):+03d}:{int((abs(offset_sec) % 3600) // 60):02d}"
+    t_tz_str = format_tz_offset(offset_sec)
 
     # Calculate Sunrise, Sunset, and Next Sunrise exact JDs
     midnight_dt = Datetime([local_dt.year, local_dt.month, local_dt.day], 0.0, t_tz_str)

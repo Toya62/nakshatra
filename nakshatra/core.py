@@ -15,11 +15,14 @@ Calculations:
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 from zoneinfo import ZoneInfo
+
+logger = logging.getLogger(__name__)
 
 import mayaastrolib.vedic.ashtakavarga as vav
 import mayaastrolib.vedic.ayanamsa as vaya
@@ -557,6 +560,15 @@ def get_degree_in_sign(longitude: float) -> float:
     return (longitude % 360.0) % 30.0
 
 
+def format_tz_offset(offset_sec: float) -> str:
+    """Format total seconds into +/-HH:MM ISO offset string with correct negative rounding."""
+    sign = "-" if offset_sec < 0 else "+"
+    abs_sec = abs(int(offset_sec))
+    offset_h = abs_sec // 3600
+    offset_m = (abs_sec % 3600) // 60
+    return f"{sign}{offset_h:02d}:{offset_m:02d}"
+
+
 def calculate_dignity(planet: str, sign: str) -> str:
     """Calculate planetary dignity (simplified classical Vedic)."""
     exaltation = {
@@ -761,9 +773,7 @@ def calculate_chart(
     )
     utc_offset = dt_local.utcoffset()
     offset_sec = utc_offset.total_seconds() if utc_offset is not None else 0.0
-    offset_h = int(offset_sec // 3600)
-    offset_m = int((abs(offset_sec) % 3600) // 60)
-    offset_str = f"{offset_h:+03d}:{offset_m:02d}"
+    offset_str = format_tz_offset(offset_sec)
 
     decimal_hour = birth.hour + (birth.minute / 60.0) + (birth.second / 3600.0)
     m_dt = Datetime([birth.year, birth.month, birth.day], decimal_hour, offset_str)
@@ -1022,7 +1032,7 @@ def calculate_chart(
         target_pydt = target_date or datetime.now(ZoneInfo(birth.timezone))
         t_td = target_pydt.utcoffset()
         t_sec = t_td.total_seconds() if t_td is not None else offset_sec
-        t_str = f"{int(t_sec // 3600):+03d}:{int((abs(t_sec) % 3600) // 60):02d}"
+        t_str = format_tz_offset(t_sec)
         target_mdt = Datetime(
             [target_pydt.year, target_pydt.month, target_pydt.day],
             target_pydt.hour + (target_pydt.minute / 60.0) + (target_pydt.second / 3600.0),
@@ -1086,8 +1096,8 @@ def calculate_chart(
             )
             shodhita_sav = shodhita_res.get("per_rasi")
             shodhita_bav = shodhita_res.get("by_planet")
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Failed to calculate shodhita ashtakavarga: %s", e)
         ashtakavarga_data = AshtakavargaData(
             sarvashtakavarga=av_res["per_rasi"],
             grand_total=av_res["grand_total"],
@@ -1164,7 +1174,7 @@ def calculate_chart(
 
     res_chart = ChartData(
         birth_data=birth,
-        calculation_time=datetime.utcnow().isoformat() + "Z",
+        calculation_time=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         zodiac=ZodiacSystem.SIDEREAL,
         ayanamsa=ayanamsa,
         ayanamsa_value=round(ayanamsa_deg, 6),
@@ -1194,8 +1204,8 @@ def calculate_chart(
             transit_win = scan_transit_window(res_chart, start_date=target_date, days=30)
             t_dict["window"] = transit_win.model_dump()
             res_chart.transits = t_dict
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Failed to calculate transits: %s", e)
 
     if include_panchanga:
         try:
@@ -1208,15 +1218,15 @@ def calculate_chart(
                 birth.timezone,
                 ayanamsa=ayanamsa,
             )
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Failed to calculate panchanga: %s", e)
 
     if include_yogas:
         try:
             from nakshatra.yogas import detect_yogas
 
             res_chart.yogas = detect_yogas(res_chart)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Failed to calculate yogas: %s", e)
 
     return res_chart

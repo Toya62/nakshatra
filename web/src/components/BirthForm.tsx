@@ -1,9 +1,27 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { BirthDataInput, PlaceResult, TimezoneOffsetInfo } from "@/lib/types";
+import { BirthDataInput, BikramSambatDate, PlaceResult, TimezoneOffsetInfo } from "@/lib/types";
 import { searchPlaces, fetchTimezoneOffset } from "@/lib/api";
 import { MapPin, Calendar, Clock, Settings, Sparkles, Check, Globe, Compass, Sliders } from "lucide-react";
+import { DEFAULT_LOCATION } from "@/config/defaults";
+import { CalendarSwitcher } from "./CalendarSwitcher";
+import { getCalendarSystem, setCalendarSystem, convertAdToBs, convertBsToAd, CalendarSystem } from "@/lib/calendar";
+
+export const NEPALI_MONTHS = [
+  { index: 1, name_en: "Baishakh", name_ne: "वैशाख" },
+  { index: 2, name_en: "Jestha", name_ne: "जेठ" },
+  { index: 3, name_en: "Ashadh", name_ne: "असार" },
+  { index: 4, name_en: "Shrawan", name_ne: "साउन" },
+  { index: 5, name_en: "Bhadra", name_ne: "भदौ" },
+  { index: 6, name_en: "Ashwin", name_ne: "असोज" },
+  { index: 7, name_en: "Kartik", name_ne: "कात्तिक" },
+  { index: 8, name_en: "Mangsir", name_ne: "मंसिर" },
+  { index: 9, name_en: "Poush", name_ne: "पुस" },
+  { index: 10, name_en: "Magh", name_ne: "माघ" },
+  { index: 11, name_en: "Falgun", name_ne: "फागुन" },
+  { index: 12, name_en: "Chaitra", name_ne: "चैत" },
+];
 
 interface Props {
   initialData?: BirthDataInput;
@@ -51,13 +69,119 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
   const [minute, setMinute] = useState(String(initialData?.minute ?? 53));
   const [second, setSecond] = useState(String(initialData?.second ?? 0));
 
-  const [lat, setLat] = useState(String(initialData?.latitude ?? 27.8667));
-  const [lon, setLon] = useState(String(initialData?.longitude ?? 83.4833));
-  const [tz, setTz] = useState(initialData?.timezone || "Asia/Kathmandu");
-  const [place, setPlace] = useState(initialData?.place_name || "Palpa, Nepal");
+  const [lat, setLat] = useState(String(initialData?.latitude ?? (DEFAULT_LOCATION.lat || 27.8667)));
+  const [lon, setLon] = useState(String(initialData?.longitude ?? (DEFAULT_LOCATION.lon || 83.4833)));
+  const [tz, setTz] = useState(initialData?.timezone || DEFAULT_LOCATION.tz || "Asia/Kathmandu");
+  const [place, setPlace] = useState(initialData?.place_name || DEFAULT_LOCATION.place || "");
 
   const [ayanamsa, setAyanamsa] = useState(initialData?.ayanamsa || "jhora_lahiri");
   const [houseSystem, setHouseSystem] = useState(initialData?.house_system || "WholeSign");
+
+  // Calendar System state (Gregorian AD or Bikram Sambat BS)
+  const [calendarSystem, setCalendarSystemState] = useState<CalendarSystem>("gregorian");
+  const [bsYear, setBsYear] = useState("2054");
+  const [bsMonth, setBsMonth] = useState("2");
+  const [bsDay, setBsDay] = useState("9");
+  const [bsDateInfo, setBsDateInfo] = useState<BikramSambatDate | null>(null);
+
+  // Sync calendar system on mount and on custom event
+  useEffect(() => {
+    setCalendarSystemState(getCalendarSystem());
+    const handleCalChange = (e: Event) => {
+      const customEvent = e as CustomEvent<CalendarSystem>;
+      if (customEvent.detail) {
+        setCalendarSystemState(customEvent.detail);
+      }
+    };
+    window.addEventListener("calendarSystemChanged", handleCalChange);
+    return () => window.removeEventListener("calendarSystemChanged", handleCalChange);
+  }, []);
+
+  // Sync AD -> BS date conversion
+  useEffect(() => {
+    let active = true;
+    const y = parseInt(year, 10);
+    const m = parseInt(month, 10);
+    const d = parseInt(day, 10);
+    if (!isNaN(y) && !isNaN(m) && !isNaN(d) && y >= 1900 && m >= 1 && m <= 12 && d >= 1 && d <= 31) {
+      convertAdToBs(y, m, d).then((res) => {
+        if (active && res) {
+          setBsDateInfo(res);
+          if (calendarSystem === "gregorian") {
+            setBsYear(String(res.year));
+            setBsMonth(String(res.month));
+            setBsDay(String(res.day));
+          }
+        }
+      });
+    }
+    return () => {
+      active = false;
+    };
+  }, [year, month, day, calendarSystem]);
+
+  const syncBsToAd = async (yStr: string, mStr: string, dStr: string) => {
+    const y = parseInt(yStr, 10);
+    const m = parseInt(mStr, 10);
+    const d = parseInt(dStr, 10);
+    if (!isNaN(y) && !isNaN(m) && !isNaN(d) && y >= 1970 && y <= 2100 && m >= 1 && m <= 12 && d >= 1 && d <= 32) {
+      const ad = await convertBsToAd(y, m, d);
+      if (ad) {
+        setYear(String(ad.year));
+        setMonth(String(ad.month));
+        setDay(String(ad.day));
+      }
+    }
+  };
+
+  const handleBsYearChange = (val: string) => {
+    const cleaned = val.replace(/[^0-9]/g, "").slice(0, 4);
+    setBsYear(cleaned);
+    syncBsToAd(cleaned, bsMonth, bsDay);
+  };
+
+  const handleBsYearBlur = () => {
+    if (!bsYear) {
+      setBsYear("2054");
+      syncBsToAd("2054", bsMonth, bsDay);
+      return;
+    }
+    const y = parseInt(bsYear, 10);
+    if (y < 1970) {
+      setBsYear("1970");
+      syncBsToAd("1970", bsMonth, bsDay);
+    } else if (y > 2100) {
+      setBsYear("2100");
+      syncBsToAd("2100", bsMonth, bsDay);
+    }
+  };
+
+  const handleBsMonthChange = (val: string) => {
+    setBsMonth(val);
+    syncBsToAd(bsYear, val, bsDay);
+  };
+
+  const handleBsDayChange = (val: string) => {
+    const cleaned = val.replace(/[^0-9]/g, "").slice(0, 2);
+    setBsDay(cleaned);
+    syncBsToAd(bsYear, bsMonth, cleaned);
+  };
+
+  const handleBsDayBlur = () => {
+    if (!bsDay) {
+      setBsDay("1");
+      syncBsToAd(bsYear, bsMonth, "1");
+      return;
+    }
+    const d = parseInt(bsDay, 10);
+    if (d < 1) {
+      setBsDay("1");
+      syncBsToAd(bsYear, bsMonth, "1");
+    } else if (d > 32) {
+      setBsDay("32");
+      syncBsToAd(bsYear, bsMonth, "32");
+    }
+  };
 
   // Geocoding live search state
   const [query, setQuery] = useState(place);
@@ -250,11 +374,32 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const y = parseInt(year, 10) || 1997;
-    const m = Math.min(12, Math.max(1, parseInt(month, 10) || 1));
-    const d = Math.min(31, Math.max(1, parseInt(day, 10) || 1));
+    let currentY = year;
+    let currentM = month;
+    let currentD = day;
+
+    if (calendarSystem === "bikram") {
+      const by = parseInt(bsYear, 10);
+      const bm = parseInt(bsMonth, 10);
+      const bd = parseInt(bsDay, 10);
+      if (!isNaN(by) && !isNaN(bm) && !isNaN(bd) && by >= 1970 && by <= 2100 && bm >= 1 && bm <= 12 && bd >= 1 && bd <= 32) {
+        const ad = await convertBsToAd(by, bm, bd);
+        if (ad) {
+          currentY = String(ad.year);
+          currentM = String(ad.month);
+          currentD = String(ad.day);
+          setYear(currentY);
+          setMonth(currentM);
+          setDay(currentD);
+        }
+      }
+    }
+
+    const y = parseInt(currentY, 10) || 1997;
+    const m = Math.min(12, Math.max(1, parseInt(currentM, 10) || 1));
+    const d = Math.min(31, Math.max(1, parseInt(currentD, 10) || 1));
     const h = Math.min(23, Math.max(0, parseInt(hour, 10) || 0));
     const min = Math.min(59, Math.max(0, parseInt(minute, 10) || 0));
     const s = Math.min(59, Math.max(0, parseInt(second, 10) || 0));
@@ -304,43 +449,127 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "var(--space-4)" }}>
         {/* Date */}
         <div>
-          <label style={{ fontSize: "var(--type-label)", color: "var(--text-mid)", display: "flex", alignItems: "center", gap: "var(--space-1)", marginBottom: "var(--space-1)" }}>
-            <Calendar size={13} aria-hidden="true" /> Date of Birth (YYYY-MM-DD)
-          </label>
-          <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr", gap: "var(--space-1)" }}>
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={year}
-              onChange={(e) => handleYearChange(e.target.value)}
-              onBlur={handleYearBlur}
-              placeholder="YYYY"
-              aria-label="Birth year"
-              required
-            />
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={month}
-              onChange={(e) => handleMonthChange(e.target.value)}
-              onBlur={handleMonthBlur}
-              placeholder="MM"
-              aria-label="Birth month"
-              required
-            />
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={day}
-              onChange={(e) => handleDayChange(e.target.value)}
-              onBlur={handleDayBlur}
-              placeholder="DD"
-              aria-label="Birth day"
-              required
-            />
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--space-1)" }}>
+            <label style={{ fontSize: "var(--type-label)", color: "var(--text-mid)", display: "flex", alignItems: "center", gap: "var(--space-1)", margin: 0 }}>
+              <Calendar size={13} aria-hidden="true" />
+              {calendarSystem === "bikram" ? "Date of Birth (BS - Bikram Sambat)" : "Date of Birth (AD - Gregorian)"}
+            </label>
+            <div style={{ display: "flex", gap: "2px", background: "var(--surface-sunken)", padding: "2px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setCalendarSystemState("gregorian");
+                  setCalendarSystem("gregorian");
+                  window.dispatchEvent(new CustomEvent("calendarSystemChanged", { detail: "gregorian" }));
+                }}
+                className={`chip${calendarSystem === "gregorian" ? " active" : ""}`}
+                style={{ fontSize: "11px", padding: "1px 6px", height: "auto", lineHeight: "16px" }}
+              >
+                AD
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setCalendarSystemState("bikram");
+                  setCalendarSystem("bikram");
+                  window.dispatchEvent(new CustomEvent("calendarSystemChanged", { detail: "bikram" }));
+                }}
+                className={`chip${calendarSystem === "bikram" ? " active" : ""}`}
+                style={{ fontSize: "11px", padding: "1px 6px", height: "auto", lineHeight: "16px" }}
+              >
+                BS (वि.सं.)
+              </button>
+            </div>
+          </div>
+
+          {calendarSystem === "gregorian" ? (
+            <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr", gap: "var(--space-1)" }}>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={year}
+                onChange={(e) => handleYearChange(e.target.value)}
+                onBlur={handleYearBlur}
+                placeholder="YYYY"
+                aria-label="Birth year"
+                required
+              />
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={month}
+                onChange={(e) => handleMonthChange(e.target.value)}
+                onBlur={handleMonthBlur}
+                placeholder="MM"
+                aria-label="Birth month"
+                required
+              />
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={day}
+                onChange={(e) => handleDayChange(e.target.value)}
+                onBlur={handleDayBlur}
+                placeholder="DD"
+                aria-label="Birth day"
+                required
+              />
+            </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "1.2fr 2fr 1fr", gap: "var(--space-1)" }}>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={bsYear}
+                onChange={(e) => handleBsYearChange(e.target.value)}
+                onBlur={handleBsYearBlur}
+                placeholder="वर्ष (YYYY)"
+                aria-label="Bikram Sambat birth year"
+                required
+              />
+              <select
+                value={bsMonth}
+                onChange={(e) => handleBsMonthChange(e.target.value)}
+                style={{ padding: "var(--space-2)", background: "var(--surface-raised)", border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-sm)", color: "var(--text-high)", fontSize: "var(--type-body)" }}
+                aria-label="Bikram Sambat birth month"
+              >
+                {NEPALI_MONTHS.map((m) => (
+                  <option key={m.index} value={String(m.index)}>
+                    {m.index < 10 ? `0${m.index}` : m.index} - {m.name_ne} ({m.name_en})
+                  </option>
+                ))}
+              </select>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={bsDay}
+                onChange={(e) => handleBsDayChange(e.target.value)}
+                onBlur={handleBsDayBlur}
+                placeholder="गते (DD)"
+                aria-label="Bikram Sambat birth gate/day"
+                required
+              />
+            </div>
+          )}
+
+          {/* Dual Calendar Conversion Indicator Badge */}
+          <div style={{ marginTop: "var(--space-1)", fontSize: "var(--type-micro)", color: "var(--text-mid)", display: "flex", alignItems: "center", gap: "var(--space-1)" }}>
+            {calendarSystem === "bikram" ? (
+              <span>
+                Equivalent AD: <strong style={{ color: "var(--gold-bright)" }}>{year}-{String(month).padStart(2, "0")}-{String(day).padStart(2, "0")}</strong>
+              </span>
+            ) : (
+              bsDateInfo && (
+                <span>
+                  Equivalent BS: <strong style={{ color: "var(--gold-bright)" }}>{bsDateInfo.formatted_ne || bsDateInfo.formatted}</strong>
+                </span>
+              )
+            )}
           </div>
         </div>
 

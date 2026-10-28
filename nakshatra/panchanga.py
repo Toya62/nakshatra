@@ -21,6 +21,7 @@ from pydantic import BaseModel, Field
 
 from nakshatra.core import (
     Ayanamsa,
+    format_tz_offset,
     get_nakshatra,
 )
 
@@ -292,7 +293,7 @@ def calculate_panchanga(
     utcoffset = local_dt.utcoffset()
     offset_sec = utcoffset.total_seconds() if utcoffset is not None else 0.0
     t_h = local_dt.hour + (local_dt.minute / 60.0) + (local_dt.second / 3600.0)
-    t_tz_str = f"{int(offset_sec // 3600):+03d}:{int((abs(offset_sec) % 3600) // 60):02d}"
+    t_tz_str = format_tz_offset(offset_sec)
 
     m_dt = Datetime([local_dt.year, local_dt.month, local_dt.day], t_h, t_tz_str)
     m_pos = GeoPos(latitude, longitude)
@@ -329,6 +330,8 @@ def calculate_panchanga(
 
     sunrise_jd = t_rise_res[1][0] if t_rise_res[0] == 0 else None
     sunset_jd = t_set_res[1][0] if t_set_res[0] == 0 else None
+    calendar_sunrise_jd = sunrise_jd
+    calendar_sunset_jd = sunset_jd
 
     # Check if observation time is before sunrise today
     is_pre_sunrise = False
@@ -370,7 +373,7 @@ def calculate_panchanga(
 
     # 3. Tithi (Moon - Sun angle)
     tithi_diff = (moon_lon - sun_lon) % 360.0
-    tithi_idx = int(tithi_diff / 12.0) + 1  # 1 to 30
+    tithi_idx = min(int(tithi_diff / 12.0) + 1, 30)  # 1 to 30
     tithi_span_elapsed = tithi_diff % 12.0
     tithi_pct_left = (1.0 - (tithi_span_elapsed / 12.0)) * 100.0
     paksha = "Shukla" if tithi_idx <= 15 else "Krishna"
@@ -388,9 +391,11 @@ def calculate_panchanga(
 
     # 4. Nakshatra
     nak_name, nak_lord, nak_pada = get_nakshatra(moon_lon)
-    nak_idx = int(moon_lon / (360.0 / 27.0)) + 1
-    nak_span_elapsed = moon_lon % (360.0 / 27.0)
-    nak_pct_left = (1.0 - (nak_span_elapsed / (360.0 / 27.0))) * 100.0
+    nakshatra_span = 360.0 / 27.0
+    moon_lon_mod = moon_lon % 360.0
+    nak_idx = min(int(moon_lon_mod / nakshatra_span) + 1, 27)
+    nak_span_elapsed = moon_lon_mod % nakshatra_span
+    nak_pct_left = (1.0 - (nak_span_elapsed / nakshatra_span)) * 100.0
 
     nakshatra_data = NakshatraData(
         index=nak_idx,
@@ -403,9 +408,9 @@ def calculate_panchanga(
 
     # 5. Yoga (Moon + Sun angle)
     yoga_sum = (sun_lon + moon_lon) % 360.0
-    yoga_idx = int(yoga_sum / (360.0 / 27.0)) + 1  # 1 to 27
-    yoga_span_elapsed = yoga_sum % (360.0 / 27.0)
-    yoga_pct_left = (1.0 - (yoga_span_elapsed / (360.0 / 27.0))) * 100.0
+    yoga_idx = min(int(yoga_sum / nakshatra_span) + 1, 27)  # 1 to 27
+    yoga_span_elapsed = yoga_sum % nakshatra_span
+    yoga_pct_left = (1.0 - (yoga_span_elapsed / nakshatra_span)) * 100.0
     yoga_name = YOGA_NAMES[yoga_idx - 1]
     yoga_lord = YOGA_LORDS[yoga_idx - 1]
 
@@ -418,7 +423,7 @@ def calculate_panchanga(
     )
 
     # 6. Karana (Half-tithi: 6 degrees each, 1-60)
-    karana_idx = int(tithi_diff / 6.0) + 1  # 1 to 60
+    karana_idx = min(int(tithi_diff / 6.0) + 1, 60)  # 1 to 60
     karana_span_elapsed = tithi_diff % 6.0
     karana_pct_left = (1.0 - (karana_span_elapsed / 6.0)) * 100.0
 
@@ -458,8 +463,8 @@ def calculate_panchanga(
             h = (h + 1) % 24
         return f"{h:02d}:{m:02d}:{s:02d}"
 
-    sunrise_str = _jd_to_time_str(sunrise_jd)
-    sunset_str = _jd_to_time_str(sunset_jd)
+    sunrise_str = _jd_to_time_str(calendar_sunrise_jd)
+    sunset_str = _jd_to_time_str(calendar_sunset_jd)
 
     return PanchangaData(
         timestamp=local_dt.strftime("%Y-%m-%d %H:%M:%S"),

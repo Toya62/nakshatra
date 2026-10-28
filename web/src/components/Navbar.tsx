@@ -4,6 +4,7 @@ import React from "react";
 import { Activity, Menu, X } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { NakshatraLogo } from "@/components/NakshatraLogo";
+import { CalendarSwitcher } from "@/components/CalendarSwitcher";
 
 // Re-export TabId from Sidebar so existing imports still work
 export type { TabId } from "@/components/Sidebar";
@@ -106,7 +107,10 @@ export const Navbar: React.FC<Props> = ({
 
       {/* Right — Theme Toggle + API status */}
       <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
-        <ThemeToggle />
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+          <CalendarSwitcher />
+          <ThemeToggle />
+        </div>
         <div
           className={`badge ${
             apiStatus === "connected"
@@ -119,7 +123,7 @@ export const Navbar: React.FC<Props> = ({
           title={`Backend API: ${apiStatus}`}
         >
           <Activity size={11} aria-hidden="true" />
-          <span>{apiStatus === "checking" ? "connecting…" : apiStatus}</span>
+          <span className="hidden sm:inline">{apiStatus === "checking" ? "connecting…" : apiStatus}</span>
         </div>
       </div>
     </header>

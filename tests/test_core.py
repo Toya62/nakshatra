@@ -12,6 +12,7 @@ from nakshatra.core import (
     HouseSystem,
     calculate_chart,
     calculate_dignity,
+    format_tz_offset,
     get_degree_in_sign,
     get_nakshatra,
     get_sign,
@@ -26,6 +27,18 @@ class TestCoreCalculations:
         assert get_sign(30.0) == "Taurus"
         assert get_sign(60.0) == "Gemini"
         assert get_sign(359.9) == "Pisces"
+
+    def test_format_tz_offset(self):
+        # Positive offset (Kathmandu +05:45)
+        assert format_tz_offset(20700) == "+05:45"
+        # Zero offset (UTC +00:00)
+        assert format_tz_offset(0) == "+00:00"
+        # Integer negative offset (New York -05:00)
+        assert format_tz_offset(-18000) == "-05:00"
+        # Fractional negative offset (St. John's -03:30)
+        assert format_tz_offset(-12600) == "-03:30"
+        # Small fractional negative offset (-00:30)
+        assert format_tz_offset(-1800) == "-00:30"
 
     def test_get_degree_in_sign(self):
         assert get_degree_in_sign(0.0) == 0.0

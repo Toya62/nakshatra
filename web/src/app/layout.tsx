@@ -1,6 +1,18 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cinzel, JetBrains_Mono, Outfit } from "next/font/google";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#060911" },
+    { media: "(prefers-color-scheme: light)", color: "#f8f9fc" },
+  ],
+};
 
 const cinzel = Cinzel({
   subsets: ["latin"],

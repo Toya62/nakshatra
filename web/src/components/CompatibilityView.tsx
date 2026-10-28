@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { BirthDataInput, CompatibilityReport } from "@/lib/types";
 import { fetchCompatibility } from "@/lib/api";
+import { DEFAULT_LOCATION } from "@/config/defaults";
 
 interface Props {
   defaultBride?: BirthDataInput;
@@ -29,9 +30,9 @@ export const CompatibilityView: React.FC<Props> = ({ defaultBride, defaultGroom 
       hour: 4,
       minute: 53,
       second: 0,
-      latitude: 27.8667,
-      longitude: 83.4833,
-      timezone: "Asia/Kathmandu",
+      latitude: DEFAULT_LOCATION.lat || 27.8667,
+      longitude: DEFAULT_LOCATION.lon || 83.4833,
+      timezone: DEFAULT_LOCATION.tz || "Asia/Kathmandu",
       place_name: "Palpa, Nepal",
       ayanamsa: "jhora_lahiri",
       house_system: "WholeSign",

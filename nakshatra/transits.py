@@ -22,6 +22,7 @@ from nakshatra.core import (
     ZODIAC_SIGNS,
     Ayanamsa,
     ChartData,
+    format_tz_offset,
     get_degree_in_sign,
     get_nakshatra,
     get_sign,
@@ -286,7 +287,7 @@ def calculate_transits(
     t_td = t_dt.utcoffset()
     offset_sec = t_td.total_seconds() if t_td is not None else 0
     t_h = t_dt.hour + (t_dt.minute / 60.0) + (t_dt.second / 3600.0)
-    t_tz_str = f"{int(offset_sec // 3600):+03d}:{int((abs(offset_sec) % 3600) // 60):02d}"
+    t_tz_str = format_tz_offset(offset_sec)
 
     m_dt = Datetime([t_dt.year, t_dt.month, t_dt.day], t_h, t_tz_str)
     m_pos = GeoPos(t_lat, t_lon)

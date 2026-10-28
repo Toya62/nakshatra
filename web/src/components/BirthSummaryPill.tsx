@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
-import { BirthDataInput } from "@/lib/types";
+import React, { useState, useEffect } from "react";
+import { BirthDataInput, BikramSambatDate } from "@/lib/types";
 import { MapPin, Calendar, Clock, ChevronDown, ChevronUp, Edit2 } from "lucide-react";
 import { BirthForm } from "@/components/BirthForm";
+import { CalendarSystem, getCalendarSystem, convertAdToBs } from "@/lib/calendar";
 
 interface Props {
   birthData: BirthDataInput;
@@ -34,6 +35,24 @@ export const BirthSummaryPill: React.FC<Props> = ({
   loading,
 }) => {
   const [expanded, setExpanded] = useState(!hasChart);
+  const [calendarSystem, setCalendarSystem] = useState<CalendarSystem>("gregorian");
+  const [bsData, setBsData] = useState<BikramSambatDate | null>(null);
+
+  useEffect(() => {
+    setCalendarSystem(getCalendarSystem());
+    const handleCalChange = (e: Event) => {
+      const customEvent = e as CustomEvent<CalendarSystem>;
+      if (customEvent.detail) setCalendarSystem(customEvent.detail);
+    };
+    window.addEventListener("calendarSystemChanged", handleCalChange);
+    return () => window.removeEventListener("calendarSystemChanged", handleCalChange);
+  }, []);
+
+  useEffect(() => {
+    if (birthData.year && birthData.month && birthData.day) {
+      convertAdToBs(birthData.year, birthData.month, birthData.day).then(setBsData);
+    }
+  }, [birthData.year, birthData.month, birthData.day]);
 
   // Collapsed pill — shown when a chart has been calculated
   if (hasChart && !expanded) {
@@ -63,8 +82,20 @@ export const BirthSummaryPill: React.FC<Props> = ({
           <span style={{ display: "flex", alignItems: "center", gap: "var(--space-1)" }}>
             <Calendar size={12} aria-hidden="true" />
             <span style={{ color: "var(--text-high)", fontWeight: 600 }}>
-              {birthData.day} {["", "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][birthData.month]} {birthData.year}
+              {calendarSystem === "bikram" && bsData
+                ? `${bsData.formatted_ne || bsData.formatted} BS`
+                : `${birthData.day} ${["", "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][birthData.month]} ${birthData.year}`}
             </span>
+            {calendarSystem !== "bikram" && bsData?.formatted_ne && (
+              <span style={{ color: "var(--gold-bright)", fontSize: "var(--type-micro)", marginLeft: "4px" }}>
+                ({bsData.formatted_ne} BS)
+              </span>
+            )}
+            {calendarSystem === "bikram" && (
+              <span style={{ color: "var(--text-low)", fontSize: "var(--type-micro)", marginLeft: "4px" }}>
+                ({birthData.year}-{padZ(birthData.month)}-{padZ(birthData.day)} AD)
+              </span>
+            )}
           </span>
 
           <span style={{ color: "var(--text-low)" }}>·</span>

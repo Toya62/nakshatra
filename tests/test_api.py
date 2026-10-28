@@ -440,3 +440,18 @@ class TestPredictEndpoint:
         career = body["data"]["career"]
         assert career["domain"] == "career"
         assert career["promise_tier"] in ("Exceptional", "Favorable", "Mixed", "Challenging", "Obstructed")
+
+
+class TestConfigEndpoint:
+    """Tests for GET /config/defaults endpoint."""
+
+    def test_get_config_defaults(self, client: TestClient):
+        r = client.get("/config/defaults")
+        assert r.status_code == 200
+        data = r.json()
+        assert "default_lat" in data
+        assert "default_lon" in data
+        assert "default_timezone" in data
+        assert "default_ayanamsa" in data
+        assert "default_house_system" in data
+        assert data["default_ayanamsa"] == "jhora_lahiri"
