@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Activity, Menu, X } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 // Re-export TabId from Sidebar so existing imports still work
 export type { TabId } from "@/components/Sidebar";
@@ -106,8 +107,9 @@ export const Navbar: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* Right — API status */}
+      {/* Right — Theme Toggle + API status */}
       <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+        <ThemeToggle />
         <div
           className={`badge ${
             apiStatus === "connected"

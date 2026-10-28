@@ -453,7 +453,7 @@ export const MuhurthaView: React.FC<Props> = ({
                <div style={{ overflowX: "auto" }}>
                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
                    <thead>
-                     <tr style={{ borderBottom: "var(--border-width) solid rgba(255,255,255,0.1)", textAlign: "left", color: "var(--text-muted)" }}>
+                     <tr style={{ borderBottom: "var(--border-width) solid var(--border-subtle)", textAlign: "left", color: "var(--text-muted)" }}>
                        <th style={{ padding: "var(--space-2) var(--space-3)" }}>#</th>
                        <th style={{ padding: "var(--space-2) var(--space-3)" }}>Time</th>
                        <th style={{ padding: "var(--space-2) var(--space-3)" }}>Ruling Planet</th>
@@ -466,8 +466,8 @@ export const MuhurthaView: React.FC<Props> = ({
                        <tr
                          key={h.hora_index}
                          style={{
-                           borderBottom: "var(--border-width) solid rgba(255,255,255,0.05)",
-                           background: h.is_current ? "rgba(229,185,76,0.12)" : "transparent",
+                           borderBottom: "var(--border-width) solid var(--border-subtle)",
+                           background: h.is_current ? "var(--gold-dim)" : "transparent",
                          }}
                        >
                          <td style={{ padding: "var(--space-2-5) var(--space-3)", fontWeight: 600, color: "var(--text-dim)" }}>
@@ -498,7 +498,7 @@ export const MuhurthaView: React.FC<Props> = ({
                <div style={{ overflowX: "auto" }}>
                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
                    <thead>
-                     <tr style={{ borderBottom: "var(--border-width) solid rgba(255,255,255,0.1)", textAlign: "left", color: "var(--text-muted)" }}>
+                     <tr style={{ borderBottom: "var(--border-width) solid var(--border-subtle)", textAlign: "left", color: "var(--text-muted)" }}>
                        <th style={{ padding: "var(--space-2) var(--space-3)" }}>#</th>
                        <th style={{ padding: "var(--space-2) var(--space-3)" }}>Time</th>
                        <th style={{ padding: "var(--space-2) var(--space-3)" }}>Choghadiya</th>
@@ -512,8 +512,8 @@ export const MuhurthaView: React.FC<Props> = ({
                        <tr
                          key={idx}
                          style={{
-                           borderBottom: "var(--border-width) solid rgba(255,255,255,0.05)",
-                           background: c.is_current ? "rgba(56,189,248,0.12)" : "transparent",
+                           borderBottom: "var(--border-width) solid var(--border-subtle)",
+                           background: c.is_current ? "var(--cyan-dim)" : "transparent",
                          }}
                        >
                          <td style={{ padding: "var(--space-2-5) var(--space-3)", fontWeight: 600, color: "var(--text-dim)" }}>

@@ -139,9 +139,9 @@ export const PlanetsTable: React.FC<Props> = ({ chart }) => {
                   style={{
                     borderBottom: "1px solid var(--border-subtle)",
                     background: b.isAsc
-                      ? "linear-gradient(90deg, rgba(223, 177, 91, 0.12) 0%, rgba(223, 177, 91, 0.02) 100%)"
+                      ? "linear-gradient(90deg, var(--gold-dim) 0%, transparent 100%)"
                       : even
-                      ? "rgba(148, 163, 184, 0.025)"
+                      ? "var(--bg-subtle)"
                       : "transparent",
                     transition: "background 0.15s",
                   }}
@@ -165,8 +165,8 @@ export const PlanetsTable: React.FC<Props> = ({ chart }) => {
                       style={{
                         fontSize: "var(--type-micro)",
                         padding: "2px 8px",
-                        background: "rgba(148, 163, 184, 0.08)",
-                        borderColor: "rgba(148, 163, 184, 0.18)",
+                        background: "var(--bg-subtle)",
+                        borderColor: "var(--border-subtle)",
                         color: "var(--text-high)",
                         cursor: "default",
                       }}

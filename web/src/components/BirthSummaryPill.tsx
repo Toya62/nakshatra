@@ -67,7 +67,7 @@ export const BirthSummaryPill: React.FC<Props> = ({
             </span>
           </span>
 
-          <span style={{ color: "var(--border-subtle)" }}>·</span>
+          <span style={{ color: "var(--text-low)" }}>·</span>
 
           <span style={{ display: "flex", alignItems: "center", gap: "var(--space-1)" }}>
             <Clock size={12} aria-hidden="true" />
@@ -75,14 +75,14 @@ export const BirthSummaryPill: React.FC<Props> = ({
             {(birthData.second ?? 0) > 0 ? `:${padZ(birthData.second!)}` : ""}
           </span>
 
-          <span style={{ color: "var(--border-subtle)" }}>·</span>
+          <span style={{ color: "var(--text-low)" }}>·</span>
 
           <span style={{ display: "flex", alignItems: "center", gap: "var(--space-1)" }}>
             <MapPin size={12} aria-hidden="true" />
             {birthData.place_name || `${birthData.latitude.toFixed(2)}°, ${birthData.longitude.toFixed(2)}°`}
           </span>
 
-          <span style={{ color: "var(--border-subtle)" }}>·</span>
+          <span style={{ color: "var(--text-low)" }}>·</span>
 
           <span
             className="badge badge-gold"

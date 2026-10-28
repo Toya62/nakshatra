@@ -15,7 +15,7 @@ function YogaCard({ yoga }: { yoga: YogaResult }) {
   return (
     <div
       style={{
-        background: "rgba(0,0,0,0.2)",
+        background: "var(--bg-subtle)",
         border: "1px solid var(--border-card)",
         borderRadius: "var(--radius-md)",
         overflow: "hidden",

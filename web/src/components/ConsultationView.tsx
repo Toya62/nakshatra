@@ -514,7 +514,7 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
 
               <div
                 style={{
-                  background: isUser ? "var(--gold-dim)" : "rgba(255, 255, 255, 0.03)",
+                  background: isUser ? "var(--gold-dim)" : "var(--bg-subtle)",
                   border: isUser ? "1px solid var(--gold-border)" : "1px solid var(--border-subtle)",
                   borderRadius: "var(--radius-md)",
                   padding: "var(--space-4)",
@@ -609,7 +609,7 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
                         <div
                           key={cIdx}
                           style={{
-                            background: "rgba(0,0,0,0.3)",
+                            background: "var(--bg-subtle)",
                             border: "1px solid var(--gold-border)",
                             borderRadius: "var(--radius-sm)",
                             padding: "var(--space-2) var(--space-3)",
@@ -722,7 +722,8 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
               overflowY: "auto",
               padding: "var(--space-6)",
               border: "1px solid var(--gold-border)",
-              boxShadow: "0 24px 60px rgba(0,0,0,0.85)",
+              boxShadow: "var(--card-shadow-hover)",
+              background: "var(--bg-elevated, var(--bg-card))",
             }}
             onClick={(e) => e.stopPropagation()}
           >

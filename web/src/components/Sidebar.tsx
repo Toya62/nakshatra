@@ -134,7 +134,7 @@ export const Sidebar: React.FC<Props> = ({
                 }}
                 onMouseEnter={(e) => {
                   if (!active) {
-                    e.currentTarget.style.background = "rgba(255,255,255,0.04)";
+                    e.currentTarget.style.background = "var(--bg-subtle)";
                     e.currentTarget.style.color = "var(--text-high)";
                   }
                 }}

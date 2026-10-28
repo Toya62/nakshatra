@@ -34,6 +34,8 @@
   --bg-card-hover: rgba(26, 36, 62, 0.85);
   --bg-input:      rgba(10, 15, 27, 0.92);
   --bg-overlay:    rgba(6, 9, 18, 0.88);
+  --bg-subtle:     rgba(255, 255, 255, 0.04);
+  --bg-elevated:   rgba(22, 31, 56, 0.85);
 
   /* Gold — refined sacred astrolabe metal */
   --gold-primary: #d4af37;
@@ -62,10 +64,38 @@
   --text-mid:    #94a3b8;
   --text-low:    #52627a;
 
+  /* Aliases for strict visual typography consistency across all views */
+  --text-main:   var(--text-high);
+  --text-bright: var(--text-high);
+  --text-muted:  var(--text-mid);
+  --text-dim:    var(--text-low);
+
   /* Borders — layered specular and subtle boundary lines */
   --border-subtle:  rgba(148, 163, 184, 0.10);
   --border-card:    rgba(148, 163, 184, 0.14);
+  --border-card-hover: rgba(223, 177, 91, 0.28);
   --border-focus:   rgba(223, 177, 91, 0.55);
+
+  /* Elevation Shadows */
+  --card-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 32px -4px rgba(0, 0, 0, 0.45), 0 2px 6px 0 rgba(0, 0, 0, 0.25);
+  --card-shadow-hover: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 14px 44px -4px rgba(0, 0, 0, 0.60), 0 0 24px rgba(223, 177, 91, 0.08);
+
+  /* Body background gradient */
+  --body-bg-gradient:
+    linear-gradient(to right, rgba(148, 163, 184, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.035) 1px, transparent 1px),
+    radial-gradient(ellipse 90% 55% at 50% -8%, rgba(67, 56, 202, 0.16) 0%, rgba(217, 119, 6, 0.07) 32%, rgba(14, 165, 233, 0.04) 55%, transparent 75%),
+    radial-gradient(ellipse 70% 50% at 50% 108%, rgba(30, 27, 75, 0.28) 0%, transparent 70%);
+
+  /* Chart tokens */
+  --chart-bg: linear-gradient(150deg, #090e1b 0%, #10162a 50%, #070b16 100%);
+  --chart-border: rgba(223, 177, 91, 0.24);
+  --chart-badge-bg: rgba(9, 14, 25, 0.95);
+  --chart-badge-text: #fcedbe;
+  --chart-center-bg: #080b15;
+  --chart-center-stroke: rgba(229, 185, 76, 0.7);
+  --chart-grid-stroke: rgba(229, 185, 76, 0.65);
+  --chart-drop-shadow: drop-shadow(0 20px 48px rgba(0,0,0,0.7));
 
   /* Layout */
   --sidebar-w:      240px;
@@ -74,6 +104,8 @@
   --radius-sm:       8px;
   --radius-md:      12px;
   --radius-lg:      16px;
+  --radius-pill:    9999px;
+
   /* Layout Sizing & Tokens */
   --size-2xs: 160px;
   --size-xs:  180px;
@@ -107,8 +139,7 @@
   --graha-font-retro: 9px;
   --graha-font-degree: 10px;
 
-
-  /* Graha Palette Tokens */
+  /* Graha Palette Tokens — Dark Mode */
   --graha-asc: #fde047;
   --graha-sun: #f59e0b;
   --graha-moon: #e2e8f0;
@@ -119,6 +150,91 @@
   --graha-saturn: #818cf8;
   --graha-rahu: #c084fc;
   --graha-ketu: #94a3b8;
+}
+
+/* ─── Light Mode Theme Tokens (Sacred Dawn Parchment & Sandalwood) ──────── */
+[data-theme="light"] {
+  /* Surfaces */
+  --bg-void:       #f7f5f0;
+  --bg-base:       rgba(255, 254, 250, 0.92);
+  --bg-card:       rgba(255, 255, 255, 0.88);
+  --bg-card-hover: rgba(255, 255, 255, 0.98);
+  --bg-input:      rgba(247, 244, 237, 0.95);
+  --bg-overlay:    rgba(244, 240, 230, 0.88);
+  --bg-subtle:     rgba(180, 150, 110, 0.08);
+  --bg-elevated:   #ffffff;
+
+  /* Gold — Warm Antique Vedic Brass & Saffron Amber */
+  --gold-primary: #b45309;
+  --gold-vivid:  #c26a0a;
+  --gold-bright: #854d0e;
+  --gold-deep:   #78350f;
+  --gold-dim:    rgba(194, 106, 10, 0.12);
+  --gold-border: rgba(180, 115, 20, 0.32);
+  --gold-glow:   0 0 24px rgba(194, 106, 10, 0.18);
+
+  /* Cyan & Sapphire */
+  --cyan-vivid:  #0284c7;
+  --cyan-dim:    rgba(2, 132, 199, 0.09);
+  --cyan-border: rgba(2, 132, 199, 0.28);
+
+  /* Semantic */
+  --emerald:     #059669;
+  --emerald-dim: rgba(5, 150, 105, 0.12);
+  --rose:        #e11d48;
+  --rose-dim:    rgba(225, 29, 72, 0.10);
+  --amber:       #d97706;
+  --amber-dim:   rgba(217, 119, 6, 0.12);
+
+  /* Text — tuned for WCAG AAA 14:1 contrast */
+  --text-high:   #1c1917;  /* warm charcoal stone */
+  --text-mid:    #57534e;  /* warm cedar slate */
+  --text-low:    #857d75;  /* muted stone */
+
+  /* Aliases */
+  --text-main:   var(--text-high);
+  --text-bright: var(--text-high);
+  --text-muted:  var(--text-mid);
+  --text-dim:    var(--text-low);
+
+  /* Borders */
+  --border-subtle:     rgba(180, 150, 110, 0.20);
+  --border-card:       rgba(180, 150, 110, 0.28);
+  --border-card-hover: rgba(180, 115, 20, 0.40);
+  --border-focus:      rgba(194, 106, 10, 0.65);
+
+  /* Elevation Shadows */
+  --card-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 4px 20px -2px rgba(120, 95, 65, 0.08), 0 1px 3px 0 rgba(120, 95, 65, 0.04);
+  --card-shadow-hover: inset 0 1px 0 rgba(255, 255, 255, 1), 0 10px 32px -4px rgba(120, 95, 65, 0.14), 0 0 20px rgba(194, 106, 10, 0.10);
+
+  /* Body background gradient */
+  --body-bg-gradient:
+    linear-gradient(to right, rgba(180, 150, 110, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(180, 150, 110, 0.06) 1px, transparent 1px),
+    radial-gradient(ellipse 90% 55% at 50% -8%, rgba(251, 191, 36, 0.18) 0%, rgba(245, 158, 11, 0.08) 35%, rgba(56, 189, 248, 0.05) 55%, transparent 75%),
+    radial-gradient(ellipse 70% 50% at 50% 108%, rgba(254, 243, 199, 0.5) 0%, transparent 70%);
+
+  /* Chart tokens */
+  --chart-bg: linear-gradient(150deg, #fdfbf7 0%, #f6f1e6 50%, #fdfbf7 100%);
+  --chart-border: rgba(180, 115, 20, 0.32);
+  --chart-badge-bg: rgba(255, 255, 255, 0.95);
+  --chart-badge-text: #78350f;
+  --chart-center-bg: #fffcf7;
+  --chart-center-stroke: rgba(180, 115, 20, 0.7);
+  --chart-grid-stroke: rgba(180, 115, 20, 0.65);
+  --chart-drop-shadow: drop-shadow(0 12px 32px rgba(120, 95, 65, 0.15));
+
+  /* Graha Palette Tokens — Light Mode Calibrated */
+  --graha-asc: #92400e;
+  --graha-sun: #b45309;
+  --graha-moon: #334155;
+  --graha-mars: #b91c1c;
+  --graha-mercury: #047857;
+  --graha-jupiter: #a16207;
+  --graha-venus: #be185d;
+  --graha-saturn: #3730a3;
+  --graha-rahu: #6b21a8;
+  --graha-ketu: #475569;
 }
 
 /* ─── Reset ─────────────────────────────────────────────────────────────── */
@@ -140,19 +256,10 @@ body {
   line-height: 1.55;
   overflow-x: hidden;
   position: relative;
-  /* Multi-layered Astrolabe Celestial Grading:
-     1. Fine 36px coordinate grid in muted slate
-     2. Top-center celestial horizon cone (indigo-sapphire + subtle antique gold wash)
-     3. Bottom-center deep cosmic stellar aura
-     4. Base obsidian vignette
-  */
-  background-image:
-    linear-gradient(to right, rgba(148, 163, 184, 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(148, 163, 184, 0.035) 1px, transparent 1px),
-    radial-gradient(ellipse 90% 55% at 50% -8%, rgba(67, 56, 202, 0.16) 0%, rgba(217, 119, 6, 0.07) 32%, rgba(14, 165, 233, 0.04) 55%, transparent 75%),
-    radial-gradient(ellipse 70% 50% at 50% 108%, rgba(30, 27, 75, 0.28) 0%, transparent 70%);
+  background-image: var(--body-bg-gradient);
   background-size: 36px 36px, 36px 36px, 100% 100%, 100% 100%;
   background-attachment: fixed;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 /* Tactile micro-grain overlay to eliminate flat digital banding */
@@ -166,6 +273,19 @@ body::before {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
+[data-theme="light"] body::before {
+  opacity: 0.016;
+}
+
+/* Smooth global theme transition */
+html.theme-transitioning,
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+  transition: background-color 0.25s ease, background 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, fill 0.25s ease, stroke 0.25s ease !important;
+  transition-delay: 0s !important;
+}
+
 /* ─── App Shell ──────────────────────────────────────────────────────────── */
 .app-shell {
   display: grid;
@@ -177,7 +297,7 @@ body::before {
   min-height: 100vh;
   position: relative;
   z-index: 2;
-  transition: grid-template-columns 0.25s ease;
+  transition: grid-template-columns 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .app-shell.sidebar-slim {
@@ -228,25 +348,17 @@ body::before {
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border-card);
-  border-top: 1px solid rgba(255, 255, 255, 0.12); /* specular chamfered top rim */
   border-radius: var(--radius-lg);
   backdrop-filter: blur(20px) saturate(140%);
   -webkit-backdrop-filter: blur(20px) saturate(140%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),  /* crisp inner bevel */
-    0 8px 32px -4px rgba(0, 0, 0, 0.45),      /* deep ambient drop */
-    0 2px 6px 0 rgba(0, 0, 0, 0.25);
-  transition: border-color 0.24s ease, box-shadow 0.24s ease, background 0.24s ease;
+  box-shadow: var(--card-shadow);
+  transition: border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease, transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .card:hover {
-  border-color: rgba(223, 177, 91, 0.28);
-  border-top-color: rgba(255, 255, 255, 0.20);
+  border-color: var(--border-card-hover);
   background: var(--bg-card-hover);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 14px 44px -4px rgba(0, 0, 0, 0.60),
-    0 0 24px rgba(223, 177, 91, 0.08);
+  box-shadow: var(--card-shadow-hover);
 }
 
 /* kept for legacy compatibility */
@@ -255,22 +367,14 @@ body::before {
   backdrop-filter: blur(20px) saturate(140%);
   -webkit-backdrop-filter: blur(20px) saturate(140%);
   border: 1px solid var(--border-card);
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-lg);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 8px 32px -4px rgba(0, 0, 0, 0.45),
-    0 2px 6px 0 rgba(0, 0, 0, 0.25);
-  transition: border-color 0.24s ease, box-shadow 0.24s ease, background 0.24s ease;
+  box-shadow: var(--card-shadow);
+  transition: border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
 }
 .glass-panel:hover {
-  border-color: rgba(223, 177, 91, 0.28);
-  border-top-color: rgba(255, 255, 255, 0.20);
+  border-color: var(--border-card-hover);
   background: var(--bg-card-hover);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 14px 44px -4px rgba(0, 0, 0, 0.60),
-    0 0 24px rgba(223, 177, 91, 0.08);
+  box-shadow: var(--card-shadow-hover);
 }
 
 /* ─── Typography helpers ─────────────────────────────────────────────────── */
@@ -309,8 +413,22 @@ body::before {
   -webkit-text-fill-color: transparent;
 }
 
+[data-theme="light"] .gold-gradient-text {
+  background: linear-gradient(135deg, #78350f 0%, #b45309 50%, #d97706 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 .cyan-gradient-text {
   background: linear-gradient(135deg, #e0f2fe 0%, #38bdf8 60%, #0284c7 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-theme="light"] .cyan-gradient-text {
+  background: linear-gradient(135deg, #0369a1 0%, #0284c7 60%, #075985 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -343,6 +461,19 @@ body::before {
   background: linear-gradient(135deg, #fbbf24 0%, #fcedbe 50%, #d97706 100%);
 }
 
+[data-theme="light"] .btn-primary {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 60%, #92400e 100%);
+  color: #ffffff;
+  border-color: rgba(180, 115, 20, 0.45);
+  box-shadow: 0 4px 16px rgba(180, 115, 20, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+[data-theme="light"] .btn-primary:hover {
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 60%, #9a3412 100%);
+  color: #ffffff;
+  box-shadow: 0 6px 22px rgba(180, 115, 20, 0.38), 0 0 12px rgba(251, 191, 36, 0.3);
+}
+
 .btn-primary:active {
   transform: translateY(0);
   filter: brightness(0.96);
@@ -363,7 +494,7 @@ body::before {
   justify-content: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3-5);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-subtle);
   color: var(--text-high);
   font-family: var(--font-sans);
   font-size: var(--type-body);
@@ -375,9 +506,9 @@ body::before {
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.09);
+  background: var(--bg-input);
   border-color: var(--gold-border);
-  color: var(--text-bright);
+  color: var(--text-high);
 }
 
 .btn-secondary:active {
@@ -407,7 +538,7 @@ body::before {
 }
 
 .btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--bg-subtle);
   color: var(--text-high);
 }
 
@@ -429,9 +560,9 @@ body::before {
 }
 
 .btn-outline:hover {
-  background: rgba(223, 177, 91, 0.12);
+  background: var(--gold-dim);
   border-color: var(--gold-vivid);
-  box-shadow: 0 0 16px rgba(223, 177, 91, 0.2);
+  box-shadow: 0 0 16px var(--gold-glow);
 }
 
 .btn-icon {
@@ -441,7 +572,7 @@ body::before {
   width: 36px;
   height: 36px;
   padding: 0;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-subtle);
   color: var(--text-high);
   border: var(--border-width) solid var(--border-subtle);
   border-radius: var(--radius-md);
@@ -450,9 +581,9 @@ body::before {
 }
 
 .btn-icon:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: var(--border-medium);
-  color: var(--text-bright);
+  background: var(--bg-input);
+  border-color: var(--gold-border);
+  color: var(--gold-vivid);
 }
 
 /* ─── Chip (replaces badge-as-button) ───────────────────────────────────── */
@@ -532,6 +663,36 @@ body::before {
   border: 1px solid rgba(245, 158, 11, 0.28);
 }
 
+[data-theme="light"] .badge-gold {
+  background: var(--gold-dim);
+  color: var(--gold-bright);
+  border-color: var(--gold-border);
+}
+
+[data-theme="light"] .badge-cyan {
+  background: var(--cyan-dim);
+  color: #0369a1;
+  border-color: var(--cyan-border);
+}
+
+[data-theme="light"] .badge-rose {
+  background: var(--rose-dim);
+  color: #be123c;
+  border-color: rgba(225, 29, 72, 0.25);
+}
+
+[data-theme="light"] .badge-emerald {
+  background: var(--emerald-dim);
+  color: #047857;
+  border-color: rgba(5, 150, 105, 0.25);
+}
+
+[data-theme="light"] .badge-amber {
+  background: var(--amber-dim);
+  color: #b45309;
+  border-color: rgba(217, 119, 6, 0.28);
+}
+
 /* ─── Graha Chart SVG Classes ────────────────────────────────────────────── */
 .graha-pill {
   rx: var(--graha-pill-radius);
@@ -544,7 +705,6 @@ body::before {
   cursor: pointer;
 }
 
-
 /* ─── Inputs ─────────────────────────────────────────────────────────────── */
 input, select, textarea {
   background: var(--bg-input);
@@ -555,7 +715,7 @@ input, select, textarea {
   border-radius: var(--radius-sm);
   padding: 9px 12px;
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   width: 100%;
 }
 
@@ -569,7 +729,7 @@ select:focus-visible,
 textarea:focus-visible,
 button:focus-visible {
   border-color: var(--gold-vivid);
-  box-shadow: 0 0 0 2px rgba(229, 185, 76, 0.22);
+  box-shadow: 0 0 0 2px var(--border-focus);
   outline: none;
 }
 
@@ -591,10 +751,26 @@ button:focus-visible {
   animation: shimmer 1.5s infinite linear;
 }
 
+[data-theme="light"] .skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.04) 25%,
+    rgba(0, 0, 0, 0.09) 50%,
+    rgba(0, 0, 0, 0.04) 75%
+  );
+  background-size: 200% 100%;
+}
+
 /* ─── Animations ─────────────────────────────────────────────────────────── */
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 @keyframes pulseGlow {
@@ -603,7 +779,7 @@ button:focus-visible {
 }
 
 .fade-up {
-  animation: fadeUp 0.28s ease both;
+  animation: fadeUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .pulse-glow {
@@ -611,10 +787,17 @@ button:focus-visible {
 }
 
 /* ─── Scrollbars ─────────────────────────────────────────────────────────── */
-::-webkit-scrollbar        { width: 5px; height: 5px; }
+::-webkit-scrollbar        { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track  { background: transparent; }
-::-webkit-scrollbar-thumb  { background: rgba(255,255,255,0.12); border-radius: 3px; }
+::-webkit-scrollbar-thumb  { background: rgba(255,255,255,0.12); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--gold-vivid); }
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.14);
+}
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--gold-vivid);
+}
 
 /* ─── Dividers ───────────────────────────────────────────────────────────── */
 .divider {

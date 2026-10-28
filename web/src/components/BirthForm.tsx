@@ -279,9 +279,9 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
                 zIndex: 50,
                 maxHeight: "220px",
                 overflowY: "auto",
-                background: "rgba(14, 18, 30, 0.98)",
+                background: "var(--bg-elevated, var(--bg-card))",
                 border: "1px solid var(--gold-border)",
-                boxShadow: "0 12px 28px rgba(0,0,0,0.6)",
+                boxShadow: "var(--card-shadow-hover)",
                 padding: "var(--space-1)",
               }}
             >

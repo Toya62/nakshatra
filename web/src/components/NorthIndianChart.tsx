@@ -348,10 +348,10 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
           maxWidth: `${size}px`,
           aspectRatio: "1 / 1",
           height: "auto",
-          filter: "drop-shadow(0 20px 48px rgba(0,0,0,0.7))",
+          filter: "var(--chart-drop-shadow)",
           borderRadius: "var(--radius-lg)",
-          background: "linear-gradient(150deg, #090e1b 0%, #10162a 50%, #070b16 100%)",
-          border: "1px solid rgba(223, 177, 91, 0.24)",
+          background: "var(--chart-bg)",
+          border: "1px solid var(--chart-border)",
           userSelect: "none",
         }}
       >
@@ -361,14 +361,14 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
           <radialGradient id="kendraGlow" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="rgba(223, 177, 91, 0.15)" />
             <stop offset="70%" stopColor="rgba(223, 177, 91, 0.04)" />
-            <stop offset="100%" stopColor="rgba(16, 22, 42, 0)" />
+            <stop offset="100%" stopColor="transparent" />
           </radialGradient>
 
           {/* Trikona Grace Indigo/Cyan Tint */}
           <radialGradient id="trikonaGlow" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="rgba(56, 189, 248, 0.12)" />
             <stop offset="70%" stopColor="rgba(56, 189, 248, 0.03)" />
-            <stop offset="100%" stopColor="rgba(16, 22, 42, 0)" />
+            <stop offset="100%" stopColor="transparent" />
           </radialGradient>
 
           {/* Hover highlight illumination */}
@@ -379,14 +379,14 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
         </defs>
 
         {/* Double Engraved Frame */}
-        <rect x="1" y="1" width={w - 2} height={h - 2} rx="16" fill="none" stroke="rgba(223, 177, 91, 0.45)" strokeWidth="2.5" />
-        <rect x="7" y="7" width={w - 14} height={h - 14} rx="12" fill="none" stroke="rgba(223, 177, 91, 0.22)" strokeWidth="1" strokeDasharray="6 3" />
+        <rect x="1" y="1" width={w - 2} height={h - 2} rx="16" fill="none" stroke="var(--gold-border)" strokeWidth="2.5" />
+        <rect x="7" y="7" width={w - 14} height={h - 14} rx="12" fill="none" stroke="var(--border-subtle)" strokeWidth="1" strokeDasharray="6 3" />
 
         {/* 4 Corner Rosette Accents */}
         {[[10, 10], [w - 10, 10], [10, h - 10], [w - 10, h - 10]].map(([rx, ry], idx) => (
           <g key={idx} transform={`translate(${rx}, ${ry})`}>
-            <circle r="3.5" fill="#dfb15b" />
-            <circle r="1.5" fill="#090e1b" />
+            <circle r="3.5" fill="var(--gold-vivid)" />
+            <circle r="1.5" fill="var(--bg-void)" />
           </g>
         ))}
 
@@ -400,7 +400,7 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
           if (isHovered) chamberFill = "url(#hoverGlow)";
           else if (ch.type === "kendra-trikona" || ch.type === "kendra") chamberFill = "url(#kendraGlow)";
           else if (ch.type === "trikona") chamberFill = "url(#trikonaGlow)";
-          else if (ch.type === "dusthana") chamberFill = "rgba(7, 10, 18, 0.35)";
+          else if (ch.type === "dusthana") chamberFill = "var(--bg-subtle)";
 
           return (
             <g
@@ -414,7 +414,7 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
               <polygon
                 points={ch.polygon}
                 fill={chamberFill}
-                stroke={isHovered ? "#fbe285" : "none"}
+                stroke={isHovered ? "var(--gold-vivid)" : "none"}
                 strokeWidth={isHovered ? "2.5" : "0"}
                 pointerEvents="all"
                 style={{ transition: "all 0.2s ease" }}
@@ -424,15 +424,15 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
               <g transform={`translate(${ch.signPos.x}, ${ch.signPos.y})`}>
                 <circle
                   r="13"
-                  fill="rgba(9, 14, 25, 0.95)"
-                  stroke={isHovered ? "#fbe285" : "rgba(223, 177, 91, 0.55)"}
+                  fill="var(--chart-badge-bg)"
+                  stroke={isHovered ? "var(--gold-vivid)" : "var(--gold-border)"}
                   strokeWidth={isHovered ? "1.6" : "1.1"}
                 />
                 <text
                   x="0"
                   y="4.5"
                   textAnchor="middle"
-                  fill={isHovered ? "#ffffff" : "#fcedbe"}
+                  fill={isHovered ? "var(--gold-primary)" : "var(--chart-badge-text)"}
                   fontSize="13.5"
                   fontWeight="800"
                   fontFamily="'Outfit', sans-serif"
@@ -450,8 +450,8 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
                     width="72"
                     height="22"
                     rx="11"
-                    fill="rgba(223, 177, 91, 0.16)"
-                    stroke="rgba(223, 177, 91, 0.45)"
+                    fill="var(--gold-dim)"
+                    stroke="var(--gold-border)"
                     strokeWidth="1"
                   />
                   <text
@@ -624,27 +624,27 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
 
         {/* Structural Kundali Lines */}
         {/* Two Main Cross Diagonals */}
-        <line x1="0" y1="0" x2={w} y2={h} stroke="rgba(229, 185, 76, 0.45)" strokeWidth="1.6" pointerEvents="none" />
-        <line x1="0" y1={h} x2={w} y2="0" stroke="rgba(229, 185, 76, 0.45)" strokeWidth="1.6" pointerEvents="none" />
+        <line x1="0" y1="0" x2={w} y2={h} stroke="var(--gold-border)" strokeWidth="1.6" pointerEvents="none" />
+        <line x1="0" y1={h} x2={w} y2="0" stroke="var(--gold-border)" strokeWidth="1.6" pointerEvents="none" />
 
         {/* Center Rhombus (Diamond) Lines */}
         <polygon
           points={`${cx},0 ${w},${cy} ${cx},${h} 0,${cy}`}
           fill="none"
-          stroke="rgba(229, 185, 76, 0.65)"
+          stroke="var(--chart-grid-stroke)"
           strokeWidth="2"
           pointerEvents="none"
         />
 
         {/* Center Ashtalakshmi / Yantra Astrolabe Emblem */}
         <g transform={`translate(${cx}, ${cy})`} pointerEvents="none">
-          <circle r="30" fill="none" stroke="rgba(229, 185, 76, 0.25)" strokeWidth="1" strokeDasharray="3 3" />
-          <rect x="-24" y="-24" width="48" height="48" rx="8" fill="#080b15" stroke="rgba(229, 185, 76, 0.7)" strokeWidth="1.4" />
-          <rect x="-24" y="-24" width="48" height="48" rx="8" fill="none" stroke="rgba(56, 189, 248, 0.35)" strokeWidth="1" transform="rotate(45)" />
+          <circle r="30" fill="none" stroke="var(--gold-border)" strokeWidth="1" strokeDasharray="3 3" />
+          <rect x="-24" y="-24" width="48" height="48" rx="8" fill="var(--chart-center-bg)" stroke="var(--chart-center-stroke)" strokeWidth="1.4" />
+          <rect x="-24" y="-24" width="48" height="48" rx="8" fill="none" stroke="var(--cyan-border)" strokeWidth="1" transform="rotate(45)" />
           <text
             y="-4"
             textAnchor="middle"
-            fill="#fbe285"
+            fill="var(--gold-bright)"
             fontSize="12.5"
             fontWeight="700"
             fontFamily="'Cinzel', serif"
@@ -655,7 +655,7 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
           <text
             y="10"
             textAnchor="middle"
-            fill="#94a3b8"
+            fill="var(--text-mid)"
             fontSize="7.5"
             fontWeight="600"
             fontFamily="'Outfit', sans-serif"
@@ -677,8 +677,8 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
           justifyContent: "space-between",
           gap: "var(--space-3)",
           fontSize: "var(--type-label)",
-          background: "rgba(10, 14, 25, 0.88)",
-          border: "1px solid rgba(229, 185, 76, 0.22)",
+          background: "var(--bg-card)",
+          border: "1px solid var(--border-card)",
           borderRadius: "var(--radius-md)",
           width: "100%",
           maxWidth: `${size}px`,

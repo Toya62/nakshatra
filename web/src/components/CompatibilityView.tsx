@@ -524,7 +524,7 @@ Recommendation: ${report.recommendation}
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.88rem" }}>
                 <thead>
-                  <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.1)", textAlign: "left", color: "var(--text-muted)" }}>
+                  <tr style={{ borderBottom: "1px solid var(--border-subtle)", textAlign: "left", color: "var(--text-muted)" }}>
                     <th style={{ padding: "10px 12px" }}>Koota</th>
                     <th style={{ padding: "10px 12px" }}>Points</th>
                     <th style={{ padding: "10px 12px" }}>Bride Value</th>

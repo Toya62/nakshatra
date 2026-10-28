@@ -105,7 +105,7 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToC
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "var(--space-4)" }}>
               {/* MD */}
               {dashas.current_md && (
-                <div style={{ background: "rgba(0,0,0,0.3)", padding: "var(--space-4)", borderRadius: "var(--radius-sm)", border: "1px solid var(--gold-border)" }}>
+                <div style={{ background: "var(--bg-subtle)", padding: "var(--space-4)", borderRadius: "var(--radius-sm)", border: "1px solid var(--gold-border)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--space-1)" }}>
                     <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", letterSpacing: "0.05em" }}>MAHADASHA (MD)</span>
                     <span style={{ fontSize: "var(--type-label)", color: "var(--gold-bright)", fontWeight: 700 }}>{mdProgress.toFixed(1)}%</span>
@@ -113,7 +113,7 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToC
                   <h4 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--gold-bright)", marginBottom: "var(--space-2)" }}>
                     {dashas.current_md.lord}
                   </h4>
-                  <div style={{ width: "100%", height: "6px", background: "rgba(255,255,255,0.1)", borderRadius: "3px", overflow: "hidden", marginBottom: "var(--space-2)" }}>
+                  <div style={{ width: "100%", height: "6px", background: "var(--border-subtle)", borderRadius: "3px", overflow: "hidden", marginBottom: "var(--space-2)" }}>
                     <div style={{ width: `${mdProgress}%`, height: "100%", background: "linear-gradient(90deg, #e5b94c, #fbe285)" }} />
                   </div>
                   <p style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", fontFamily: "var(--font-mono)" }}>
@@ -124,7 +124,7 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToC
 
               {/* AD */}
               {dashas.current_ad && (
-                <div style={{ background: "rgba(0,0,0,0.3)", padding: "var(--space-4)", borderRadius: "var(--radius-sm)", border: "1px solid rgba(56,189,248,0.25)" }}>
+                <div style={{ background: "var(--bg-subtle)", padding: "var(--space-4)", borderRadius: "var(--radius-sm)", border: "1px solid rgba(56,189,248,0.25)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--space-1)" }}>
                     <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", letterSpacing: "0.05em" }}>ANTARDASHA (AD)</span>
                     <span style={{ fontSize: "var(--type-label)", color: "var(--cyan-vivid)", fontWeight: 700 }}>{adProgress.toFixed(1)}%</span>
@@ -132,7 +132,7 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToC
                   <h4 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--cyan-vivid)", marginBottom: "var(--space-2)" }}>
                     {dashas.current_ad.lord}
                   </h4>
-                  <div style={{ width: "100%", height: "6px", background: "rgba(255,255,255,0.1)", borderRadius: "3px", overflow: "hidden", marginBottom: "var(--space-2)" }}>
+                  <div style={{ width: "100%", height: "6px", background: "var(--border-subtle)", borderRadius: "3px", overflow: "hidden", marginBottom: "var(--space-2)" }}>
                     <div style={{ width: `${adProgress}%`, height: "100%", background: "linear-gradient(90deg, #0284c7, #38bdf8)" }} />
                   </div>
                   <p style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", fontFamily: "var(--font-mono)" }}>
@@ -143,7 +143,7 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToC
 
               {/* PD */}
               {dashas.current_pd && (
-                <div style={{ background: "rgba(0,0,0,0.3)", padding: "var(--space-4)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
+                <div style={{ background: "var(--bg-subtle)", padding: "var(--space-4)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--space-1)" }}>
                     <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", letterSpacing: "0.05em" }}>PRATYANTARDASHA (PD)</span>
                     <span style={{ fontSize: "var(--type-label)", color: "var(--text-high)", fontWeight: 700 }}>{pdProgress.toFixed(1)}%</span>
@@ -151,7 +151,7 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToC
                   <h4 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--text-high)", marginBottom: "var(--space-2)" }}>
                     {dashas.current_pd.lord}
                   </h4>
-                  <div style={{ width: "100%", height: "6px", background: "rgba(255,255,255,0.1)", borderRadius: "3px", overflow: "hidden", marginBottom: "var(--space-2)" }}>
+                  <div style={{ width: "100%", height: "6px", background: "var(--border-subtle)", borderRadius: "3px", overflow: "hidden", marginBottom: "var(--space-2)" }}>
                     <div style={{ width: `${pdProgress}%`, height: "100%", background: "var(--gold-vivid)" }} />
                   </div>
                   <p style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", fontFamily: "var(--font-mono)" }}>

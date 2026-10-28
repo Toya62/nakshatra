@@ -214,8 +214,8 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
             marginTop: "18px",
             padding: "12px 18px",
             borderRadius: "10px",
-            background: "rgba(0, 0, 0, 0.35)",
-            border: "1px solid rgba(255,255,255,0.08)",
+            background: "var(--bg-subtle)",
+            border: "1px solid var(--border-subtle)",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -278,10 +278,10 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
               position: "relative",
               width: "100%",
               height: "76px",
-              background: "rgba(0,0,0,0.45)",
+              background: "var(--bg-subtle)",
               borderRadius: "12px",
               overflow: "hidden",
-              border: "1px solid rgba(255,255,255,0.12)",
+              border: "1px solid var(--border-subtle)",
               display: "flex",
             }}
           >
@@ -466,7 +466,7 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
                   key={`${ad.lord}-${idx}`}
                   onClick={() => setSelectedAd(ad)}
                   style={{
-                    background: isSelectedAd ? "var(--gold-dim)" : "rgba(0,0,0,0.3)",
+                    background: isSelectedAd ? "var(--gold-dim)" : "var(--bg-subtle)",
                     border: isSelectedAd
                       ? "1px solid var(--gold-vivid)"
                       : isCurrent
@@ -558,7 +558,7 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
                     <div
                       key={`${pd.lord}-${pidx}`}
                       style={{
-                        background: isCurrentPd ? "var(--emerald-dim)" : "rgba(0,0,0,0.25)",
+                        background: isCurrentPd ? "var(--emerald-dim)" : "var(--bg-subtle)",
                         padding: "var(--space-2-5) var(--space-3)",
                         borderRadius: "var(--radius-sm)",
                         border: isCurrentPd ? "1px solid var(--emerald)" : "1px solid var(--border-subtle)",
