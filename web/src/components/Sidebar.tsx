@@ -7,6 +7,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import { NakshatraLogo } from "@/components/NakshatraLogo";
 import {
   KundaliIcon,
   GocharIcon,
@@ -37,17 +38,100 @@ interface Props {
   onCloseMobile: () => void;
 }
 
-const TABS: { id: TabId; label: string; Icon: React.ElementType; hint?: string }[] = [
-  { id: "chart",         label: "Birth Chart",        Icon: KundaliIcon },
-  { id: "transits",      label: "Transits (Gochar)",  Icon: GocharIcon  },
-  { id: "dasha",         label: "Vimshottari Dasha",  Icon: DashaIcon   },
-  { id: "panchanga",     label: "Daily Panchanga",    Icon: PanchangaIcon },
-  { id: "compatibility", label: "Kundali Matching",   Icon: MatchingIcon },
-  { id: "muhurtha",      label: "Muhurtha & Horas",   Icon: MuhurthaIcon },
-  { id: "remedies",      label: "Remedies & Upayas",  Icon: RemediesIcon, hint: "Parashari & Lal Kitab" },
+const TABS: {
+  id: TabId;
+  label: string;
+  Icon: React.ElementType;
+  accent: {
+    color: string;
+    bg: string;
+    border: string;
+  };
+  hint?: string;
+}[] = [
+  {
+    id: "chart",
+    label: "Birth Chart",
+    Icon: KundaliIcon,
+    accent: {
+      color: "var(--graha-sun, #d97706)",
+      bg: "rgba(217, 119, 6, 0.12)",
+      border: "rgba(217, 119, 6, 0.28)",
+    },
+  },
+  {
+    id: "transits",
+    label: "Transits (Gochar)",
+    Icon: GocharIcon,
+    accent: {
+      color: "var(--graha-saturn, #2563eb)",
+      bg: "rgba(37, 99, 235, 0.10)",
+      border: "rgba(37, 99, 235, 0.25)",
+    },
+  },
+  {
+    id: "dasha",
+    label: "Vimshottari Dasha",
+    Icon: DashaIcon,
+    accent: {
+      color: "var(--graha-jupiter, #b45309)",
+      bg: "rgba(180, 83, 9, 0.10)",
+      border: "rgba(180, 83, 9, 0.25)",
+    },
+  },
+  {
+    id: "panchanga",
+    label: "Daily Panchanga",
+    Icon: PanchangaIcon,
+    accent: {
+      color: "var(--graha-mercury, #059669)",
+      bg: "rgba(5, 150, 105, 0.10)",
+      border: "rgba(5, 150, 105, 0.25)",
+    },
+  },
+  {
+    id: "compatibility",
+    label: "Kundali Matching",
+    Icon: MatchingIcon,
+    accent: {
+      color: "var(--graha-venus, #e11d48)",
+      bg: "rgba(225, 29, 72, 0.10)",
+      border: "rgba(225, 29, 72, 0.25)",
+    },
+  },
+  {
+    id: "muhurtha",
+    label: "Muhurtha & Horas",
+    Icon: MuhurthaIcon,
+    accent: {
+      color: "var(--graha-sun, #d97706)",
+      bg: "rgba(217, 119, 6, 0.10)",
+      border: "rgba(217, 119, 6, 0.25)",
+    },
+  },
+  {
+    id: "remedies",
+    label: "Remedies & Upayas",
+    Icon: RemediesIcon,
+    accent: {
+      color: "var(--graha-rahu, #7c3aed)",
+      bg: "rgba(124, 58, 237, 0.10)",
+      border: "rgba(124, 58, 237, 0.25)",
+    },
+    hint: "Parashari & Lal Kitab",
+  },
 ];
 
-const CONSULT = { id: "consult" as TabId, label: "AI Consultation", Icon: ConsultationIcon };
+const CONSULT = {
+  id: "consult" as TabId,
+  label: "AI Consultation",
+  Icon: ConsultationIcon,
+  accent: {
+    color: "#6366f1",
+    bg: "rgba(99, 102, 241, 0.12)",
+    border: "rgba(99, 102, 241, 0.30)",
+  },
+};
 
 export const Sidebar: React.FC<Props> = ({
   activeTab,
@@ -106,7 +190,7 @@ export const Sidebar: React.FC<Props> = ({
           {!slim && (
             <span
               style={{
-                fontSize: "10.5px",
+                fontSize: "11px",
                 fontWeight: 700,
                 letterSpacing: "0.14em",
                 textTransform: "uppercase",
@@ -164,12 +248,15 @@ export const Sidebar: React.FC<Props> = ({
             flexShrink: 0,
           }}
         >
-          <span
-            className="serif-display gold-gradient-text"
-            style={{ fontSize: "0.95rem", fontWeight: 700, letterSpacing: "0.08em" }}
-          >
-            NAKSHATRA
-          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <NakshatraLogo size={26} />
+            <span
+              className="serif-display gold-gradient-text"
+              style={{ fontSize: "0.95rem", fontWeight: 700, letterSpacing: "0.08em" }}
+            >
+              NAKSHATRA
+            </span>
+          </div>
           <button
             type="button"
             onClick={onCloseMobile}
@@ -205,7 +292,7 @@ export const Sidebar: React.FC<Props> = ({
             gap: "var(--space-1)",
           }}
         >
-          {TABS.map(({ id, label, Icon }) => {
+          {TABS.map(({ id, label, Icon, accent }) => {
             const active = activeTab === id;
             return (
               <button
@@ -219,16 +306,16 @@ export const Sidebar: React.FC<Props> = ({
                   display: "flex",
                   alignItems: "center",
                   gap: "var(--space-3)",
-                  padding: slim ? "10px 0" : "10px 12px",
+                  padding: slim ? "8px 0" : "7px 10px",
                   justifyContent: slim ? "center" : "flex-start",
                   width: "100%",
                   borderRadius: "var(--radius-md)",
                   border: "none",
                   borderLeft: active ? "3px solid var(--gold-vivid)" : "3px solid transparent",
                   background: active ? "linear-gradient(90deg, var(--gold-dim) 0%, transparent 100%)" : "transparent",
-                  color: active ? "var(--gold-bright)" : "var(--text-mid)",
+                  color: active ? "var(--text-high)" : "var(--text-mid)",
                   fontFamily: "var(--font-sans)",
-                  fontSize: "var(--type-label)",
+                  fontSize: "0.875rem",
                   fontWeight: active ? 600 : 500,
                   cursor: "pointer",
                   transition: "all 0.18s ease",
@@ -249,13 +336,28 @@ export const Sidebar: React.FC<Props> = ({
                   }
                 }}
               >
-                <Icon
-                  size={18}
-                  style={{ flexShrink: 0, color: active ? "var(--gold-vivid)" : "currentColor" }}
+                {/* 32x32px Jewel Icon Tile with Vedic Planetary Accent */}
+                <div
+                  style={{
+                    width: "32px",
+                    height: "32px",
+                    borderRadius: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                    background: active ? accent.bg : "var(--bg-subtle)",
+                    border: `1px solid ${active ? accent.border : "var(--border-subtle)"}`,
+                    color: active ? accent.color : "var(--text-mid)",
+                    boxShadow: active ? `0 0 10px ${accent.bg}` : "none",
+                    transition: "all 0.18s ease",
+                  }}
                   aria-hidden="true"
-                />
+                >
+                  <Icon size={20} style={{ color: active ? accent.color : "currentColor" }} />
+                </div>
                 {!slim && (
-                  <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+                  <span style={{ overflow: "hidden", textOverflow: "ellipsis", letterSpacing: "0.01em" }}>
                     {label}
                   </span>
                 )}
@@ -272,9 +374,9 @@ export const Sidebar: React.FC<Props> = ({
             role="separator"
           />
 
-          {/* Consultation — bottom-aligned, gold-tinted */}
+          {/* Consultation — bottom-aligned, third-eye indigo & gold tinted */}
           {(() => {
-            const { id, label, Icon } = CONSULT;
+            const { id, label, Icon, accent } = CONSULT;
             const active = activeTab === id;
             return (
               <button
@@ -287,7 +389,7 @@ export const Sidebar: React.FC<Props> = ({
                   display: "flex",
                   alignItems: "center",
                   gap: "var(--space-3)",
-                  padding: slim ? "10px 0" : "10px 12px",
+                  padding: slim ? "8px 0" : "7px 10px",
                   justifyContent: slim ? "center" : "flex-start",
                   width: "100%",
                   borderRadius: "var(--radius-md)",
@@ -298,7 +400,7 @@ export const Sidebar: React.FC<Props> = ({
                     : "var(--gold-dim)",
                   color: active ? "var(--gold-bright)" : "var(--gold-vivid)",
                   fontFamily: "var(--font-sans)",
-                  fontSize: "var(--type-label)",
+                  fontSize: "0.875rem",
                   fontWeight: active ? 600 : 500,
                   cursor: "pointer",
                   transition: "all 0.18s ease",
@@ -307,8 +409,26 @@ export const Sidebar: React.FC<Props> = ({
                   flexShrink: 0,
                 }}
               >
-                <Icon size={18} style={{ flexShrink: 0 }} aria-hidden="true" />
-                {!slim && <span>{label}</span>}
+                <div
+                  style={{
+                    width: "32px",
+                    height: "32px",
+                    borderRadius: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                    background: active ? accent.bg : "var(--bg-input)",
+                    border: `1px solid ${active ? accent.border : "var(--gold-border)"}`,
+                    color: active ? accent.color : "var(--gold-vivid)",
+                    boxShadow: active ? `0 0 12px ${accent.bg}` : "0 0 6px var(--gold-dim)",
+                    transition: "all 0.18s ease",
+                  }}
+                  aria-hidden="true"
+                >
+                  <Icon size={20} style={{ color: active ? accent.color : "currentColor" }} />
+                </div>
+                {!slim && <span style={{ letterSpacing: "0.01em" }}>{label}</span>}
               </button>
             );
           })()}

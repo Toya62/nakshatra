@@ -3,6 +3,7 @@
 import React from "react";
 import { Activity, Menu, X } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { NakshatraLogo } from "@/components/NakshatraLogo";
 
 // Re-export TabId from Sidebar so existing imports still work
 export type { TabId } from "@/components/Sidebar";
@@ -78,49 +79,27 @@ export const Navbar: React.FC<Props> = ({
             : <Menu size={18} aria-hidden="true" />}
         </button>
 
-        {/* Logo mark */}
-        <div
-          style={{
-            width: "34px",
-            height: "34px",
-            borderRadius: "8px",
-            overflow: "hidden",
-            border: "1px solid var(--gold-border)",
-            boxShadow: "0 0 12px var(--gold-dim)",
-            flexShrink: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "var(--bg-input)",
-          }}
-          aria-hidden="true"
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/app-icon.jpg"
-            alt="Nakshatra Emblem"
-            width={34}
-            height={34}
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-          />
-        </div>
+        {/* Sacred Vedic Vector Emblem */}
+        <NakshatraLogo size={38} />
 
         <div>
           <h1
             className="serif-display gold-gradient-text"
-            style={{ fontSize: "1.2rem", fontWeight: 700, lineHeight: 1, letterSpacing: "0.1em" }}
+            style={{ fontSize: "1.32rem", fontWeight: 700, lineHeight: 1, letterSpacing: "0.11em" }}
           >
             NAKSHATRA
           </h1>
           <p
             style={{
-              fontSize: "var(--type-micro)",
+              fontSize: "10.5px",
+              fontWeight: 600,
               color: "var(--text-low)",
-              letterSpacing: "0.09em",
-              marginTop: "2px",
+              letterSpacing: "0.14em",
+              marginTop: "3px",
+              textTransform: "uppercase",
             }}
           >
-            VEDIC ASTROLOGY ENGINE
+            Vedic Astrology Engine
           </p>
         </div>
       </div>
