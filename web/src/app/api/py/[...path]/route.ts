@@ -28,7 +28,14 @@ export async function POST(
   context: { params: Promise<{ path: string[] }> }
 ) {
   const { path } = await context.params;
-  const target = `${BACKEND_URL}/${path.join("/")}${req.nextUrl.search}`;
+  const joined = path.join("/");
+  if (joined === "rag/ingest") {
+    return NextResponse.json(
+      { detail: "Ingestion endpoint is blocked via web proxy" },
+      { status: 403 }
+    );
+  }
+  const target = `${BACKEND_URL}/${joined}${req.nextUrl.search}`;
   try {
     const bodyText = await req.text();
     const res = await fetch(target, {

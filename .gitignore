@@ -1,6 +1,8 @@
 # Ephemeris large files (>100MB limit on GitHub)
 *.bsp
 my_chart*.json
+*chart*.txt
+*LCP*.txt
 nakshatra/vriddhi.json
 .kilo/
 

@@ -27,6 +27,9 @@ services:
     env_file:
       - path: .env
         required: false
+    volumes:
+      - ./corpus:/app/corpus
+      - ./index:/app/index
 
   frontend:
     build:

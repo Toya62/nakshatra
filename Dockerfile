@@ -14,7 +14,7 @@ COPY nakshatra ./nakshatra
 RUN mkdir -p corpus index
 
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir .
+    pip install --no-cache-dir . google-genai
 
 FROM python:3.11-slim
 

@@ -122,15 +122,15 @@ with gr.Blocks(title="Nakshatra - Vedic Astrology AI Engine") as demo:
     with gr.Tab("Birth Chart (Kundali)"):
         with gr.Row():
             with gr.Column():
-                c_y = gr.Number(value=1997, label="Year")
-                c_m = gr.Number(value=5, label="Month")
-                c_d = gr.Number(value=22, label="Day")
-                c_h = gr.Number(value=4, label="Hour (24h)")
-                c_min = gr.Number(value=53, label="Minute")
+                c_y = gr.Number(value=2000, label="Year")
+                c_m = gr.Number(value=1, label="Month")
+                c_d = gr.Number(value=1, label="Day")
+                c_h = gr.Number(value=12, label="Hour (24h)")
+                c_min = gr.Number(value=0, label="Minute")
             with gr.Column():
-                c_lat = gr.Number(value=27.8667, label="Latitude (North +)")
-                c_lon = gr.Number(value=83.4833, label="Longitude (East +)")
-                c_tz = gr.Textbox(value="Asia/Kathmandu", label="Timezone IANA")
+                c_lat = gr.Number(value=23.1765, label="Latitude (North +)")
+                c_lon = gr.Number(value=75.7885, label="Longitude (East +)")
+                c_tz = gr.Textbox(value="Asia/Kolkata", label="Timezone IANA")
                 c_ay = gr.Dropdown(
                     choices=[a.value for a in Ayanamsa],
                     value="jhora_lahiri",
@@ -149,21 +149,21 @@ with gr.Blocks(title="Nakshatra - Vedic Astrology AI Engine") as demo:
         with gr.Row():
             with gr.Column():
                 gr.Markdown("### Bride Birth Details")
-                b_name = gr.Textbox(value="Sita", label="Bride Name")
-                b_y = gr.Number(value=1997, label="Year")
-                b_m = gr.Number(value=5, label="Month")
-                b_d = gr.Number(value=22, label="Day")
-                b_h = gr.Number(value=4, label="Hour")
-                b_min = gr.Number(value=53, label="Minute")
-                b_lat = gr.Number(value=27.8667, label="Latitude")
-                b_lon = gr.Number(value=83.4833, label="Longitude")
-                b_tz = gr.Textbox(value="Asia/Kathmandu", label="Timezone")
+                b_name = gr.Textbox(value="Bride", label="Bride Name")
+                b_y = gr.Number(value=2000, label="Year")
+                b_m = gr.Number(value=1, label="Month")
+                b_d = gr.Number(value=1, label="Day")
+                b_h = gr.Number(value=12, label="Hour")
+                b_min = gr.Number(value=0, label="Minute")
+                b_lat = gr.Number(value=23.1765, label="Latitude")
+                b_lon = gr.Number(value=75.7885, label="Longitude")
+                b_tz = gr.Textbox(value="Asia/Kolkata", label="Timezone")
             with gr.Column():
                 gr.Markdown("### Groom Birth Details")
-                g_name = gr.Textbox(value="Rama", label="Groom Name")
-                g_y = gr.Number(value=1995, label="Year")
-                g_m = gr.Number(value=11, label="Month")
-                g_d = gr.Number(value=28, label="Day")
+                g_name = gr.Textbox(value="Groom", label="Groom Name")
+                g_y = gr.Number(value=1998, label="Year")
+                g_m = gr.Number(value=5, label="Month")
+                g_d = gr.Number(value=15, label="Day")
                 g_h = gr.Number(value=8, label="Hour")
                 g_min = gr.Number(value=30, label="Minute")
                 g_lat = gr.Number(value=28.6139, label="Latitude")

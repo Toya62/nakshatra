@@ -22,17 +22,46 @@ logger = logging.getLogger("nakshatra.privacy")
 LAT_LON_PATTERN = re.compile(r"(latitude|longitude|lat|lon)=[-+]?\d*\.?\d+", re.IGNORECASE)
 PERSON_NAME_PATTERN = re.compile(r"(place_name|bride_name|groom_name)=[^&]+", re.IGNORECASE)
 
+# JSON patterns: "latitude": 27.8667, "place_name": "Palpa"
+JSON_COORD_PATTERN = re.compile(
+    r'("(?:latitude|longitude|lat|lon)"\s*:\s*)[-+]?\d*\.?\d+',
+    re.IGNORECASE,
+)
+JSON_NAME_PATTERN = re.compile(
+    r'("(?:place_name|bride_name|groom_name)"\s*:\s*)"[^"]*"',
+    re.IGNORECASE,
+)
+
+
+def _sanitize_string(text: str) -> str:
+    text = LAT_LON_PATTERN.sub(r"\1=[SCRUBBED_GDPR]", text)
+    text = PERSON_NAME_PATTERN.sub(r"\1=[SCRUBBED_GDPR]", text)
+    text = JSON_COORD_PATTERN.sub(r'\1"[SCRUBBED_GDPR]"', text)
+    text = JSON_NAME_PATTERN.sub(r'\1"[SCRUBBED_GDPR]"', text)
+    return text
+
 
 class PrivacySanitizerFilter(logging.Filter):
     """
-    Logging filter that sanitizes birth coordinates and names from log records.
-    Prevents personal identifiable coordinates from being written to log files.
+    Logging filter that sanitizes birth coordinates and names from log records,
+    including query strings, JSON payloads, and formatted argument tuples/dicts.
     """
 
     def filter(self, record: logging.LogRecord) -> bool:
         if isinstance(record.msg, str):
-            record.msg = LAT_LON_PATTERN.sub(r"\1=[SCRUBBED_GDPR]", record.msg)
-            record.msg = PERSON_NAME_PATTERN.sub(r"\1=[SCRUBBED_GDPR]", record.msg)
+            record.msg = _sanitize_string(record.msg)
+
+        if record.args:
+            if isinstance(record.args, tuple):
+                record.args = tuple(
+                    _sanitize_string(str(arg)) if isinstance(arg, (str, float, int)) else arg
+                    for arg in record.args
+                )
+            elif isinstance(record.args, dict):
+                record.args = {
+                    k: (_sanitize_string(str(v)) if isinstance(v, (str, float, int)) else v)
+                    for k, v in record.args.items()
+                }
         return True
 
 

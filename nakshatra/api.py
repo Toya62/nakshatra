@@ -8,13 +8,15 @@ or formatted text.
 from __future__ import annotations
 
 import json
+import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse, Response, StreamingResponse
 from pydantic import BaseModel, Field, field_validator
@@ -56,6 +58,7 @@ from nakshatra.muhurtha import (
 )
 from nakshatra.panchanga import PanchangaData, calculate_panchanga
 from nakshatra.privacy import PrivacyMiddleware, get_privacy_statement
+from nakshatra.rate_limit import RateLimitMiddleware
 from nakshatra.transits import (
     TransitReport,
     TransitWindowReport,
@@ -349,13 +352,31 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+cors_origins_env = os.environ.get("CORS_ORIGINS", "")
+if cors_origins_env.strip() == "*":
+    cors_origins = ["*"]
+    cors_allow_credentials = False
+elif cors_origins_env.strip():
+    cors_origins = [orig.strip() for orig in cors_origins_env.split(",") if orig.strip()]
+    cors_allow_credentials = True
+else:
+    cors_origins = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://vedic-nakshatra.duckdns.org",
+        "https://toya62-nakshatra.hf.space",
+    ]
+    cors_allow_credentials = True
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=cors_origins,
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$" if cors_allow_credentials else None,
+    allow_credentials=cors_allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(RateLimitMiddleware)
 app.add_middleware(PrivacyMiddleware)
 
 _rag_service = RAGService()
@@ -974,8 +995,36 @@ async def get_muhurtha_endpoint(
     return await calculate_muhurtha_endpoint(req, format=format)
 
 
+def _validate_safe_path(p: str | Path, name: str = "Path") -> Path:
+    raw = str(p).strip()
+    if not raw:
+        raise HTTPException(status_code=400, detail=f"{name} cannot be empty")
+    parts = Path(raw).parts
+    if ".." in parts:
+        raise HTTPException(status_code=400, detail=f"Path traversal detected in {name}")
+    resolved = Path(raw).resolve()
+    forbidden_roots = (
+        Path("/etc"),
+        Path("/proc"),
+        Path("/sys"),
+        Path("/dev"),
+        Path("/root"),
+        Path("/boot"),
+        Path("/bin"),
+        Path("/sbin"),
+        Path("/usr"),
+    )
+    for forbidden in forbidden_roots:
+        if resolved == forbidden or forbidden in resolved.parents:
+            raise HTTPException(status_code=400, detail=f"Access to system path forbidden: {name}")
+    return resolved
+
+
 @app.post("/rag/ingest", response_model=RAGIngestResponse, tags=["RAG"])
-async def rag_ingest(request: RAGIngestRequest) -> RAGIngestResponse:
+async def rag_ingest(
+    request: RAGIngestRequest,
+    x_admin_key: str | None = Header(None, alias="X-Admin-Key"),
+) -> RAGIngestResponse:
     """
     Ingest a corpus directory into a searchable index.
 
@@ -984,6 +1033,21 @@ async def rag_ingest(request: RAGIngestRequest) -> RAGIngestResponse:
     writes the index to index_dir. Embedding vectors are built when
     sentence-transformers is installed; otherwise the index is BM25-only.
     """
+    admin_key = os.environ.get("ADMIN_API_KEY") or os.environ.get("NAKSHATRA_ADMIN_KEY")
+    is_prod = os.environ.get("ENVIRONMENT", "").lower() in ("production", "prod")
+
+    if admin_key:
+        if x_admin_key != admin_key:
+            raise HTTPException(status_code=401, detail="Unauthorized: Invalid or missing X-Admin-Key")
+    elif is_prod:
+        raise HTTPException(
+            status_code=403,
+            detail="Ingestion endpoint disabled in production without ADMIN_API_KEY configured",
+        )
+
+    _validate_safe_path(request.corpus_dir, "corpus_dir")
+    _validate_safe_path(request.index_dir, "index_dir")
+
     try:
         result = _rag_service.ingest(request.corpus_dir, request.index_dir)
         return RAGIngestResponse(
@@ -1146,7 +1210,7 @@ async def root() -> dict:
         "name": "Nakshatra",
         "description": "Vedic Astrology AI Engine - JSON API for birth charts, panchangas, and yogas",
         "version": "0.1.0",
-        "license": "MIT",
+        "license": "GNU Affero General Public License v3.0 (AGPL-3.0)",
         "ephemeris": "Swiss Ephemeris via mayaastrolib (pyswisseph)",
         "default_ayanamsa": "jhora_lahiri (Traditional Lahiri, Jagannatha Hora calibrated)",
         "default_house_system": "Whole Sign",
@@ -1172,7 +1236,14 @@ async def root() -> dict:
     }
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Run Nakshatra API server."""
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.environ.get("PORT", 8004))
+    host = os.environ.get("HOST", "0.0.0.0")
+    uvicorn.run("nakshatra.api:app", host=host, port=port, reload=False)
+
+
+if __name__ == "__main__":
+    main()
