@@ -21,8 +21,10 @@ jobs:
           username: ${{ secrets.OCI_USERNAME }}
           key: ${{ secrets.OCI_SSH_PRIVATE_KEY }}
           script: |
+            set -e
             cd /opt/nakshatra
-            git pull origin main
+            git fetch origin main
+            git reset --hard origin/main
             docker compose down 2>/dev/null || true
             docker compose up -d --build
             docker image prune -f
