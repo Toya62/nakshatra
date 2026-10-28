@@ -353,6 +353,7 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
           background: "var(--chart-bg)",
           border: "1px solid var(--chart-border)",
           userSelect: "none",
+          touchAction: "manipulation",
         }}
       >
         <title>{`North Indian ${varga} Kundali Chart`}</title>
@@ -477,22 +478,24 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
               onClick={() => setHoveredHouse((prev) => prev === ch.house ? null : ch.house)}
               style={{ cursor: "pointer", pointerEvents: "all" }}
             >
-              {/* Rashi Zodiac Number Badge (Subtle circular seal in designated corner) */}
+              {/* Rashi Zodiac Number (Clean classical numeral, no white ball) */}
               <g transform={`translate(${ch.signPos.x}, ${ch.signPos.y})`}>
-                <circle
-                  r="13"
-                  fill="var(--chart-badge-bg)"
-                  stroke={isHovered ? "var(--gold-vivid)" : "var(--gold-border)"}
-                  strokeWidth={isHovered ? "1.6" : "1.1"}
-                />
+                {isHovered && (
+                  <circle
+                    r="11"
+                    fill="var(--gold-dim)"
+                    stroke="var(--gold-vivid)"
+                    strokeWidth="1.2"
+                  />
+                )}
                 <text
                   x="0"
                   y="4.5"
                   textAnchor="middle"
-                  fill={isHovered ? "var(--gold-primary)" : "var(--chart-badge-text)"}
-                  fontSize="13.5"
+                  fill={isHovered ? "var(--gold-bright)" : "var(--chart-badge-text)"}
+                  fontSize="13"
                   fontWeight="800"
-                  fontFamily="'Outfit', sans-serif"
+                  fontFamily="'Cinzel', 'Outfit', serif"
                 >
                   {data.signNum}
                 </text>
@@ -768,8 +771,8 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
         }}
       >
         {activeHouseData && activeBhavaMeta ? (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", gap: "var(--space-3)", flexWrap: "wrap" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", whiteSpace: "nowrap" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", gap: "var(--space-2)", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap" }}>
               <span style={{ color: "var(--gold-bright)", fontWeight: 700, fontFamily: "var(--font-serif)" }}>
                 {activeBhavaMeta.title}
               </span>
@@ -779,7 +782,7 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
               </span>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", fontSize: "var(--type-micro)", whiteSpace: "nowrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", fontSize: "var(--type-micro)", flexWrap: "wrap" }}>
               <span style={{ color: "var(--text-high)", fontWeight: 600 }}>
                 {activeHouseData.signName} ({activeHouseData.signSanskrit})
               </span>
@@ -794,8 +797,8 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
             </div>
           </div>
         ) : (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", gap: "var(--space-3)", flexWrap: "wrap" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", whiteSpace: "nowrap" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", gap: "var(--space-2)", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap" }}>
               <span style={{ color: "var(--text-low)", fontSize: "0.82rem" }}>
                 Lagna: <strong style={{ color: "var(--gold-bright)", fontFamily: "var(--font-mono)" }}>{chart.ascendant.sign} {chart.ascendant.degree_in_sign.toFixed(1)}°</strong>
               </span>
@@ -809,8 +812,8 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
                 );
               })()}
             </div>
-            <span style={{ color: "var(--text-mid)", fontSize: "0.76rem", whiteSpace: "nowrap" }}>
-              Hover house chamber to inspect Bhava
+            <span style={{ color: "var(--text-mid)", fontSize: "0.76rem" }}>
+              Tap or hover house chamber to inspect
             </span>
           </div>
         )}

@@ -90,7 +90,7 @@
   /* Chart tokens */
   --chart-bg: linear-gradient(150deg, #090e1b 0%, #10162a 50%, #070b16 100%);
   --chart-border: rgba(223, 177, 91, 0.24);
-  --chart-badge-bg: rgba(9, 14, 25, 0.95);
+  --chart-badge-bg: transparent;
   --chart-badge-text: #fcedbe;
   --chart-center-bg: #080b15;
   --chart-center-stroke: rgba(229, 185, 76, 0.7);
@@ -219,8 +219,8 @@
   /* Chart tokens */
   --chart-bg: linear-gradient(150deg, #fdfbf7 0%, #f6f1e6 50%, #fdfbf7 100%);
   --chart-border: rgba(180, 115, 20, 0.32);
-  --chart-badge-bg: rgba(255, 255, 255, 0.95);
-  --chart-badge-text: #78350f;
+  --chart-badge-bg: transparent;
+  --chart-badge-text: #92400e;
   --chart-center-bg: #fffcf7;
   --chart-center-stroke: rgba(180, 115, 20, 0.7);
   --chart-grid-stroke: rgba(180, 115, 20, 0.65);

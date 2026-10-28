@@ -291,6 +291,8 @@ export default function Home() {
                         overflowX: "auto",
                         maxWidth: "100%",
                         paddingBottom: "2px",
+                        WebkitOverflowScrolling: "touch",
+                        scrollbarWidth: "none",
                       }}
                       tabIndex={0}
                       aria-label="Divisional chart selector"

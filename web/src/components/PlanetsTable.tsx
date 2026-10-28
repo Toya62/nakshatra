@@ -103,10 +103,11 @@ export const PlanetsTable: React.FC<Props> = ({ chart }) => {
       </div>
 
       {/* Table */}
-      <div style={{ overflowX: "auto" }}>
+      <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
         <table
           style={{
             width: "100%",
+            minWidth: "500px",
             borderCollapse: "collapse",
             fontSize: "var(--type-label)",
             textAlign: "left",
