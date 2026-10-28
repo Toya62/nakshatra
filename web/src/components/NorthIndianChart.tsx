@@ -237,7 +237,7 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
     {
       house: 1,
       polygon: `${cx},0 130,130 ${cx},${cy} 390,130`,
-      contentPos: { x: cx, y: 142 },
+      contentPos: { x: cx, y: 138 },
       signPos: { x: 175, y: 140 },
       type: "kendra-trikona" as const,
     },
@@ -245,16 +245,16 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
     {
       house: 2,
       polygon: `0,0 ${cx},0 130,130`,
-      contentPos: { x: 110, y: 76 },
-      signPos: { x: 200, y: 32 },
+      contentPos: { x: 130, y: 58 },
+      signPos: { x: 215, y: 26 },
       type: "regular" as const,
     },
     // House 3 (Left-upper triangle — Upachaya)
     {
       house: 3,
       polygon: `0,0 0,${cy} 130,130`,
-      contentPos: { x: 76, y: 110 },
-      signPos: { x: 32, y: 200 },
+      contentPos: { x: 58, y: 130 },
+      signPos: { x: 26, y: 215 },
       type: "upachaya" as const,
     },
     // House 4 (Left diamond — Kendra)
@@ -269,16 +269,16 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
     {
       house: 5,
       polygon: `0,${cy} 0,${h} 130,390`,
-      contentPos: { x: 76, y: 410 },
-      signPos: { x: 32, y: 320 },
+      contentPos: { x: 58, y: 390 },
+      signPos: { x: 26, y: 315 },
       type: "trikona" as const,
     },
     // House 6 (Bottom-left triangle — Dusthana)
     {
       house: 6,
       polygon: `0,${h} ${cx},${h} 130,390`,
-      contentPos: { x: 110, y: 444 },
-      signPos: { x: 200, y: 488 },
+      contentPos: { x: 130, y: 462 },
+      signPos: { x: 215, y: 494 },
       type: "dusthana" as const,
     },
     // House 7 (Bottom diamond — Kendra)
@@ -293,16 +293,16 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
     {
       house: 8,
       polygon: `${cx},${h} ${w},${h} 390,390`,
-      contentPos: { x: 410, y: 444 },
-      signPos: { x: 320, y: 488 },
+      contentPos: { x: 390, y: 462 },
+      signPos: { x: 305, y: 494 },
       type: "dusthana" as const,
     },
     // House 9 (Right-lower triangle — Trikona)
     {
       house: 9,
       polygon: `${w},${cy} ${w},${h} 390,390`,
-      contentPos: { x: 444, y: 410 },
-      signPos: { x: 488, y: 320 },
+      contentPos: { x: 462, y: 390 },
+      signPos: { x: 494, y: 305 },
       type: "trikona" as const,
     },
     // House 10 (Right diamond — Kendra)
@@ -317,16 +317,16 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
     {
       house: 11,
       polygon: `${w},${cy} ${w},0 390,130`,
-      contentPos: { x: 444, y: 110 },
-      signPos: { x: 488, y: 200 },
+      contentPos: { x: 462, y: 130 },
+      signPos: { x: 494, y: 215 },
       type: "upachaya" as const,
     },
     // House 12 (Top-right triangle — Dusthana)
     {
       house: 12,
       polygon: `260,0 ${w},0 390,130`,
-      contentPos: { x: 410, y: 76 },
-      signPos: { x: 320, y: 32 },
+      contentPos: { x: 390, y: 58 },
+      signPos: { x: 305, y: 26 },
       type: "dusthana" as const,
     },
   ];
@@ -376,6 +376,11 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
             <stop offset="0%" stopColor="rgba(252, 237, 190, 0.22)" />
             <stop offset="100%" stopColor="rgba(223, 177, 91, 0.08)" />
           </radialGradient>
+
+          {/* Elevated pill card shadow for crisp separation */}
+          <filter id="pillShadow" x="-10%" y="-15%" width="120%" height="135%">
+            <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" floodColor="rgba(0, 0, 0, 0.08)" />
+          </filter>
         </defs>
 
         {/* Double Engraved Frame */}
@@ -390,12 +395,9 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
           </g>
         ))}
 
-        {/* Render each of the 12 chambers */}
+        {/* 1. Chamber Background Highlights & Hover Targets */}
         {chambers.map((ch) => {
-          const data = houseData[ch.house - 1];
-          const planets = data ? data.planets : [];
           const isHovered = hoveredHouse === ch.house;
-
           let chamberFill = "transparent";
           if (isHovered) chamberFill = "url(#hoverGlow)";
           else if (ch.type === "kendra-trikona" || ch.type === "kendra") chamberFill = "url(#kendraGlow)";
@@ -403,226 +405,22 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
           else if (ch.type === "dusthana") chamberFill = "var(--bg-subtle)";
 
           return (
-            <g
-              key={ch.house}
+            <polygon
+              key={`bg-${ch.house}`}
+              points={ch.polygon}
+              fill={chamberFill}
+              stroke={isHovered ? "var(--gold-vivid)" : "none"}
+              strokeWidth={isHovered ? "2.5" : "0"}
               onMouseEnter={() => setHoveredHouse(ch.house)}
               onMouseLeave={() => setHoveredHouse(null)}
               onClick={() => setHoveredHouse((prev) => prev === ch.house ? null : ch.house)}
-              style={{ cursor: "pointer", pointerEvents: "all" }}
-            >
-              {/* Chamber Fill Polygon */}
-              <polygon
-                points={ch.polygon}
-                fill={chamberFill}
-                stroke={isHovered ? "var(--gold-vivid)" : "none"}
-                strokeWidth={isHovered ? "2.5" : "0"}
-                pointerEvents="all"
-                style={{ transition: "all 0.2s ease" }}
-              />
-
-              {/* Rashi Zodiac Number Badge (Subtle circular seal in designated corner) */}
-              <g transform={`translate(${ch.signPos.x}, ${ch.signPos.y})`}>
-                <circle
-                  r="13"
-                  fill="var(--chart-badge-bg)"
-                  stroke={isHovered ? "var(--gold-vivid)" : "var(--gold-border)"}
-                  strokeWidth={isHovered ? "1.6" : "1.1"}
-                />
-                <text
-                  x="0"
-                  y="4.5"
-                  textAnchor="middle"
-                  fill={isHovered ? "var(--gold-primary)" : "var(--chart-badge-text)"}
-                  fontSize="13.5"
-                  fontWeight="800"
-                  fontFamily="'Outfit', sans-serif"
-                >
-                  {data.signNum}
-                </text>
-              </g>
-
-              {/* House 1 LAGNA Title Badge inside House 1 */}
-              {ch.house === 1 && (
-                <g transform={`translate(${cx}, 56)`}>
-                  <rect
-                    x="-36"
-                    y="-11"
-                    width="72"
-                    height="22"
-                    rx="11"
-                    fill="var(--gold-dim)"
-                    stroke="var(--gold-border)"
-                    strokeWidth="1"
-                  />
-                  <text
-                    x="0"
-                    y="4.5"
-                    textAnchor="middle"
-                    fill="var(--gold-bright)"
-                    fontSize="11.5"
-                    fontWeight="800"
-                    fontFamily="'Outfit', sans-serif"
-                    letterSpacing="2"
-                  >
-                    LAGNA
-                  </text>
-                </g>
-              )}
-
-              {/* Formatted Planet Micro-Pills */}
-              <g transform={`translate(${ch.contentPos.x}, ${ch.contentPos.y})`}>
-                {(() => {
-                  const n = planets.length;
-                  if (n === 0) return null;
-
-                  // 1 to 3 planets: vertical neat stack with 90px wide pills
-                  if (n <= 3) {
-                    const stepY = 28;
-                    const pillW = 90;
-                    const pillH = 24;
-                    const halfW = pillW / 2;
-
-                    return planets.map((p, pIdx) => {
-                      const posY = (pIdx - (n - 1) / 2) * stepY;
-                      const style = GRAHA_STYLES[p.key] || {
-                        abbr: p.label, glyph: "•", name: p.name, color: "var(--text-high)", bg: "var(--bg-subtle)", border: "var(--border-subtle)"
-                      };
-
-                      return (
-                        <g key={pIdx} transform={`translate(0, ${posY})`}>
-                          {/* Pill Base */}
-                          <rect
-                            className="graha-pill"
-                            x={-halfW}
-                            y={-pillH / 2}
-                            width={pillW}
-                            height={pillH}
-                            rx="5"
-                            fill={style.bg}
-                            stroke={style.border}
-                            strokeWidth="1"
-                          />
-                          {/* Graha Glyph + Abbreviation */}
-                          <text
-                            x={-halfW + 8}
-                            y="4.5"
-                            fill={style.color}
-                            fontSize="13"
-                            fontWeight="700"
-                            fontFamily="'Outfit', sans-serif"
-                          >
-                            {p.isAsc ? "ASC" : `${style.glyph} ${p.label}`}
-                          </text>
-
-                          {/* Retrograde & Dignity Markers */}
-                          {p.isRetro && (
-                            <text
-                              x={-halfW + 48}
-                              y="4.5"
-                              fill="var(--amber)"
-                              fontSize="11"
-                              fontWeight="800"
-                              fontFamily="'JetBrains Mono', monospace"
-                            >
-                              ℞
-                            </text>
-                          )}
-                          {p.dignity.symbol && (
-                            <text
-                              x={-halfW + (p.isRetro ? 60 : 48)}
-                              y="4.5"
-                              fill={p.dignity.isExalted ? "var(--emerald)" : p.dignity.isDebilitated ? "var(--rose)" : "var(--gold-vivid)"}
-                              fontSize="11"
-                              fontWeight="800"
-                            >
-                              {p.dignity.symbol}
-                            </text>
-                          )}
-
-                          {/* Degrees */}
-                          {p.degree && (
-                            <text
-                              x={halfW - 7}
-                              y="4.5"
-                              textAnchor="end"
-                              fill="var(--text-mid)"
-                              fontSize="11"
-                              fontFamily="'JetBrains Mono', monospace"
-                            >
-                              {p.degree}
-                            </text>
-                          )}
-                        </g>
-                      );
-                    });
-                  }
-
-                  // 4+ planets: compact 2-column grid
-                  const half = Math.ceil(n / 2);
-                  const stepY = 24;
-                  const pillW = 80;
-                  const pillH = 22;
-                  const halfW = pillW / 2;
-
-                  return planets.map((p, pIdx) => {
-                    const col = pIdx < half ? 0 : 1;
-                    const row = pIdx < half ? pIdx : pIdx - half;
-                    const posX = col === 0 ? -43 : 43;
-                    const posY = (row - (half - 1) / 2) * stepY;
-                    const style = GRAHA_STYLES[p.key] || {
-                      abbr: p.label, glyph: "•", name: p.name, color: "var(--text-high)", bg: "var(--bg-subtle)", border: "var(--border-subtle)"
-                    };
-
-                    return (
-                      <g key={pIdx} transform={`translate(${posX}, ${posY})`}>
-                        <rect
-                          className="graha-pill"
-                          x={-halfW}
-                          y={-pillH / 2}
-                          width={pillW}
-                          height={pillH}
-                          rx="4"
-                          fill={style.bg}
-                          stroke={style.border}
-                          strokeWidth="0.9"
-                        />
-                        <text
-                          x={-halfW + 6}
-                          y="4"
-                          fill={style.color}
-                          fontSize="11.5"
-                          fontWeight="700"
-                          fontFamily="'Outfit', sans-serif"
-                        >
-                          {p.isAsc ? "ASC" : p.label}
-                        </text>
-                        {p.isRetro && (
-                          <text x="-4" y="4" fill="var(--amber)" fontSize="9" fontWeight="800">
-                            ℞
-                          </text>
-                        )}
-                        {p.degree && (
-                          <text
-                            x={halfW - 6}
-                            y="4"
-                            textAnchor="end"
-                            fill="var(--text-mid)"
-                            fontSize="10"
-                            fontFamily="'JetBrains Mono', monospace"
-                          >
-                            {p.degree}
-                          </text>
-                        )}
-                      </g>
-                    );
-                  });
-                })()}
-              </g>
-            </g>
+              style={{ cursor: "pointer", transition: "all 0.2s ease" }}
+              pointerEvents="all"
+            />
           );
         })}
 
-        {/* Structural Kundali Lines */}
+        {/* 2. Structural Kundali Lines (Background Grid — Never Slices Across Planets) */}
         {/* Two Main Cross Diagonals */}
         <line x1="0" y1="0" x2={w} y2={h} stroke="var(--gold-border)" strokeWidth="1.6" pointerEvents="none" />
         <line x1="0" y1={h} x2={w} y2="0" stroke="var(--gold-border)" strokeWidth="1.6" pointerEvents="none" />
@@ -636,7 +434,7 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
           pointerEvents="none"
         />
 
-        {/* Center Ashtalakshmi / Yantra Astrolabe Emblem */}
+        {/* 3. Center Ashtalakshmi / Yantra Astrolabe Emblem */}
         <g transform={`translate(${cx}, ${cy})`} pointerEvents="none">
           <circle r="30" fill="none" stroke="var(--gold-border)" strokeWidth="1" strokeDasharray="3 3" />
           <rect x="-24" y="-24" width="48" height="48" rx="8" fill="var(--chart-center-bg)" stroke="var(--chart-center-stroke)" strokeWidth="1.4" />
@@ -664,6 +462,289 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
             {vKey === "D1" ? "RASI" : vKey === "D9" ? "NAVAMSA" : "VARGA"}
           </text>
         </g>
+
+        {/* 4. Foreground: Rashi Seals, LAGNA Header & Planet Pills (Rendered on Top of Lines) */}
+        {chambers.map((ch) => {
+          const data = houseData[ch.house - 1];
+          const planets = data ? data.planets : [];
+          const isHovered = hoveredHouse === ch.house;
+
+          return (
+            <g
+              key={`content-${ch.house}`}
+              onMouseEnter={() => setHoveredHouse(ch.house)}
+              onMouseLeave={() => setHoveredHouse(null)}
+              onClick={() => setHoveredHouse((prev) => prev === ch.house ? null : ch.house)}
+              style={{ cursor: "pointer", pointerEvents: "all" }}
+            >
+              {/* Rashi Zodiac Number Badge (Subtle circular seal in designated corner) */}
+              <g transform={`translate(${ch.signPos.x}, ${ch.signPos.y})`}>
+                <circle
+                  r="13"
+                  fill="var(--chart-badge-bg)"
+                  stroke={isHovered ? "var(--gold-vivid)" : "var(--gold-border)"}
+                  strokeWidth={isHovered ? "1.6" : "1.1"}
+                />
+                <text
+                  x="0"
+                  y="4.5"
+                  textAnchor="middle"
+                  fill={isHovered ? "var(--gold-primary)" : "var(--chart-badge-text)"}
+                  fontSize="13.5"
+                  fontWeight="800"
+                  fontFamily="'Outfit', sans-serif"
+                >
+                  {data.signNum}
+                </text>
+              </g>
+
+              {/* House 1 LAGNA Title Badge inside House 1 */}
+              {ch.house === 1 && (
+                <g transform={`translate(${cx}, 52)`}>
+                  <rect
+                    x="-34"
+                    y="-10"
+                    width="68"
+                    height="20"
+                    rx="10"
+                    fill="var(--gold-dim)"
+                    stroke="var(--gold-border)"
+                    strokeWidth="1"
+                  />
+                  <text
+                    x="0"
+                    y="3.5"
+                    textAnchor="middle"
+                    fill="var(--gold-bright)"
+                    fontSize="11"
+                    fontWeight="800"
+                    fontFamily="'Outfit', sans-serif"
+                    letterSpacing="1.8"
+                  >
+                    LAGNA
+                  </text>
+                </g>
+              )}
+
+              {/* Formatted Planet Micro-Pills */}
+              <g transform={`translate(${ch.contentPos.x}, ${ch.contentPos.y})`}>
+                {(() => {
+                  const n = planets.length;
+                  if (n === 0) return null;
+
+                  // 1 to 3 planets: vertical neat stack with 96px cards (completely inside chambers)
+                  if (n <= 3) {
+                    const stepY = 28;
+                    const pillW = 96;
+                    const pillH = 24;
+                    const halfW = pillW / 2; // 48
+
+                    return planets.map((p, pIdx) => {
+                      const posY = (pIdx - (n - 1) / 2) * stepY;
+                      const style = GRAHA_STYLES[p.key] || {
+                        abbr: p.label, glyph: "•", name: p.name, color: "var(--text-high)", bg: "var(--bg-subtle)", border: "var(--border-subtle)"
+                      };
+
+                      const hasRetro = !!p.isRetro;
+                      const hasDignity = !!p.dignity?.symbol;
+
+                      return (
+                        <g key={pIdx} transform={`translate(0, ${posY})`}>
+                          {/* Solid Base Card for sharp contrast against chart */}
+                          <rect
+                            className="graha-pill"
+                            x={-halfW}
+                            y={-pillH / 2}
+                            width={pillW}
+                            height={pillH}
+                            rx="5"
+                            fill="var(--chart-pill-bg)"
+                            stroke={style.color}
+                            strokeOpacity="0.38"
+                            strokeWidth="1.2"
+                            filter="url(#pillShadow)"
+                          />
+                          {/* Subtle Graha Tint Overlay */}
+                          <rect
+                            x={-halfW}
+                            y={-pillH / 2}
+                            width={pillW}
+                            height={pillH}
+                            rx="5"
+                            fill={style.color}
+                            opacity="0.08"
+                            pointerEvents="none"
+                          />
+
+                          {/* Graha Glyph + Abbreviation */}
+                          <text
+                            x={-halfW + 7}
+                            y="3.5"
+                            fill={style.color}
+                            fontSize="11.5"
+                            fontWeight="700"
+                            fontFamily="'Outfit', sans-serif"
+                          >
+                            {p.isAsc ? "ASC" : `${style.glyph} ${p.label}`}
+                          </text>
+
+                          {/* Retrograde & Dignity Markers (Positioned in center, safe from degree) */}
+                          {hasRetro && hasDignity ? (
+                            <g>
+                              <text
+                                x="-5"
+                                y="3.5"
+                                textAnchor="middle"
+                                fill="var(--amber)"
+                                fontSize="9.5"
+                                fontWeight="800"
+                                fontFamily="'JetBrains Mono', monospace"
+                              >
+                                ℞
+                              </text>
+                              <text
+                                x="5"
+                                y="3.5"
+                                textAnchor="middle"
+                                fill={p.dignity.isExalted ? "var(--emerald)" : p.dignity.isDebilitated ? "var(--rose)" : "var(--gold-vivid)"}
+                                fontSize="10"
+                                fontWeight="800"
+                              >
+                                {p.dignity.symbol}
+                              </text>
+                            </g>
+                          ) : hasRetro ? (
+                            <text
+                              x="-2"
+                              y="3.5"
+                              textAnchor="middle"
+                              fill="var(--amber)"
+                              fontSize="9.5"
+                              fontWeight="800"
+                              fontFamily="'JetBrains Mono', monospace"
+                            >
+                              ℞
+                            </text>
+                          ) : hasDignity ? (
+                            <text
+                              x="-2"
+                              y="3.5"
+                              textAnchor="middle"
+                              fill={p.dignity.isExalted ? "var(--emerald)" : p.dignity.isDebilitated ? "var(--rose)" : "var(--gold-vivid)"}
+                              fontSize="10"
+                              fontWeight="800"
+                            >
+                              {p.dignity.symbol}
+                            </text>
+                          ) : null}
+
+                          {/* Degrees */}
+                          {p.degree && (
+                            <text
+                              x={halfW - 6}
+                              y="3.5"
+                              textAnchor="end"
+                              fill="var(--text-mid)"
+                              fontSize="10"
+                              fontWeight="600"
+                              fontFamily="'JetBrains Mono', monospace"
+                            >
+                              {p.degree}
+                            </text>
+                          )}
+                        </g>
+                      );
+                    });
+                  }
+
+                  // 4+ planets: compact 2-column grid
+                  const half = Math.ceil(n / 2);
+                  const stepY = 24;
+                  const pillW = 82;
+                  const pillH = 22;
+                  const halfW = pillW / 2;
+
+                  return planets.map((p, pIdx) => {
+                    const col = pIdx < half ? 0 : 1;
+                    const row = pIdx < half ? pIdx : pIdx - half;
+                    const posX = col === 0 ? -44 : 44;
+                    const posY = (row - (half - 1) / 2) * stepY;
+                    const style = GRAHA_STYLES[p.key] || {
+                      abbr: p.label, glyph: "•", name: p.name, color: "var(--text-high)", bg: "var(--bg-subtle)", border: "var(--border-subtle)"
+                    };
+
+                    return (
+                      <g key={pIdx} transform={`translate(${posX}, ${posY})`}>
+                        <rect
+                          className="graha-pill"
+                          x={-halfW}
+                          y={-pillH / 2}
+                          width={pillW}
+                          height={pillH}
+                          rx="4"
+                          fill="var(--chart-pill-bg)"
+                          stroke={style.color}
+                          strokeOpacity="0.35"
+                          strokeWidth="1.1"
+                          filter="url(#pillShadow)"
+                        />
+                        <rect
+                          x={-halfW}
+                          y={-pillH / 2}
+                          width={pillW}
+                          height={pillH}
+                          rx="4"
+                          fill={style.color}
+                          opacity="0.08"
+                          pointerEvents="none"
+                        />
+                        <text
+                          x={-halfW + 5}
+                          y="3"
+                          fill={style.color}
+                          fontSize="10.5"
+                          fontWeight="700"
+                          fontFamily="'Outfit', sans-serif"
+                        >
+                          {p.isAsc ? "ASC" : p.label}
+                        </text>
+                        {p.isRetro ? (
+                          <text x="-2" y="3" textAnchor="middle" fill="var(--amber)" fontSize="9" fontWeight="800">
+                            ℞
+                          </text>
+                        ) : p.dignity?.symbol ? (
+                          <text
+                            x="-2"
+                            y="3"
+                            textAnchor="middle"
+                            fill={p.dignity.isExalted ? "var(--emerald)" : p.dignity.isDebilitated ? "var(--rose)" : "var(--gold-vivid)"}
+                            fontSize="9"
+                            fontWeight="800"
+                          >
+                            {p.dignity.symbol}
+                          </text>
+                        ) : null}
+                        {p.degree && (
+                          <text
+                            x={halfW - 5}
+                            y="3"
+                            textAnchor="end"
+                            fill="var(--text-mid)"
+                            fontSize="9.5"
+                            fontWeight="600"
+                            fontFamily="'JetBrains Mono', monospace"
+                          >
+                            {p.degree}
+                          </text>
+                        )}
+                      </g>
+                    );
+                  });
+                })()}
+              </g>
+            </g>
+          );
+        })}
       </svg>
 
       {/* Interactive Bhava Inspector Strip */}
@@ -671,7 +752,7 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
         className="card"
         style={{
           marginTop: "var(--space-3)",
-          padding: "var(--space-2) var(--space-4)",
+          padding: "var(--space-2-5) var(--space-4)",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -682,43 +763,55 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
           borderRadius: "var(--radius-md)",
           width: "100%",
           maxWidth: `${size}px`,
-          minHeight: "44px",
+          minHeight: "46px",
           transition: "all 0.2s ease",
         }}
       >
         {activeHouseData && activeBhavaMeta ? (
-          <>
-            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", gap: "var(--space-3)", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", whiteSpace: "nowrap" }}>
               <span style={{ color: "var(--gold-bright)", fontWeight: 700, fontFamily: "var(--font-serif)" }}>
                 {activeBhavaMeta.title}
               </span>
-              <span style={{ color: "var(--text-low)" }}>·</span>
+              <span style={{ color: "var(--border-subtle)" }}>|</span>
               <span style={{ color: "var(--cyan-vivid)", fontWeight: 600 }}>
                 {activeBhavaMeta.sanskrit}
               </span>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", fontSize: "var(--type-micro)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", fontSize: "var(--type-micro)", whiteSpace: "nowrap" }}>
               <span style={{ color: "var(--text-high)", fontWeight: 600 }}>
                 {activeHouseData.signName} ({activeHouseData.signSanskrit})
               </span>
-              <span style={{ color: "var(--text-low)" }}>·</span>
-              <span style={{ color: "var(--gold-vivid)" }}>Lord: {activeHouseData.lord}</span>
-              <span style={{ color: "var(--text-low)" }}>·</span>
+              <span style={{ color: "var(--border-subtle)" }}>·</span>
+              <span style={{ color: "var(--gold-vivid)", fontWeight: 600 }}>Lord: {activeHouseData.lord}</span>
+              <span style={{ color: "var(--border-subtle)" }}>·</span>
               <span style={{ color: "var(--text-mid)" }}>
                 {activeHouseData.planets.length > 0
                   ? activeHouseData.planets.map((p) => p.name).join(", ")
                   : "No grahas"}
               </span>
             </div>
-          </>
+          </div>
         ) : (
-          <div style={{ color: "var(--text-low)", fontSize: "var(--type-micro)", display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
-            <span>Lagna: <strong style={{ color: "var(--gold-bright)" }}>{chart.ascendant.sign} {chart.ascendant.degree_in_sign.toFixed(1)}°</strong></span>
-            <span>·</span>
-            <span>Moon: <strong style={{ color: "var(--text-high)" }}>{chart.planets.find(p => p.name === "Moon")?.sign || "Moon"}</strong></span>
-            <span>·</span>
-            <span style={{ color: "var(--text-mid)" }}>Hover any house chamber to inspect Vedic Bhava significations</span>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", gap: "var(--space-3)", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", whiteSpace: "nowrap" }}>
+              <span style={{ color: "var(--text-low)", fontSize: "0.82rem" }}>
+                Lagna: <strong style={{ color: "var(--gold-bright)", fontFamily: "var(--font-mono)" }}>{chart.ascendant.sign} {chart.ascendant.degree_in_sign.toFixed(1)}°</strong>
+              </span>
+              <span style={{ color: "var(--border-subtle)" }}>|</span>
+              {(() => {
+                const moon = chart.planets.find(p => p.name === "Moon");
+                return (
+                  <span style={{ color: "var(--text-low)", fontSize: "0.82rem" }}>
+                    Moon: <strong style={{ color: "var(--text-high)", fontFamily: "var(--font-mono)" }}>{moon ? `${moon.sign} ${moon.degree_in_sign.toFixed(1)}°` : "Moon"}</strong>
+                  </span>
+                );
+              })()}
+            </div>
+            <span style={{ color: "var(--text-mid)", fontSize: "0.76rem", whiteSpace: "nowrap" }}>
+              Hover house chamber to inspect Bhava
+            </span>
           </div>
         )}
       </div>

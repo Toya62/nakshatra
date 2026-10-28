@@ -497,6 +497,71 @@ BUILTIN_PLACES: list[dict[str, Any]] = [
         "lon": 100.5018,
         "tz": "Asia/Bangkok",
     },
+    # Myanmar (Burma)
+    {
+        "name": "Yangon (Rangoon), Myanmar",
+        "city": "Yangon",
+        "country": "Myanmar",
+        "lat": 16.8661,
+        "lon": 96.1951,
+        "tz": "Asia/Yangon",
+    },
+    {
+        "name": "Mandalay, Myanmar",
+        "city": "Mandalay",
+        "country": "Myanmar",
+        "lat": 21.9588,
+        "lon": 96.0891,
+        "tz": "Asia/Yangon",
+    },
+    {
+        "name": "Naypyidaw, Myanmar",
+        "city": "Naypyidaw",
+        "country": "Myanmar",
+        "lat": 19.7633,
+        "lon": 96.0785,
+        "tz": "Asia/Yangon",
+    },
+    {
+        "name": "Bagan, Mandalay Region, Myanmar",
+        "city": "Bagan",
+        "country": "Myanmar",
+        "lat": 21.1717,
+        "lon": 94.8585,
+        "tz": "Asia/Yangon",
+    },
+    {
+        "name": "Taunggyi, Shan State, Myanmar",
+        "city": "Taunggyi",
+        "country": "Myanmar",
+        "lat": 20.7833,
+        "lon": 97.0333,
+        "tz": "Asia/Yangon",
+    },
+    {
+        "name": "Bago, Bago Region, Myanmar",
+        "city": "Bago",
+        "country": "Myanmar",
+        "lat": 17.3221,
+        "lon": 96.4660,
+        "tz": "Asia/Yangon",
+    },
+    {
+        "name": "Mawlamyine, Mon State, Myanmar",
+        "city": "Mawlamyine",
+        "country": "Myanmar",
+        "lat": 16.4905,
+        "lon": 97.6283,
+        "tz": "Asia/Yangon",
+    },
+    {
+        "name": "Myanmar (Burma)",
+        "city": "Yangon",
+        "country": "Myanmar",
+        "lat": 16.8661,
+        "lon": 96.1951,
+        "tz": "Asia/Yangon",
+    },
     {
         "name": "Sydney, New South Wales, Australia",
         "city": "Sydney",
@@ -605,6 +670,9 @@ def _estimate_timezone_from_coords(lat: float, lon: float) -> str:
         if 26.3 <= lat <= 30.5 and 80.0 <= lon <= 88.2:
             return "Asia/Kathmandu"
         return "Asia/Kolkata"
+    # Myanmar territory (approx 9.5N - 28.5N, 92.2E - 101.2E)
+    if 9.5 <= lat <= 28.5 and 92.2 <= lon <= 101.2:
+        return "Asia/Yangon"
     if 8.0 <= lat <= 37.0 and 68.0 <= lon <= 97.0:
         return "Asia/Kolkata"
     if 47.0 <= lat <= 55.0 and 5.0 <= lon <= 15.0:

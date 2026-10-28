@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { BirthDataInput, PlaceResult, TimezoneOffsetInfo } from "@/lib/types";
 import { searchPlaces, fetchTimezoneOffset } from "@/lib/api";
-import { MapPin, Calendar, Clock, Settings, Sparkles, Check, Globe } from "lucide-react";
+import { MapPin, Calendar, Clock, Settings, Sparkles, Check, Globe, Compass, Sliders } from "lucide-react";
 
 interface Props {
   initialData?: BirthDataInput;
@@ -14,11 +14,32 @@ interface Props {
 const PRESETS = [
   { name: "Palpa, Nepal", lat: 27.8667, lon: 83.4833, tz: "Asia/Kathmandu" },
   { name: "Kathmandu, Nepal", lat: 27.7172, lon: 85.3240, tz: "Asia/Kathmandu" },
+  { name: "Yangon, Myanmar", lat: 16.8661, lon: 96.1951, tz: "Asia/Yangon" },
   { name: "Varanasi, India", lat: 25.3176, lon: 82.9739, tz: "Asia/Kolkata" },
   { name: "New Delhi, India", lat: 28.6139, lon: 77.2090, tz: "Asia/Kolkata" },
-  { name: "Berlin, Germany", lat: 52.5200, lon: 13.4050, tz: "Europe/Berlin" },
   { name: "London, UK", lat: 51.5074, lon: -0.1278, tz: "Europe/London" },
   { name: "New York, USA", lat: 40.7128, lon: -74.0060, tz: "America/New_York" },
+];
+
+const COMMON_TIMEZONES = [
+  { value: "Asia/Yangon", label: "Asia/Yangon (UTC +06:30) • Myanmar / Burma" },
+  { value: "Asia/Kathmandu", label: "Asia/Kathmandu (UTC +05:45) • Nepal" },
+  { value: "Asia/Kolkata", label: "Asia/Kolkata (UTC +05:30) • India, Sri Lanka" },
+  { value: "Asia/Dhaka", label: "Asia/Dhaka (UTC +06:00) • Bangladesh" },
+  { value: "Asia/Bangkok", label: "Asia/Bangkok (UTC +07:00) • Thailand, Vietnam, Cambodia" },
+  { value: "Asia/Singapore", label: "Asia/Singapore (UTC +08:00) • Singapore, Malaysia" },
+  { value: "Asia/Hong_Kong", label: "Asia/Hong_Kong (UTC +08:00) • Hong Kong" },
+  { value: "Asia/Tokyo", label: "Asia/Tokyo (UTC +09:00) • Japan" },
+  { value: "Asia/Dubai", label: "Asia/Dubai (UTC +04:00) • UAE, Gulf" },
+  { value: "Europe/London", label: "Europe/London (UTC +00:00) • UK" },
+  { value: "Europe/Paris", label: "Europe/Paris (UTC +01:00) • France, Germany" },
+  { value: "Europe/Berlin", label: "Europe/Berlin (UTC +01:00) • Central Europe" },
+  { value: "America/New_York", label: "America/New_York (UTC -05:00) • US Eastern" },
+  { value: "America/Chicago", label: "America/Chicago (UTC -06:00) • US Central" },
+  { value: "America/Denver", label: "America/Denver (UTC -07:00) • US Mountain" },
+  { value: "America/Los_Angeles", label: "America/Los_Angeles (UTC -08:00) • US Pacific" },
+  { value: "Australia/Sydney", label: "Australia/Sydney (UTC +10:00) • Australia" },
+  { value: "UTC", label: "UTC (UTC +00:00) • Universal Time" },
 ];
 
 export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) => {
@@ -41,6 +62,7 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
   const [query, setQuery] = useState(place);
   const [suggestions, setSuggestions] = useState<PlaceResult[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showManualCoords, setShowManualCoords] = useState(false);
   const [tzInfo, setTzInfo] = useState<TimezoneOffsetInfo | null>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -168,7 +190,7 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "var(--space-4)" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "var(--space-4)" }}>
         {/* Date */}
         <div>
           <label style={{ fontSize: "var(--type-label)", color: "var(--text-mid)", display: "flex", alignItems: "center", gap: "var(--space-1)", marginBottom: "var(--space-1)" }}>
@@ -259,7 +281,7 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
               onFocus={() => {
                 if (suggestions.length > 0) setShowSuggestions(true);
               }}
-              placeholder="Type city or spiritual center..."
+              placeholder="Type city (e.g. Yangon, Kathmandu, London)..."
               aria-label="Place of birth search"
               style={{ width: "100%", paddingRight: "32px" }}
             />
@@ -277,7 +299,7 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
                 right: 0,
                 marginTop: "4px",
                 zIndex: 50,
-                maxHeight: "220px",
+                maxHeight: "240px",
                 overflowY: "auto",
                 background: "var(--bg-elevated, var(--bg-card))",
                 border: "1px solid var(--gold-border)",
@@ -303,11 +325,13 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
                   onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                 >
                   <div>
-                    <div style={{ fontWeight: 500, color: "var(--text-high)" }}>
+                    <div style={{ fontWeight: 600, color: "var(--text-high)" }}>
                       {p.city}, <span style={{ color: "var(--text-mid)" }}>{p.country}</span>
                     </div>
-                    <div style={{ fontSize: "var(--type-micro)", color: "var(--gold-vivid)" }}>
-                      {p.latitude.toFixed(2)}°, {p.longitude.toFixed(2)}° • {p.timezone}
+                    <div style={{ fontSize: "var(--type-micro)", color: "var(--gold-vivid)", display: "flex", gap: "var(--space-2)", marginTop: "2px" }}>
+                      <span>{p.latitude >= 0 ? `${p.latitude.toFixed(2)}°N` : `${Math.abs(p.latitude).toFixed(2)}°S`}, {p.longitude >= 0 ? `${p.longitude.toFixed(2)}°E` : `${Math.abs(p.longitude).toFixed(2)}°W`}</span>
+                      <span>•</span>
+                      <span>{p.timezone}</span>
                     </div>
                   </div>
                   {place === p.name && <Check size={14} color="var(--gold-vivid)" />}
@@ -316,49 +340,150 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
             </div>
           )}
         </div>
+      </div>
 
-        {/* Lat / Long & Resolved Timezone */}
-        <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-1)" }}>
-            <label style={{ fontSize: "var(--type-label)", color: "var(--text-mid)" }}>
-              Coordinates & Epoch
-            </label>
-            {tzInfo && (
-              <span className={`badge ${tzInfo.is_dst ? "badge-amber" : "badge-cyan"}`}>
-                UTC {tzInfo.utc_offset_str} • {tzInfo.tz_abbreviation} {tzInfo.is_dst ? "(DST)" : ""}
-              </span>
-            )}
+      {/* Resolved Location & Timezone Summary Bar */}
+      <div
+        style={{
+          marginTop: "var(--space-3)",
+          padding: "var(--space-2-5) var(--space-3)",
+          background: "var(--bg-subtle)",
+          border: "1px solid var(--border-subtle)",
+          borderRadius: "var(--radius-md)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: "var(--space-2)",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <Compass size={14} color="var(--gold-vivid)" aria-hidden="true" />
+            <span style={{ fontSize: "0.86rem", fontWeight: 600, color: "var(--text-high)" }}>
+              {place || "Custom Location"}
+            </span>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1.2fr", gap: "var(--space-1)" }}>
+          <span style={{ color: "var(--border-subtle)" }}>•</span>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.82rem", color: "var(--text-mid)" }}>
+            {lat >= 0 ? `${lat.toFixed(4)}°N` : `${Math.abs(lat).toFixed(4)}°S`},{" "}
+            {lon >= 0 ? `${lon.toFixed(4)}°E` : `${Math.abs(lon).toFixed(4)}°W`}
+          </span>
+          <span style={{ color: "var(--border-subtle)" }}>•</span>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.82rem", color: "var(--gold-bright)", fontWeight: 600 }}>
+            {tz}
+          </span>
+          {tzInfo && (
+            <span className={`badge ${tzInfo.is_dst ? "badge-amber" : "badge-cyan"}`} style={{ fontSize: "0.74rem" }}>
+              UTC {tzInfo.utc_offset_str} • {tzInfo.tz_abbreviation} {tzInfo.is_dst ? "(DST)" : ""}
+            </span>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setShowManualCoords(!showManualCoords)}
+          className="btn-ghost"
+          style={{
+            fontSize: "0.78rem",
+            padding: "4px 8px",
+            color: "var(--gold-vivid)",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "4px",
+            cursor: "pointer",
+          }}
+          aria-expanded={showManualCoords}
+        >
+          <Sliders size={12} aria-hidden="true" />
+          {showManualCoords ? "Hide Coordinates & Timezone" : "Edit Coordinates / Timezone"}
+        </button>
+      </div>
+
+      {/* Manual Coordinates & Timezone Drawer */}
+      {showManualCoords && (
+        <div
+          style={{
+            marginTop: "var(--space-2)",
+            padding: "var(--space-3) var(--space-4)",
+            background: "var(--bg-card)",
+            border: "1px dashed var(--gold-border)",
+            borderRadius: "var(--radius-md)",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
+            gap: "var(--space-3)",
+            alignItems: "flex-end",
+          }}
+        >
+          <div>
+            <label style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", display: "block", marginBottom: "4px", fontWeight: 600 }}>
+              Latitude (Decimal °)
+            </label>
             <input
               type="number"
               step="any"
               value={lat}
               onChange={(e) => setLat(Number(e.target.value))}
-              placeholder="Lat"
-              aria-label="Latitude coordinate"
+              placeholder="e.g. 16.8661"
               required
+              style={{ width: "100%" }}
             />
+          </div>
+
+          <div>
+            <label style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", display: "block", marginBottom: "4px", fontWeight: 600 }}>
+              Longitude (Decimal °)
+            </label>
             <input
               type="number"
               step="any"
               value={lon}
               onChange={(e) => setLon(Number(e.target.value))}
-              placeholder="Lon"
-              aria-label="Longitude coordinate"
+              placeholder="e.g. 96.1951"
               required
+              style={{ width: "100%" }}
             />
+          </div>
+
+          <div>
+            <label style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", display: "block", marginBottom: "4px", fontWeight: 600 }}>
+              Timezone (Standard Preset)
+            </label>
+            <select
+              value={COMMON_TIMEZONES.some(t => t.value === tz) ? tz : "custom"}
+              onChange={(e) => {
+                if (e.target.value !== "custom") {
+                  setTz(e.target.value);
+                }
+              }}
+              style={{ width: "100%" }}
+            >
+              {COMMON_TIMEZONES.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
+              ))}
+              {!COMMON_TIMEZONES.some(t => t.value === tz) && (
+                <option value="custom">Custom: {tz}</option>
+              )}
+            </select>
+          </div>
+
+          <div>
+            <label style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", display: "block", marginBottom: "4px", fontWeight: 600 }}>
+              Custom IANA Timezone String
+            </label>
             <input
               type="text"
               value={tz}
               onChange={(e) => setTz(e.target.value)}
-              placeholder="IANA Timezone"
-              aria-label="IANA Timezone"
+              placeholder="e.g. Asia/Yangon"
               required
+              style={{ width: "100%", fontFamily: "var(--font-mono)" }}
             />
           </div>
         </div>
-      </div>
+      )}
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "var(--space-4)", paddingTop: "var(--space-4)", borderTop: "1px solid var(--border-subtle)", flexWrap: "wrap", gap: "var(--space-3)" }}>
         <div style={{ display: "flex", gap: "var(--space-3)", alignItems: "center", flexWrap: "wrap" }}>
