@@ -22,8 +22,6 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any
 from zoneinfo import ZoneInfo
 
-logger = logging.getLogger(__name__)
-
 import mayaastrolib.vedic.ashtakavarga as vav
 import mayaastrolib.vedic.ayanamsa as vaya
 import mayaastrolib.vedic.dasha as vdasha
@@ -40,6 +38,8 @@ from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
     from nakshatra.transits import TransitReport
+
+logger = logging.getLogger(__name__)
 
 
 class Ayanamsa(str, Enum):

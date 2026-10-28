@@ -5,12 +5,10 @@ Centralized configuration for defaults, paths, and feature flags.
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
-from typing import Optional
 
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class NakshatraSettings(BaseSettings):
@@ -20,7 +18,7 @@ class NakshatraSettings(BaseSettings):
     default_lat: float = Field(default=0.0, description="Default latitude")
     default_lon: float = Field(default=0.0, description="Default longitude")
     default_timezone: str = Field(default="UTC", description="Default IANA timezone")
-    default_place_name: Optional[str] = Field(default=None, description="Default place name")
+    default_place_name: str | None = Field(default=None, description="Default place name")
     default_ayanamsa: str = Field(default="jhora_lahiri", description="Default ayanamsa")
     default_house_system: str = Field(default="WholeSign", description="Default house system")
 

@@ -13,10 +13,11 @@ import logging
 import urllib.parse
 import urllib.request
 from datetime import datetime
-from typing import Any
 from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, Field
+
+from nakshatra.data.builtin_places import BUILTIN_PLACES
 
 logger = logging.getLogger(__name__)
 
@@ -58,11 +59,6 @@ class TimezoneOffsetInfo(BaseModel):
     )
 
 
-# Curated offline database loaded from data file
-try:
-    from nakshatra.data.builtin_places import BUILTIN_PLACES
-except ImportError:
-    BUILTIN_PLACES: list[dict[str, Any]] = []
 
 def search_places(query: str, limit: int = 8) -> list[PlaceResult]:
     """
