@@ -19,19 +19,7 @@ export const Navbar: React.FC<Props> = ({
   apiStatus,
   mobileMenuOpen,
   onToggleMobile,
-  onToggleSlim,
-  sidebarSlim = false,
 }) => {
-  const handleToggle = () => {
-    if (typeof window !== "undefined" && window.innerWidth <= 768) {
-      onToggleMobile();
-    } else if (onToggleSlim) {
-      onToggleSlim();
-    } else {
-      onToggleMobile();
-    }
-  };
-
   return (
     <header
       className="app-header"
@@ -50,17 +38,17 @@ export const Navbar: React.FC<Props> = ({
         gap: "var(--space-3)",
       }}
     >
-      {/* Left — 3 lines sidebar toggle + wordmark */}
+      {/* Left — Brand & Logo (preceded by hamburger toggle on mobile only) */}
       <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
-        {/* 3 lines toggle button — collapses/opens sidebar on desktop, toggles drawer on mobile */}
+        {/* Mobile drawer toggle — hidden on desktop (>768px), visible on mobile */}
         <button
           type="button"
-          onClick={handleToggle}
-          aria-label={mobileMenuOpen ? "Close navigation" : sidebarSlim ? "Expand sidebar" : "Collapse sidebar"}
-          aria-expanded={mobileMenuOpen || !sidebarSlim}
+          onClick={onToggleMobile}
+          aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+          aria-expanded={mobileMenuOpen}
           aria-controls="app-sidebar"
-          title={mobileMenuOpen ? "Close navigation" : sidebarSlim ? "Expand sidebar" : "Collapse sidebar"}
-          className="btn-icon hamburger-btn"
+          title={mobileMenuOpen ? "Close navigation" : "Open navigation"}
+          className="btn-icon hamburger-btn mobile-only"
           style={{
             background: "var(--bg-subtle)",
             border: "1px solid var(--border-subtle)",
@@ -69,7 +57,6 @@ export const Navbar: React.FC<Props> = ({
             width: "36px",
             height: "36px",
             borderRadius: "var(--radius-md)",
-            display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
             transition: "all 0.18s ease",

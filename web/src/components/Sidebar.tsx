@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Menu,
+  X,
 } from "lucide-react";
 import {
   KundaliIcon,
@@ -89,6 +90,109 @@ export const Sidebar: React.FC<Props> = ({
           width: slim ? "var(--sidebar-w-slim)" : "var(--sidebar-w)",
         }}
       >
+        {/* Desktop Sidebar Rail Header: collapse / expand toggle */}
+        <div
+          className="mobile-hide"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: slim ? "center" : "space-between",
+            padding: slim ? "10px 0" : "10px 14px",
+            borderBottom: "1px solid var(--border-subtle)",
+            minHeight: "44px",
+            flexShrink: 0,
+          }}
+        >
+          {!slim && (
+            <span
+              style={{
+                fontSize: "10.5px",
+                fontWeight: 700,
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+                color: "var(--text-low)",
+                fontFamily: "var(--font-sans)",
+                userSelect: "none",
+              }}
+            >
+              Navigation
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={onToggleSlim}
+            aria-label={slim ? "Expand sidebar" : "Collapse sidebar"}
+            title={slim ? "Expand sidebar" : "Collapse sidebar"}
+            className="btn-icon"
+            style={{
+              background: "var(--bg-subtle)",
+              border: "1px solid var(--border-subtle)",
+              color: "var(--text-mid)",
+              cursor: "pointer",
+              width: "28px",
+              height: "28px",
+              borderRadius: "var(--radius-sm)",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "all 0.18s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = "var(--gold-border)";
+              e.currentTarget.style.color = "var(--gold-vivid)";
+              e.currentTarget.style.background = "var(--bg-input)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "var(--border-subtle)";
+              e.currentTarget.style.color = "var(--text-mid)";
+              e.currentTarget.style.background = "var(--bg-subtle)";
+            }}
+          >
+            {slim ? <ChevronRight size={15} aria-hidden="true" /> : <ChevronLeft size={15} aria-hidden="true" />}
+          </button>
+        </div>
+
+        {/* Mobile drawer header with Close [X] */}
+        <div
+          className="mobile-only"
+          style={{
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "12px 14px",
+            borderBottom: "1px solid var(--border-subtle)",
+            minHeight: "44px",
+            flexShrink: 0,
+          }}
+        >
+          <span
+            className="serif-display gold-gradient-text"
+            style={{ fontSize: "0.95rem", fontWeight: 700, letterSpacing: "0.08em" }}
+          >
+            NAKSHATRA
+          </span>
+          <button
+            type="button"
+            onClick={onCloseMobile}
+            aria-label="Close navigation drawer"
+            title="Close drawer"
+            className="btn-icon"
+            style={{
+              width: "28px",
+              height: "28px",
+              background: "var(--bg-subtle)",
+              border: "1px solid var(--border-subtle)",
+              color: "var(--text-high)",
+              borderRadius: "var(--radius-sm)",
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <X size={15} aria-hidden="true" />
+          </button>
+        </div>
+
         {/* Nav items */}
         <nav
           role="tablist"
@@ -209,35 +313,6 @@ export const Sidebar: React.FC<Props> = ({
             );
           })()}
         </nav>
-
-        {/* Collapse toggle — desktop only */}
-        <button
-          onClick={onToggleSlim}
-          aria-label={slim ? "Expand sidebar" : "Collapse sidebar"}
-          title={slim ? "Expand sidebar" : "Collapse sidebar"}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "100%",
-            padding: "12px 0",
-            borderTop: "1px solid var(--border-subtle)",
-            background: "transparent",
-            border: "none",
-            borderTopStyle: "solid",
-            borderTopWidth: "1px",
-            borderTopColor: "var(--border-subtle)",
-            color: "var(--text-low)",
-            cursor: "pointer",
-            transition: "color 0.18s ease",
-            flexShrink: 0,
-          }}
-          className="mobile-hide"
-          onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-mid)")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-low)")}
-        >
-          {slim ? <ChevronRight size={16} aria-hidden="true" /> : <ChevronLeft size={16} aria-hidden="true" />}
-        </button>
       </aside>
     </>
   );

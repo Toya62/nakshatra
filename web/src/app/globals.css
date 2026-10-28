@@ -910,11 +910,28 @@ button:focus-visible {
   margin: 1rem 0;
 }
 
-/* ─── Hamburger navigation button (visible on all breakpoints) ──────────── */
+/* ─── Mobile / Desktop display utilities ─────────────────────────────────── */
+.mobile-only {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: inline-flex !important;
+  }
+}
+
+/* ─── Hamburger navigation button (mobile only) ─────────────────────────── */
 .hamburger-btn {
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .hamburger-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 /* ─── Mobile utilities ───────────────────────────────────────────────────── */
