@@ -47,10 +47,10 @@ Modern, high-performance web interface for the **Nakshatra Vedic Astrology AI En
    - Marriage compatibility with Kuja Dosha (Manglik) detection (`CompatibilityView.tsx`).
    - Auspicious timing engine with Horas, Choghadiya, Abhijit Muhurtha, and Rahu Kalam (`MuhurthaView.tsx`).
 
-8. **Graded Cosmic Obsidian Glassmorphism Design System**:
-   - Deep cosmic obsidian canvas (`#080b14`) with top-horizon sapphire/indigo ambient glow.
-   - Multi-layer specular glass cards (`border-top: 1px solid rgba(255,255,255,0.12)`, `inset 0 1px 0 rgba(255,255,255,0.08)`, 20px blur saturation).
-   - Refined champagne gold duotone gradients (`#dfb15b` to `#ba892b`).
+8. **Dual-Theme Cosmic Glassmorphism & Responsive Layout**:
+   - **Light & Dark Mode**: Persistent theme toggle supporting system preference, Dark Mode (cosmic obsidian canvas `#080b14` with champagne gold specular rims), and Light Mode (warm alabaster cream canvas `#f8f6f0`, cedar charcoal `#1c1917` / `#44403c` with WCAG AA/AAA contrast, and rich amber-gold borders).
+   - **Collapsible Responsive Sidebar**: Header 3-lines hamburger button toggling slim 56px icon mode on desktop (`>768px`) and slide-out navigation drawer on mobile viewports.
+   - Multi-layer specular glass cards (`backdrop-filter: blur(20px)`), refined duotone gradients, and tokenized typography.
 
 9. **Trust & Privacy First**:
    - Ephemeral zero-log privacy policy banner.

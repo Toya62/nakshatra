@@ -7,18 +7,37 @@ via mayaastrolib and pyswisseph.
 Features:
 - Sidereal birth charts with Lahiri, JHora Lahiri, Raman, KP, and Fagan-Bradley ayanamsas
 - Vimshottari Dashas with exact MD, AD, and PD timestamps down to the second
+- 120-year visual life timeline and real-time age marker
 - Shodashavarga (D1 through D60 divisional charts)
-- Complete Ashtakavarga (Sarvashtakavarga and Bhinnashtakavarga)
+- Complete Ashtakavarga (canonical 337 Sarvashtakavarga and Bhinnashtakavarga)
 - Shadbala planetary strength calculations (rupas and virupas)
 - Upagrahas (shadow planets: Dhuma, Vyatipata, Parivesha, Indrachapa, Upaketu)
 - Gochar transits with Sade Sati, Jupiter Gochar, and Double Transit analysis
-- Multi-format outputs: ASCII tables, South Indian diagram, Markdown, CSV, JSON
+- 30-day transit window scanner for ingresses, stations, and Chandrashtama periods
+- Panchanga engine with 5 limbs of Vedic time and solar day tracking
+- Classical Yogas (Parivartana, Neechabhanga, Raja, Dhana, Mahapurusha)
+- Dual-system remedies: Classical Parashari (Mantra, Gem, Dana) and Lal Kitab Upayas
+- 36-point Ashtakoota Kundali matching and Kuja Dosha (Manglik) analysis
+- Muhurtha timing elections (Choghadiya, Planetary Horas, Abhijit, Rahu Kalam)
+- Deterministic hierarchical life domain predictions (Career, Finance, Marriage, Health, Spirituality)
+- Scripture-grounded RAG with 3-pillar explainable reason inspector (Pramana, Yukti, Dharma)
+- Nepali Bikram Sambat (BS) calendar and Sanskrit Devanagari nomenclature
+- Multi-format outputs: North/South Indian diagrams, ASCII tables, Markdown, CSV, JSON
 """
 
+import nakshatra.compatibility as compatibility
 import nakshatra.formatters as formatters
+import nakshatra.muhurtha as muhurtha
 import nakshatra.panchanga as panchanga
+import nakshatra.predictor as predictor
+import nakshatra.remedies as remedies
 import nakshatra.transits as transits
 import nakshatra.yogas as yogas
+from nakshatra.compatibility import (
+    CompatibilityReport,
+    KujaDoshaReport,
+    calculate_compatibility,
+)
 from nakshatra.core import (
     AshtakavargaData,
     Aspect,
@@ -41,6 +60,10 @@ from nakshatra.formatters import (
     format_markdown,
     format_table,
 )
+from nakshatra.muhurtha import (
+    MuhurthaReport,
+    calculate_muhurtha,
+)
 from nakshatra.panchanga import (
     KaranaData,
     NakshatraData,
@@ -49,6 +72,19 @@ from nakshatra.panchanga import (
     VaraData,
     YogaData,
     calculate_panchanga,
+)
+from nakshatra.predictor import (
+    DomainPrediction,
+    PromiseTier,
+    evaluate_all_domains,
+    evaluate_domain,
+)
+from nakshatra.remedies import (
+    LalKitabUpaya,
+    ParashariRemedy,
+    PlanetRemedy,
+    RemediesReport,
+    calculate_remedies,
 )
 from nakshatra.transits import (
     SadeSatiInfo,
@@ -66,7 +102,7 @@ from nakshatra.yogas import (
 
 __version__ = "0.1.0"
 __author__ = "Toya"
-__license__ = "MIT"
+__license__ = "AGPL-3.0"
 
 __all__ = [
     "BirthData",
@@ -103,8 +139,26 @@ __all__ = [
     "YogaCategory",
     "format_yogas_table",
     "format_yogas_markdown",
+    "calculate_remedies",
+    "RemediesReport",
+    "PlanetRemedy",
+    "ParashariRemedy",
+    "LalKitabUpaya",
+    "calculate_compatibility",
+    "CompatibilityReport",
+    "KujaDoshaReport",
+    "calculate_muhurtha",
+    "MuhurthaReport",
+    "evaluate_domain",
+    "evaluate_all_domains",
+    "DomainPrediction",
+    "PromiseTier",
     "formatters",
     "transits",
     "panchanga",
     "yogas",
+    "remedies",
+    "compatibility",
+    "muhurtha",
+    "predictor",
 ]

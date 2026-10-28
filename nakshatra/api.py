@@ -1,8 +1,11 @@
 """
 Nakshatra - Vedic Astrology AI Engine
-FastAPI application exposing chart calculation, Vimshottari Dashas, Shodashavarga,
-Ashtakavarga, Shadbala, Gochar transits, and RAG corpus consultation as JSON
-or formatted text.
+FastAPI application exposing high-precision Swiss Ephemeris chart calculation,
+120-year Vimshottari Dashas, Shodashavarga (D1-D60), Ashtakavarga (337 SAV),
+Shadbala, Gochar transits, 30-day transit scanner, Classical Parashari Yogas,
+Dual-System Remedies (Parashari & Lal Kitab), 36-point Ashtakoota compatibility,
+Muhurtha election timings, 5-limb Panchanga, Bikram Sambat conversion,
+Sanskrit Devanagari nomenclature, and RAG corpus consultation as JSON or formatted text.
 """
 
 from __future__ import annotations

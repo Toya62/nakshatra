@@ -117,6 +117,10 @@ license: agpl-3.0
     - `detect_vedic_yogas`
     - `consult_scripture_rag`
 - **Multi-Format Outputs**: High-legibility North Indian diamond chart, ASCII tables, Markdown, CSV, and JSON.
+- **Dual-Theme Design System & Responsive Navigation**:
+  - Full Light Mode and Dark Mode support with seamless toggle, system detection, and localStorage persistence.
+  - Light mode calibrated for high-contrast WCAG AA/AAA legibility across all 8 feature tabs.
+  - Responsive collapsible sidebar with desktop 56px slim icon mode and mobile slide-out navigation drawer.
 - **REST API**: FastAPI server with interactive Swagger UI at `/docs` and OpenAPI 3.0 spec.
 
 ---
@@ -212,7 +216,8 @@ Add to `claude_desktop_config.json`:
 │                                                                             │
 │  [FRONTEND APPS]                                                            │
 │  ├─ Next.js 16.4 Web App (North Indian Kundali, 120-Yr Timeline, Remedies) │
-│  ├─ Graded Cosmic Glassmorphism UI (Obsidian Slate #080b14, Specular Rims)  │
+│  ├─ Dual-Theme UI (Cosmic Obsidian Slate #080b14 / Warm Alabaster Cream)   │
+│  ├─ Responsive Collapsible Sidebar (Desktop Slim 56px / Mobile Drawer)      │
 │  └─ Hugging Face Space Gradio 6.30 (ZeroGPU keepalive)                      │
 │                                                                             │
 │  [API & PROTOCOLS]                                                          │
@@ -266,7 +271,8 @@ Add to `claude_desktop_config.json`:
 - [x] **Panchanga Engine**: Exact 5 limbs (Tithi, Vara, Nakshatra, Yoga, Karana) with solar day tracking.
 - [x] **OCR-Purged Corpus RAG**: Purged legacy font noise and preserved verse range chapter mapping.
 - [x] **Modern Allegorical Translation**: Ethical, non-fatalistic psychological framing.
-- [x] **Interactive Frontend**: Next.js 16.4 production application with graded cosmic obsidian UI.
+- [x] **Interactive Frontend**: Next.js 16.4 production application with dual-theme cosmic UI.
+- [x] **Dual-Theme & Responsive Navigation**: Light/Dark mode with WCAG AA/AAA tokens and collapsible sidebar.
 - [x] **Offline Geocoding & Historical Timezone Resolver**: 100+ global centers with DST resolution.
 - [x] **Explainable Astrological Reason Inspector**: Direct shloka citations (Pramana) and natal grounding (Yukti).
 - [x] **120-Year Life Timeline UI**: Proportional Vimshottari ribbon bar and Sade Sati overlays.
