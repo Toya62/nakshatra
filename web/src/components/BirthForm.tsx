@@ -43,15 +43,16 @@ const COMMON_TIMEZONES = [
 ];
 
 export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) => {
-  const [year, setYear] = useState(initialData?.year || 1997);
-  const [month, setMonth] = useState(initialData?.month || 5);
-  const [day, setDay] = useState(initialData?.day || 22);
-  const [hour, setHour] = useState(initialData?.hour || 4);
-  const [minute, setMinute] = useState(initialData?.minute || 53);
-  const [second, setSecond] = useState(initialData?.second || 0);
+  // Store values as editable strings so users can clear inputs without getting trapped on "0"
+  const [year, setYear] = useState(String(initialData?.year ?? 1997));
+  const [month, setMonth] = useState(String(initialData?.month ?? 5));
+  const [day, setDay] = useState(String(initialData?.day ?? 22));
+  const [hour, setHour] = useState(String(initialData?.hour ?? 4));
+  const [minute, setMinute] = useState(String(initialData?.minute ?? 53));
+  const [second, setSecond] = useState(String(initialData?.second ?? 0));
 
-  const [lat, setLat] = useState(initialData?.latitude || 27.8667);
-  const [lon, setLon] = useState(initialData?.longitude || 83.4833);
+  const [lat, setLat] = useState(String(initialData?.latitude ?? 27.8667));
+  const [lon, setLon] = useState(String(initialData?.longitude ?? 83.4833));
   const [tz, setTz] = useState(initialData?.timezone || "Asia/Kathmandu");
   const [place, setPlace] = useState(initialData?.place_name || "Palpa, Nepal");
 
@@ -70,14 +71,14 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
   // Sync internal state when initialData prop changes
   useEffect(() => {
     if (!initialData) return;
-    setYear(initialData.year);
-    setMonth(initialData.month);
-    setDay(initialData.day);
-    setHour(initialData.hour);
-    setMinute(initialData.minute);
-    setSecond(initialData.second ?? 0);
-    setLat(initialData.latitude);
-    setLon(initialData.longitude);
+    setYear(String(initialData.year));
+    setMonth(String(initialData.month));
+    setDay(String(initialData.day));
+    setHour(String(initialData.hour));
+    setMinute(String(initialData.minute));
+    setSecond(String(initialData.second ?? 0));
+    setLat(String(initialData.latitude));
+    setLon(String(initialData.longitude));
     setTz(initialData.timezone);
     setPlace(initialData.place_name || "");
     setQuery(initialData.place_name || "");
@@ -88,15 +89,116 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
   // Auto-resolve timezone offset whenever date or timezone changes
   useEffect(() => {
     let active = true;
-    fetchTimezoneOffset(tz, year, month, day, hour, minute)
-      .then((info) => {
-        if (active && info) setTzInfo(info);
-      })
-      .catch(() => {});
+    const y = parseInt(year, 10);
+    const m = parseInt(month, 10);
+    const d = parseInt(day, 10);
+    const h = parseInt(hour, 10);
+    const min = parseInt(minute, 10);
+
+    if (!isNaN(y) && !isNaN(m) && !isNaN(d) && y > 1000 && m >= 1 && m <= 12 && d >= 1 && d <= 31) {
+      fetchTimezoneOffset(tz, y, m, d, isNaN(h) ? 0 : h, isNaN(min) ? 0 : min)
+        .then((info) => {
+          if (active && info) setTzInfo(info);
+        })
+        .catch(() => {});
+    }
     return () => {
       active = false;
     };
   }, [tz, year, month, day, hour, minute]);
+
+  // Handlers for date / time fields allowing free clearing & typing
+  const handleYearChange = (val: string) => {
+    setYear(val.replace(/[^0-9]/g, "").slice(0, 4));
+  };
+  const handleYearBlur = () => {
+    if (!year) {
+      setYear("1997");
+      return;
+    }
+    const y = parseInt(year, 10);
+    if (y < 1000) setYear("1997");
+    else if (y > 2100) setYear("2100");
+  };
+
+  const handleMonthChange = (val: string) => {
+    setMonth(val.replace(/[^0-9]/g, "").slice(0, 2));
+  };
+  const handleMonthBlur = () => {
+    if (!month) {
+      setMonth("1");
+      return;
+    }
+    const m = parseInt(month, 10);
+    if (m < 1) setMonth("1");
+    else if (m > 12) setMonth("12");
+  };
+
+  const handleDayChange = (val: string) => {
+    setDay(val.replace(/[^0-9]/g, "").slice(0, 2));
+  };
+  const handleDayBlur = () => {
+    if (!day) {
+      setDay("1");
+      return;
+    }
+    const d = parseInt(day, 10);
+    if (d < 1) setDay("1");
+    else if (d > 31) setDay("31");
+  };
+
+  const handleHourChange = (val: string) => {
+    setHour(val.replace(/[^0-9]/g, "").slice(0, 2));
+  };
+  const handleHourBlur = () => {
+    if (!hour) {
+      setHour("0");
+      return;
+    }
+    const h = parseInt(hour, 10);
+    if (h < 0) setHour("0");
+    else if (h > 23) setHour("23");
+  };
+
+  const handleMinuteChange = (val: string) => {
+    setMinute(val.replace(/[^0-9]/g, "").slice(0, 2));
+  };
+  const handleMinuteBlur = () => {
+    if (!minute) {
+      setMinute("0");
+      return;
+    }
+    const min = parseInt(minute, 10);
+    if (min < 0) setMinute("0");
+    else if (min > 59) setMinute("59");
+  };
+
+  const handleSecondChange = (val: string) => {
+    setSecond(val.replace(/[^0-9]/g, "").slice(0, 2));
+  };
+  const handleSecondBlur = () => {
+    if (!second) {
+      setSecond("0");
+      return;
+    }
+    const s = parseInt(second, 10);
+    if (s < 0) setSecond("0");
+    else if (s > 59) setSecond("59");
+  };
+
+  const handleLatChange = (val: string) => {
+    if (/^-?[0-9]*\.?[0-9]*$/.test(val)) setLat(val);
+  };
+  const handleLatBlur = () => {
+    if (lat === "" || lat === "-") setLat("0");
+  };
+
+  const handleLonChange = (val: string) => {
+    if (/^-?[0-9]*\.?[0-9]*$/.test(val)) setLon(val);
+  };
+  const handleLonBlur = () => {
+    if (lon === "" || lon === "-") setLon("0");
+  };
 
   // Handle location search debouncing
   const handlePlaceChange = (val: string) => {
@@ -122,15 +224,15 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
   const handleSelectPlace = (p: PlaceResult) => {
     setPlace(p.name);
     setQuery(p.name);
-    setLat(p.latitude);
-    setLon(p.longitude);
+    setLat(String(p.latitude));
+    setLon(String(p.longitude));
     setTz(p.timezone);
     setShowSuggestions(false);
   };
 
   const handlePreset = (p: typeof PRESETS[0]) => {
-    setLat(p.lat);
-    setLon(p.lon);
+    setLat(String(p.lat));
+    setLon(String(p.lon));
     setTz(p.tz);
     setPlace(p.name);
     setQuery(p.name);
@@ -150,15 +252,24 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const y = parseInt(year, 10) || 1997;
+    const m = Math.min(12, Math.max(1, parseInt(month, 10) || 1));
+    const d = Math.min(31, Math.max(1, parseInt(day, 10) || 1));
+    const h = Math.min(23, Math.max(0, parseInt(hour, 10) || 0));
+    const min = Math.min(59, Math.max(0, parseInt(minute, 10) || 0));
+    const s = Math.min(59, Math.max(0, parseInt(second, 10) || 0));
+    const latitude = parseFloat(lat) || 0;
+    const longitude = parseFloat(lon) || 0;
+
     onSubmit({
-      year,
-      month,
-      day,
-      hour,
-      minute,
-      second,
-      latitude: lat,
-      longitude: lon,
+      year: y,
+      month: m,
+      day: d,
+      hour: h,
+      minute: min,
+      second: s,
+      latitude,
+      longitude,
       timezone: tz,
       place_name: place,
       ayanamsa,
@@ -198,31 +309,34 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
           </label>
           <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr", gap: "var(--space-1)" }}>
             <input
-              type="number"
-              min={1900}
-              max={2100}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={year}
-              onChange={(e) => setYear(Number(e.target.value))}
+              onChange={(e) => handleYearChange(e.target.value)}
+              onBlur={handleYearBlur}
               placeholder="YYYY"
               aria-label="Birth year"
               required
             />
             <input
-              type="number"
-              min={1}
-              max={12}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={month}
-              onChange={(e) => setMonth(Number(e.target.value))}
+              onChange={(e) => handleMonthChange(e.target.value)}
+              onBlur={handleMonthBlur}
               placeholder="MM"
               aria-label="Birth month"
               required
             />
             <input
-              type="number"
-              min={1}
-              max={31}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={day}
-              onChange={(e) => setDay(Number(e.target.value))}
+              onChange={(e) => handleDayChange(e.target.value)}
+              onBlur={handleDayBlur}
               placeholder="DD"
               aria-label="Birth day"
               required
@@ -237,31 +351,34 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
           </label>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "var(--space-1)" }}>
             <input
-              type="number"
-              min={0}
-              max={23}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={hour}
-              onChange={(e) => setHour(Number(e.target.value))}
+              onChange={(e) => handleHourChange(e.target.value)}
+              onBlur={handleHourBlur}
               placeholder="HH"
               aria-label="Birth hour"
               required
             />
             <input
-              type="number"
-              min={0}
-              max={59}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={minute}
-              onChange={(e) => setMinute(Number(e.target.value))}
+              onChange={(e) => handleMinuteChange(e.target.value)}
+              onBlur={handleMinuteBlur}
               placeholder="MM"
               aria-label="Birth minute"
               required
             />
             <input
-              type="number"
-              min={0}
-              max={59}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={second}
-              onChange={(e) => setSecond(Number(e.target.value))}
+              onChange={(e) => handleSecondChange(e.target.value)}
+              onBlur={handleSecondBlur}
               placeholder="SS"
               aria-label="Birth second"
             />
@@ -366,8 +483,11 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
           </div>
           <span style={{ color: "var(--border-subtle)" }}>•</span>
           <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.82rem", color: "var(--text-mid)" }}>
-            {lat >= 0 ? `${lat.toFixed(4)}°N` : `${Math.abs(lat).toFixed(4)}°S`},{" "}
-            {lon >= 0 ? `${lon.toFixed(4)}°E` : `${Math.abs(lon).toFixed(4)}°W`}
+            {(() => {
+              const numLat = parseFloat(lat) || 0;
+              const numLon = parseFloat(lon) || 0;
+              return `${numLat >= 0 ? `${numLat.toFixed(4)}°N` : `${Math.abs(numLat).toFixed(4)}°S`}, ${numLon >= 0 ? `${numLon.toFixed(4)}°E` : `${Math.abs(numLon).toFixed(4)}°W`}`;
+            })()}
           </span>
           <span style={{ color: "var(--border-subtle)" }}>•</span>
           <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.82rem", color: "var(--gold-bright)", fontWeight: 600 }}>
@@ -420,10 +540,11 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
               Latitude (Decimal °)
             </label>
             <input
-              type="number"
-              step="any"
+              type="text"
+              inputMode="decimal"
               value={lat}
-              onChange={(e) => setLat(Number(e.target.value))}
+              onChange={(e) => handleLatChange(e.target.value)}
+              onBlur={handleLatBlur}
               placeholder="e.g. 16.8661"
               required
               style={{ width: "100%" }}
@@ -435,10 +556,11 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
               Longitude (Decimal °)
             </label>
             <input
-              type="number"
-              step="any"
+              type="text"
+              inputMode="decimal"
               value={lon}
-              onChange={(e) => setLon(Number(e.target.value))}
+              onChange={(e) => handleLonChange(e.target.value)}
+              onBlur={handleLonBlur}
               placeholder="e.g. 96.1951"
               required
               style={{ width: "100%" }}
