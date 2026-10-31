@@ -225,7 +225,8 @@ export async function askConsultationStream(
   question: string,
   handlers: StreamHandlers,
   birth?: BirthDataInput,
-  topK: number = 4
+  topK: number = 4,
+  signal?: AbortSignal
 ): Promise<void> {
   const baseUrl = getApiBaseUrl();
   const body: Record<string, unknown> = {
@@ -252,6 +253,7 @@ export async function askConsultationStream(
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
+    signal,
   });
 
   if (!res.ok) {
@@ -267,33 +269,44 @@ export async function askConsultationStream(
   const decoder = new TextDecoder();
   let buffer = "";
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
+  try {
+    while (true) {
+      if (signal?.aborted) {
+        await reader.cancel().catch(() => {});
+        break;
+      }
+      const { done, value } = await reader.read();
+      if (done) break;
 
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n\n");
-    buffer = lines.pop() || "";
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n\n");
+      buffer = lines.pop() || "";
 
-    for (const block of lines) {
-      const trimmed = block.trim();
-      if (!trimmed.startsWith("data: ")) continue;
-      const jsonStr = trimmed.slice(6);
-      try {
-        const parsed = JSON.parse(jsonStr);
-        if (parsed.type === "init") {
-          handlers.onInit?.(parsed);
-        } else if (parsed.type === "token") {
-          handlers.onToken?.(parsed.token);
-        } else if (parsed.type === "done") {
-          handlers.onDone?.(parsed);
-        } else if (parsed.type === "error") {
-          handlers.onError?.(parsed.error);
+      for (const block of lines) {
+        const trimmed = block.trim();
+        if (!trimmed.startsWith("data: ")) continue;
+        const jsonStr = trimmed.slice(6);
+        try {
+          const parsed = JSON.parse(jsonStr);
+          if (parsed.type === "init") {
+            handlers.onInit?.(parsed);
+          } else if (parsed.type === "token") {
+            handlers.onToken?.(parsed.token);
+          } else if (parsed.type === "done") {
+            handlers.onDone?.(parsed);
+          } else if (parsed.type === "error") {
+            handlers.onError?.(parsed.error);
+          }
+        } catch {
+          // ignore parse errors on partial frames
         }
-      } catch {
-        // ignore parse errors on partial frames
       }
     }
+  } catch (err: unknown) {
+    if ((err as Error)?.name === "AbortError" || signal?.aborted) {
+      return;
+    }
+    throw err;
   }
 }
 

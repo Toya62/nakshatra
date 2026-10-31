@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { BirthDataInput, RAGAnswer, SearchReference, DomainPrediction, getBirthKey } from "@/lib/types";
 import { askConsultationStream, fetchPredictions } from "@/lib/api";
-import { BookOpen, Send, Sparkles, User, Bot, Quote, HelpCircle, ShieldCheck, X, Compass } from "lucide-react";
+import { BookOpen, Send, Sparkles, User, Bot, Quote, HelpCircle, ShieldCheck, X, Compass, Square, ArrowDown } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -78,8 +78,12 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
   const [inspectingMessage, setInspectingMessage] = useState<Message | null>(null);
   const [activeTab, setActiveTab] = useState<"pramana" | "yukti" | "dharma">("pramana");
 
-  // Auto-scroll ref
+  // Auto-scroll & streaming abort refs
   const threadEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const userScrolledUpRef = useRef(false);
+  const [showScrollBottom, setShowScrollBottom] = useState(false);
 
   // Restore messages from localStorage on client mount or reset if chart changed
   const isHydratedRef = useRef(false);
@@ -133,6 +137,11 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
   }, [messages, currentChartKey]);
 
   const handleClearChat = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setLoading(false);
     setMessages([INITIAL_MESSAGE]);
     setInput("");
     setError(null);
@@ -141,13 +150,46 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
     } catch {}
   };
 
-  const scrollToBottom = () => {
-    threadEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  const handleScroll = () => {
+    const el = chatContainerRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    const isUp = distanceFromBottom > 60;
+    userScrolledUpRef.current = isUp;
+    setShowScrollBottom(isUp);
+  };
+
+  const scrollToBottom = (force = false) => {
+    const el = chatContainerRef.current;
+    if (!el) return;
+    if (force || !userScrolledUpRef.current) {
+      el.scrollTop = el.scrollHeight;
+    }
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, loading]);
+    scrollToBottom(false);
+  }, [messages]);
+
+  const handleStop = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setLoading(false);
+    setMessages((prev) => {
+      const updated = [...prev];
+      const last = updated[updated.length - 1];
+      if (last && last.role === "assistant") {
+        updated[updated.length - 1] = {
+          ...last,
+          isStreaming: false,
+          text: last.text ? last.text + "\n\n*[Consultation response stopped by user]*" : "*[Consultation response stopped by user]*",
+        };
+      }
+      return updated;
+    });
+  };
 
   const handleSend = async (questionText?: string) => {
     const q = (questionText || input).trim();
@@ -156,12 +198,19 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
     setInput("");
     setError(null);
     setLoading(true);
+    userScrolledUpRef.current = false;
+    setShowScrollBottom(false);
 
     setMessages((prev) => [
       ...prev,
       { role: "user", text: q },
       { role: "assistant", text: "", isStreaming: true },
     ]);
+
+    setTimeout(() => scrollToBottom(true), 50);
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
       await askConsultationStream(
@@ -209,19 +258,28 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
               return updated;
             });
             setLoading(false);
+            abortControllerRef.current = null;
           },
           onError: (errMsg) => {
-            setError(errMsg);
+            if (!controller.signal.aborted) {
+              setError(errMsg);
+            }
             setLoading(false);
+            abortControllerRef.current = null;
           },
         },
         includeChart ? birth : undefined,
-        4
+        4,
+        controller.signal
       );
     } catch (e: unknown) {
-      setError((e as Error).message);
+      const err = e as Error;
+      if (err.name !== "AbortError" && !controller.signal.aborted) {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -467,8 +525,11 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
 
       {/* Chat Messages Log */}
       <div
+        ref={chatContainerRef}
+        onScroll={handleScroll}
         className="card"
         style={{
+          position: "relative",
           minHeight: "460px",
           maxHeight: "620px",
           overflowY: "auto",
@@ -666,6 +727,41 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
 
         {/* Anchor for auto-scroll */}
         <div ref={threadEndRef} />
+
+        {/* Floating Scroll to Bottom pill when user scrolled up */}
+        {showScrollBottom && (
+          <button
+            type="button"
+            onClick={() => {
+              userScrolledUpRef.current = false;
+              setShowScrollBottom(false);
+              scrollToBottom(true);
+            }}
+            className="chip"
+            style={{
+              position: "sticky",
+              bottom: "var(--space-2)",
+              alignSelf: "center",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "6px 14px",
+              borderRadius: "9999px",
+              background: "var(--bg-elevated)",
+              border: "1px solid var(--gold-border)",
+              color: "var(--gold-vivid)",
+              boxShadow: "0 4px 14px rgba(0,0,0,0.35)",
+              fontSize: "var(--type-micro)",
+              fontWeight: 600,
+              zIndex: 10,
+              cursor: "pointer",
+            }}
+            aria-label="Scroll to bottom"
+          >
+            <ArrowDown size={13} aria-hidden="true" />
+            <span>Scroll to bottom</span>
+          </button>
+        )}
       </div>
 
       {/* Input Form */}
@@ -685,14 +781,43 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
           disabled={loading}
           aria-label="Astrological consultation question"
         />
-        <button
-          type="submit"
-          disabled={loading || !input.trim()}
-          className="btn-primary"
-          aria-label="Send question"
-        >
-          <Send size={16} aria-hidden="true" />
-        </button>
+        {loading ? (
+          <button
+            type="button"
+            onClick={handleStop}
+            className="btn-danger"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "0 18px",
+              height: "44px",
+              borderRadius: "var(--radius-md)",
+              background: "rgba(239, 68, 68, 0.15)",
+              border: "1px solid rgba(239, 68, 68, 0.4)",
+              color: "var(--rose, #f87171)",
+              cursor: "pointer",
+              fontWeight: 600,
+              fontSize: "var(--type-small)",
+              flexShrink: 0,
+            }}
+            aria-label="Stop generating response"
+            title="Stop generation"
+          >
+            <Square size={13} fill="currentColor" aria-hidden="true" />
+            <span>Stop</span>
+          </button>
+        ) : (
+          <button
+            type="submit"
+            disabled={!input.trim()}
+            className="btn-primary"
+            style={{ height: "44px", padding: "0 18px", flexShrink: 0 }}
+            aria-label="Send question"
+          >
+            <Send size={16} aria-hidden="true" />
+          </button>
+        )}
       </form>
 
       {/* Explainable "Why" Inspection Modal / Bottom Sheet */}
