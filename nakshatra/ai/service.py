@@ -57,13 +57,21 @@ def _default_embedder() -> BaseEmbedder | None:
 
 
 def _default_synthesizer() -> BaseSynthesizer:
-    """LLM synthesizer priority: Gemini -> OpenAI -> Ollama -> Fallback."""
+    """LLM synthesizer priority: Router/OpenAI -> Gemini -> Ollama -> Fallback."""
+    ai_provider = (os.environ.get("AI_PROVIDER") or "").lower()
+    openai_base_url = os.environ.get("OPENAI_BASE_URL")
+    if (openai_base_url or ai_provider in ("openai", "router", "9router")) and _module_available("openai"):
+        model = os.environ.get("OPENAI_MODEL", "ag/gemini-3.8-flash")
+        api_key = os.environ.get("OPENAI_API_KEY")
+        return LLMSynthesizer(provider="openai", model=model, api_key=api_key, base_url=openai_base_url)
+
     google_key = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")
     if google_key and _module_available("google.genai"):
         return LLMSynthesizer(provider="google", model="gemini-3.8-flash", api_key=google_key)
 
     if os.environ.get("OPENAI_API_KEY") and _module_available("openai"):
-        return LLMSynthesizer(provider="openai", model="gpt-4o-mini")
+        model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+        return LLMSynthesizer(provider="openai", model=model)
 
     if (
         os.environ.get("USE_OLLAMA")

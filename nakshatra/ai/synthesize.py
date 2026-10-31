@@ -463,7 +463,7 @@ class LLMSynthesizer(BaseSynthesizer):
                     base_url = f"{base_url.rstrip('/')}/v1"
                 api_key = self._api_key or os.environ.get("OLLAMA_API_KEY") or "ollama"
             else:
-                base_url = self._base_url
+                base_url = self._base_url or os.environ.get("OPENAI_BASE_URL")
                 api_key = self._api_key or os.environ.get("OPENAI_API_KEY")
             self._client = OpenAI(
                 api_key=api_key,
