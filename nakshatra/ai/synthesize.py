@@ -322,6 +322,29 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _compact_birth_context(chart: dict[str, Any]) -> dict[str, Any]:
+    """Prune massive raw subtrees (e.g. 120kb dasha tree, 16 vargas) to prevent prompt overflow."""
+    excluded = {
+        "dashas",
+        "vargas",
+        "aspects",
+        "vedic_aspects",
+        "predictions",
+        "transits",
+        "shadbala",
+        "ashtakavarga",
+        "upagrahas",
+    }
+    compact: dict[str, Any] = {k: v for k, v in chart.items() if k not in excluded}
+    if "dashas" in chart and isinstance(chart["dashas"], dict):
+        compact["current_dasha"] = {
+            "current_md": chart["dashas"].get("current_md"),
+            "current_ad": chart["dashas"].get("current_ad"),
+            "current_pd": chart["dashas"].get("current_pd"),
+        }
+    return compact
+
+
 def build_prompt(
     question: str,
     results: list[SearchResult],
@@ -340,7 +363,8 @@ def build_prompt(
             f"[Lineage: {zodiac.capitalize()} Zodiac | Ayanamsa: {ayanamsa} | "
             f"Houses: {house_sys} | Engine: Swiss Ephemeris]"
         )
-        lines.append(f"Birth chart context: {json.dumps(birth_context)}")
+        compact_ctx = _compact_birth_context(birth_context)
+        lines.append(f"Birth chart context: {json.dumps(compact_ctx)}")
         summary = _format_birth_summary(birth_context)
         if summary:
             lines.append("\n" + summary)
