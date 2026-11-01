@@ -119,7 +119,7 @@ export const Navbar: React.FC<Props> = ({
           title={`Backend API: ${apiStatus}`}
         >
           <Activity size={11} aria-hidden="true" />
-          <span className="hidden sm:inline">{apiStatus === "checking" ? "connecting…" : apiStatus}</span>
+          <span className="badge-status-text">{apiStatus === "checking" ? "connecting…" : apiStatus}</span>
         </div>
       </div>
     </header>

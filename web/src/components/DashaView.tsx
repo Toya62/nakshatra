@@ -217,7 +217,7 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToC
                     </div>
 
                     {isExpanded && md.subs && (
-                      <div style={{ padding: "0 var(--space-4) var(--space-3) var(--space-6)", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "var(--space-2)" }}>
+                      <div style={{ padding: "0 var(--space-4) var(--space-3) var(--space-6)", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 150px), 1fr))", gap: "var(--space-2)" }}>
                         {md.subs.map((ad, adIdx) => (
                           <div
                             key={`${ad.lord}-${ad.start}-${adIdx}`}

@@ -143,7 +143,7 @@ export const PanchangaView: React.FC<Props> = ({
           </div>
 
           {/* 5 Limbs Cards Grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "var(--space-4)" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 160px), 1fr))", gap: "var(--space-4)" }}>
             {/* 1. VARA */}
             <div className="card" style={{ padding: "var(--space-5)" }}>
               <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", letterSpacing: "0.06em" }}>1. VARA (DAY)</span>
