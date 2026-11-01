@@ -284,7 +284,7 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)", maxWidth: "960px", margin: "0 auto", width: "100%" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)", maxWidth: "960px", margin: "0 auto", width: "100%", minWidth: 0 }}>
       {/* Consultation Header Banner */}
       <div className="card" style={{ padding: "var(--space-4) var(--space-5)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "var(--space-3)" }}>
         <div>
@@ -343,7 +343,7 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
               <span style={{ fontSize: "var(--type-micro)", color: "var(--text-low)" }}>Calculating yogas & transits...</span>
             )}
           </div>
-          <div style={{ display: "flex", gap: "var(--space-2)", overflowX: "auto", paddingBottom: "2px", scrollbarWidth: "thin" }}>
+          <div style={{ display: "flex", gap: "var(--space-2)", overflowX: "auto", paddingBottom: "2px", scrollbarWidth: "thin", maxWidth: "100%", width: "100%", minWidth: 0, WebkitOverflowScrolling: "touch" }}>
             {[
               { id: "all", label: "Overview", icon: "🌌" },
               { id: "career", label: "Career & Status", icon: "👑" },
@@ -501,6 +501,10 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
           overflowX: "auto",
           paddingBottom: "var(--space-1)",
           scrollbarWidth: "thin",
+          maxWidth: "100%",
+          width: "100%",
+          minWidth: 0,
+          WebkitOverflowScrolling: "touch",
         }}
         tabIndex={0}
         aria-label="Suggested classical questions"
@@ -770,14 +774,14 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
           e.preventDefault();
           handleSend();
         }}
-        style={{ display: "flex", gap: "var(--space-2)" }}
+        style={{ display: "flex", gap: "var(--space-2)", width: "100%", maxWidth: "100%", minWidth: 0 }}
       >
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask an astrological question (e.g. 'How does Jupiter in 9th house affect destiny?')..."
-          style={{ flex: 1, padding: "12px 16px", borderRadius: "var(--radius-md)", fontSize: "var(--type-body)" }}
+          style={{ flex: 1, padding: "12px 16px", borderRadius: "var(--radius-md)", fontSize: "var(--type-body)", minWidth: 0 }}
           disabled={loading}
           aria-label="Astrological consultation question"
         />

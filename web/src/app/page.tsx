@@ -290,6 +290,8 @@ export default function Home() {
                         gap: "var(--space-1)",
                         overflowX: "auto",
                         maxWidth: "100%",
+                        width: "100%",
+                        minWidth: 0,
                         paddingBottom: "2px",
                         WebkitOverflowScrolling: "touch",
                         scrollbarWidth: "none",

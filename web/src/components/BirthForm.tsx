@@ -839,11 +839,11 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "var(--space-4)", paddingTop: "var(--space-4)", borderTop: "1px solid var(--border-subtle)", flexWrap: "wrap", gap: "var(--space-3)" }}>
         <div style={{ display: "flex", gap: "var(--space-3)", alignItems: "center", flexWrap: "wrap" }}>
           <Settings size={15} color="var(--text-mid)" aria-hidden="true" />
-          <div style={{ display: "flex", gap: "var(--space-2)" }}>
+          <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap", width: "100%", maxWidth: "100%", minWidth: 0 }}>
             <select
               value={ayanamsa}
               onChange={(e) => setAyanamsa(e.target.value)}
-              style={{ width: "auto" }}
+              style={{ width: "auto", maxWidth: "100%", minWidth: 0, flex: "1 1 180px" }}
               aria-label="Ayanamsa calculation system"
             >
               <option value="jhora_lahiri">JHora Lahiri (Calibrated)</option>
@@ -855,7 +855,7 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
             <select
               value={houseSystem}
               onChange={(e) => setHouseSystem(e.target.value)}
-              style={{ width: "auto" }}
+              style={{ width: "auto", maxWidth: "100%", minWidth: 0, flex: "1 1 180px" }}
               aria-label="House division system"
             >
               <option value="WholeSign">Whole Sign (Vedic Default)</option>
