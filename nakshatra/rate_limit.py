@@ -54,7 +54,16 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         # Purge timestamps older than 60s
         timestamps = [t for t in self._records[client_ip] if t > window_start]
-        self._records[client_ip] = timestamps
+        if timestamps:
+            self._records[client_ip] = timestamps
+        else:
+            self._records.pop(client_ip, None)
+
+        # Periodic prune if cache grows large
+        if len(self._records) > 5000:
+            stale = [ip for ip, ts in self._records.items() if not ts or ts[-1] <= window_start]
+            for ip in stale:
+                self._records.pop(ip, None)
 
         if len(timestamps) >= self.rpm:
             retry_after = int(60.0 - (now - timestamps[0])) + 1

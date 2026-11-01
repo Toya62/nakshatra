@@ -122,7 +122,7 @@ Recommendation: ${report.recommendation}
 
       {/* Input Form Cards */}
       <form onSubmit={handleCalculate} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))", gap: "20px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 340px), 1fr))", gap: "20px" }}>
           {/* Bride Card */}
           <div className="card" style={{ padding: "20px" }}>
             <h3 style={{ fontSize: "1.05rem", color: "var(--rose)", fontWeight: 700, marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
@@ -389,7 +389,7 @@ Recommendation: ${report.recommendation}
           </div>
 
           {/* Couple Moon Sign / Nakshatra Cards */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: "18px" }}>
             <div className="card" style={{ padding: "18px" }}>
               <h4 style={{ color: "var(--rose)", fontSize: "0.95rem", fontWeight: 700, marginBottom: "8px" }}>
                 {report.bride_name} (Bride)
@@ -490,7 +490,7 @@ Recommendation: ${report.recommendation}
               {report.kuja_dosha.notes}
             </p>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: "16px" }}>
               <div style={{ padding: "14px", borderRadius: "10px", background: "var(--rose-dim)", border: "1px solid var(--border-subtle)" }}>
                 <div style={{ fontWeight: 600, color: "var(--rose)", marginBottom: "4px" }}>Bride Kuja Dosha</div>
                 <div style={{ fontSize: "0.88rem", color: "var(--text-bright)" }}>

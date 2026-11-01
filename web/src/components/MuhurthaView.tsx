@@ -269,7 +269,7 @@ export const MuhurthaView: React.FC<Props> = ({
           </div>
 
            {/* Active Hora & Active Choghadiya */}
-           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-5)" }}>
+           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: "var(--space-5)" }}>
              <div className="card" style={{ padding: "var(--space-5)", borderLeft: "var(--border-width-4) solid var(--amber)" }}>
                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-2)" }}>
                  <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>

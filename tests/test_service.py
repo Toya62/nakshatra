@@ -121,6 +121,8 @@ class TestRAGService:
     def test_default_synthesizer_fallback(self, monkeypatch):
         """Without API keys the default synthesizer is the fallback."""
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+        monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
+        monkeypatch.delenv("AI_PROVIDER", raising=False)
         monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
         monkeypatch.delenv("GEMINI_API_KEY", raising=False)
         service = RAGService()

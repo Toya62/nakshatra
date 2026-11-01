@@ -530,8 +530,8 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
         className="card"
         style={{
           position: "relative",
-          minHeight: "460px",
-          maxHeight: "620px",
+          minHeight: "280px",
+          maxHeight: "min(60vh, 620px)",
           overflowY: "auto",
           padding: "var(--space-5)",
           display: "flex",

@@ -455,7 +455,7 @@ async def get_config_defaults() -> dict[str, Any]:
 
 
 @app.get("/geocode/search", response_model=list[PlaceResult], tags=["Geocoding"])
-async def geocode_search(
+def geocode_search(
     q: str = Query(..., min_length=1, description="Place or city name to search"),
     limit: int = Query(8, ge=1, le=50, description="Max results"),
 ) -> list[PlaceResult]:
@@ -1034,6 +1034,9 @@ def _validate_safe_path(p: str | Path, name: str = "Path") -> Path:
     for forbidden in forbidden_roots:
         if resolved == forbidden or forbidden in resolved.parents:
             raise HTTPException(status_code=400, detail=f"Access to system path forbidden: {name}")
+    forbidden_names = {".ssh", ".env", ".aws", ".gnupg", "id_rsa", "id_ed25519"}
+    if any(part in forbidden_names for part in resolved.parts):
+        raise HTTPException(status_code=400, detail=f"Access to sensitive path forbidden: {name}")
     return resolved
 
 
