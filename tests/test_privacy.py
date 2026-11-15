@@ -24,14 +24,14 @@ def test_get_privacy_statement():
 
 
 def test_privacy_sanitizer_filter():
-    """Verify logger filter scrubs coordinates and names from log records."""
+    """Verify logger filter scrubs coordinates, query params, and names from log records."""
     log_filter = PrivacySanitizerFilter()
     record = logging.LogRecord(
         name="test",
         level=logging.INFO,
         pathname="test.py",
         lineno=10,
-        msg="GET /chart?latitude=27.8667&longitude=83.4833&place_name=Palpa HTTP/1.1",
+        msg="GET /chart?latitude=27.8667&longitude=83.4833&place_name=Palpa&q=Kathmandu HTTP/1.1",
         args=(),
         exc_info=None,
     )
@@ -39,6 +39,8 @@ def test_privacy_sanitizer_filter():
     assert result is True
     assert "27.8667" not in record.msg
     assert "83.4833" not in record.msg
+    assert "Palpa" not in record.msg
+    assert "Kathmandu" not in record.msg
     assert "[SCRUBBED_GDPR]" in record.msg
 
 

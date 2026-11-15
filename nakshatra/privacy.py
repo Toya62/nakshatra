@@ -21,8 +21,9 @@ logger = logging.getLogger("nakshatra.privacy")
 # Regex to scrub sensitive coordinate patterns from logged URLs / query params
 LAT_LON_PATTERN = re.compile(r"(latitude|longitude|lat|lon)=[-+]?\d*\.?\d+", re.IGNORECASE)
 PERSON_NAME_PATTERN = re.compile(r"(place_name|bride_name|groom_name)=[^&]+", re.IGNORECASE)
+SEARCH_QUERY_PATTERN = re.compile(r"(\b(?:q|query)=)[^&\s]+", re.IGNORECASE)
 
-# JSON patterns: "latitude": 27.8667, "place_name": "Palpa"
+# JSON patterns: "latitude": 27.8667, "place_name": "Palpa", "q": "Kathmandu"
 JSON_COORD_PATTERN = re.compile(
     r'("(?:latitude|longitude|lat|lon)"\s*:\s*)[-+]?\d*\.?\d+',
     re.IGNORECASE,
@@ -31,13 +32,19 @@ JSON_NAME_PATTERN = re.compile(
     r'("(?:place_name|bride_name|groom_name)"\s*:\s*)"[^"]*"',
     re.IGNORECASE,
 )
+JSON_SEARCH_PATTERN = re.compile(
+    r'("(?:q|query)"\s*:\s*)"[^"]*"',
+    re.IGNORECASE,
+)
 
 
 def _sanitize_string(text: str) -> str:
     text = LAT_LON_PATTERN.sub(r"\1=[SCRUBBED_GDPR]", text)
     text = PERSON_NAME_PATTERN.sub(r"\1=[SCRUBBED_GDPR]", text)
+    text = SEARCH_QUERY_PATTERN.sub(r"\1[SCRUBBED_GDPR]", text)
     text = JSON_COORD_PATTERN.sub(r'\1"[SCRUBBED_GDPR]"', text)
     text = JSON_NAME_PATTERN.sub(r'\1"[SCRUBBED_GDPR]"', text)
+    text = JSON_SEARCH_PATTERN.sub(r'\1"[SCRUBBED_GDPR]"', text)
     return text
 
 
@@ -83,6 +90,21 @@ class PrivacyMiddleware(BaseHTTPMiddleware):
         return response
 
 
+def setup_privacy_logging() -> None:
+    """
+    Attach PrivacySanitizerFilter to root and uvicorn loggers.
+    Ensures query parameters, birthplace search terms, and coordinates are scrubbed.
+    """
+    filter_instance = PrivacySanitizerFilter()
+    for logger_name in ("", "uvicorn", "uvicorn.access", "uvicorn.error", "fastapi"):
+        l = logging.getLogger(logger_name)
+        if not any(isinstance(f, PrivacySanitizerFilter) for f in l.filters):
+            l.addFilter(filter_instance)
+        for handler in l.handlers:
+            if not any(isinstance(f, PrivacySanitizerFilter) for f in handler.filters):
+                handler.addFilter(filter_instance)
+
+
 def get_privacy_statement() -> dict[str, Any]:
     """Return explicit GDPR data handling and zero-retention guarantee."""
     return {
@@ -90,9 +112,14 @@ def get_privacy_statement() -> dict[str, Any]:
         "data_retention": "Zero Persistence. Birth data (date, time, latitude, longitude) is processed purely in volatile RAM and is never stored in any database or disk cache.",
         "gdpr_compliance": {
             "lawful_basis": "Explicit Consent (GDPR Article 6(1)(a)) & Special Category Ephemeral Processing (Article 9)",
-            "logging_policy": "All server logs scrub geographical coordinates and personal names via PrivacySanitizerFilter.",
+            "logging_policy": "All server logs scrub geographical coordinates, search queries, and personal names via PrivacySanitizerFilter.",
             "data_portability": "Calculated JSON charts can be exported directly by the user at any time.",
             "right_to_erasure": "Automatic. No user chart records exist on the server after the HTTP request/stream finishes.",
         },
-        "third_party_sharing": "None. Calculations are performed locally by the embedded Swiss Ephemeris C-engine.",
+        "third_party_sharing": "None for core computations (local Swiss Ephemeris C-engine). Disclosed external calls: Nominatim fallback for non-builtin geocoding, and user-configured AI providers for /rag/ask.",
+        "third_party_details": {
+            "calculations": "100% local execution via embedded Swiss Ephemeris C-engine (pyswisseph). Zero outbound network calls.",
+            "geocoding": "Local-first with 400+ built-in major cities. Fallback searches query OpenStreetMap Nominatim with scrubbed query logging.",
+            "ai_consultation": "Optional. The /rag/ask endpoint forwards astrological context to user-configured LLM providers (Google Gemini or OpenAI) only upon explicit query. Deterministic scriptural synthesis fallback is used when no keys are configured.",
+        },
     }

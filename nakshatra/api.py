@@ -70,7 +70,11 @@ from nakshatra.muhurtha import (
     calculate_muhurtha,
 )
 from nakshatra.panchanga import PanchangaData, calculate_panchanga
-from nakshatra.privacy import PrivacyMiddleware, get_privacy_statement
+from nakshatra.privacy import (
+    PrivacyMiddleware,
+    get_privacy_statement,
+    setup_privacy_logging,
+)
 from nakshatra.rashi_fal import (
     RashiFalReport,
     calculate_rashi_fal,
@@ -430,7 +434,8 @@ class RAGAskResponse(BaseModel):
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Application lifespan handler."""
-    # Startup: pre-load ephemeris data
+    # Startup: configure GDPR privacy logging and pre-load ephemeris data
+    setup_privacy_logging()
     yield
     # Shutdown: cleanup if needed
 
@@ -476,6 +481,7 @@ app.add_middleware(
 )
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(PrivacyMiddleware)
+setup_privacy_logging()
 
 _rag_service = RAGService()
 
