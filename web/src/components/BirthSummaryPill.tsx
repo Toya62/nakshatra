@@ -5,6 +5,7 @@ import { BirthDataInput, BikramSambatDate } from "@/lib/types";
 import { MapPin, Calendar, Clock, ChevronDown, ChevronUp, Edit2 } from "lucide-react";
 import { BirthForm } from "@/components/BirthForm";
 import { CalendarSystem, getCalendarSystem, convertAdToBs } from "@/lib/calendar";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Props {
   birthData: BirthDataInput;
@@ -34,6 +35,7 @@ export const BirthSummaryPill: React.FC<Props> = ({
   onSubmit,
   loading,
 }) => {
+  const { lang, num } = useLanguage();
   const [expanded, setExpanded] = useState(!hasChart);
   const [calendarSystem, setCalendarSystem] = useState<CalendarSystem>("gregorian");
   const [bsData, setBsData] = useState<BikramSambatDate | null>(null);
@@ -102,8 +104,8 @@ export const BirthSummaryPill: React.FC<Props> = ({
 
           <span style={{ display: "flex", alignItems: "center", gap: "var(--space-1)" }}>
             <Clock size={12} aria-hidden="true" />
-            {padZ(birthData.hour)}:{padZ(birthData.minute)}
-            {(birthData.second ?? 0) > 0 ? `:${padZ(birthData.second!)}` : ""}
+            {num(padZ(birthData.hour))}:{num(padZ(birthData.minute))}
+            {(birthData.second ?? 0) > 0 ? `:${num(padZ(birthData.second!))}` : ""}
           </span>
 
           <span style={{ color: "var(--text-low)" }}>·</span>
@@ -138,7 +140,7 @@ export const BirthSummaryPill: React.FC<Props> = ({
           style={{ gap: "var(--space-1)", padding: "5px 10px", fontSize: "var(--type-label)" }}
         >
           <Edit2 size={13} aria-hidden="true" />
-          Edit
+          {lang === "ne" ? "सच्याउनुहोस्" : "Edit"}
           <ChevronDown size={13} aria-hidden="true" />
         </button>
       </div>
@@ -164,7 +166,7 @@ export const BirthSummaryPill: React.FC<Props> = ({
             style={{ fontSize: "var(--type-label)", gap: "var(--space-1)" }}
           >
             <ChevronUp size={13} aria-hidden="true" />
-            Collapse
+            {lang === "ne" ? "बन्द गर्नुहोस्" : "Collapse"}
           </button>
         </div>
       )}

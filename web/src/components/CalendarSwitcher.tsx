@@ -3,8 +3,10 @@
 import React, { useState, useEffect } from "react";
 import { Calendar } from "lucide-react";
 import { CalendarSystem, getCalendarSystem, setCalendarSystem } from "@/lib/calendar";
+import { useLanguage } from "@/context/LanguageContext";
 
 export const CalendarSwitcher: React.FC = () => {
+  const { lang } = useLanguage();
   const [system, setSystem] = useState<CalendarSystem>("gregorian");
 
   useEffect(() => {
@@ -37,10 +39,14 @@ export const CalendarSwitcher: React.FC = () => {
       <Calendar size={15} />
       <span className="font-medium whitespace-nowrap">
         <span className="hidden sm:inline">
-          {system === "gregorian" ? "AD (Gregorian)" : "BS (Bikram Sambat)"}
+          {system === "gregorian"
+            ? lang === "ne" ? "ई.सं. (ग्रेगोरियन)" : "AD (Gregorian)"
+            : lang === "ne" ? "वि.सं. (विक्रम संवत्)" : "BS (Bikram Sambat)"}
         </span>
         <span className="inline sm:hidden">
-          {system === "gregorian" ? "AD" : "BS"}
+          {system === "gregorian"
+            ? lang === "ne" ? "ई.सं." : "AD"
+            : lang === "ne" ? "वि.सं." : "BS"}
         </span>
       </span>
     </button>

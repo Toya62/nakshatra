@@ -7,6 +7,7 @@ import { MapPin, Calendar, Clock, Settings, Sparkles, Check, Globe, Compass, Sli
 import { DEFAULT_LOCATION } from "@/config/defaults";
 import { CalendarSwitcher } from "./CalendarSwitcher";
 import { getCalendarSystem, setCalendarSystem, convertAdToBs, convertBsToAd, CalendarSystem } from "@/lib/calendar";
+import { useLanguage } from "@/context/LanguageContext";
 
 export const NEPALI_MONTHS = [
   { index: 1, name_en: "Baishakh", name_ne: "वैशाख" },
@@ -61,6 +62,7 @@ const COMMON_TIMEZONES = [
 ];
 
 export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) => {
+  const { t, lang, num } = useLanguage();
   // Store values as editable strings so users can clear inputs without getting trapped on "0"
   const [year, setYear] = useState(String(initialData?.year ?? 1997));
   const [month, setMonth] = useState(String(initialData?.month ?? 5));
@@ -427,7 +429,7 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-4)", flexWrap: "wrap", gap: "var(--space-3)" }}>
         <h3 style={{ fontSize: "var(--type-heading)", fontWeight: 700, display: "flex", alignItems: "center", gap: "var(--space-2)", color: "var(--text-high)" }}>
           <Sparkles size={16} color="var(--gold-vivid)" aria-hidden="true" />
-          Birth Coordinates & Epoch
+          {t.birthForm.title}
         </h3>
 
         {/* Preset quick buttons */}
@@ -452,7 +454,7 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--space-1)" }}>
             <label style={{ fontSize: "var(--type-label)", color: "var(--text-mid)", display: "flex", alignItems: "center", gap: "var(--space-1)", margin: 0 }}>
               <Calendar size={13} aria-hidden="true" />
-              {calendarSystem === "bikram" ? "Date of Birth (BS - Bikram Sambat)" : "Date of Birth (AD - Gregorian)"}
+              {calendarSystem === "bikram" ? t.birthForm.bsDateLabel : t.birthForm.dob}
             </label>
             <div style={{ display: "flex", gap: "2px", background: "var(--surface-sunken)", padding: "2px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
               <button
@@ -576,7 +578,7 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
         {/* Time */}
         <div>
           <label style={{ fontSize: "var(--type-label)", color: "var(--text-mid)", display: "flex", alignItems: "center", gap: "var(--space-1)", marginBottom: "var(--space-1)" }}>
-            <Clock size={13} aria-hidden="true" /> Time (24h: HH:MM:SS)
+            <Clock size={13} aria-hidden="true" /> {t.birthForm.tob}
           </label>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "var(--space-1)" }}>
             <input
@@ -617,7 +619,7 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
         {/* Place Search Autocomplete */}
         <div ref={dropdownRef} style={{ position: "relative" }}>
           <label style={{ fontSize: "var(--type-label)", color: "var(--text-mid)", display: "flex", alignItems: "center", gap: "var(--space-1)", marginBottom: "var(--space-1)" }}>
-            <MapPin size={13} aria-hidden="true" /> Place of Birth (Auto-Geocoded)
+            <MapPin size={13} aria-hidden="true" /> {t.birthForm.place}
           </label>
           <div style={{ position: "relative" }}>
             <input
@@ -627,7 +629,7 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
               onFocus={() => {
                 if (suggestions.length > 0) setShowSuggestions(true);
               }}
-              placeholder="Type city (e.g. Yangon, Kathmandu, London)..."
+              placeholder={t.birthForm.placeSearchPlaceholder}
               aria-label="Place of birth search"
               style={{ width: "100%", paddingRight: "32px" }}
             />
@@ -867,7 +869,7 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
 
         <button type="submit" disabled={loading} className="btn-primary" aria-label="Calculate birth chart">
           <Sparkles size={16} aria-hidden="true" />
-          {loading ? "Calculating Ephemeris..." : "Calculate Kundali"}
+          {loading ? t.common.calculating : t.birthForm.calculateBtn}
         </button>
       </div>
     </form>
