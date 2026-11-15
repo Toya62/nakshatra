@@ -3,6 +3,7 @@
 import React from "react";
 import { ChartData } from "@/lib/types";
 import { Download, Table } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Props {
   chart: ChartData;
@@ -20,6 +21,7 @@ function planetColor(name: string, isAsc: boolean): string {
 }
 
 export const PlanetsTable: React.FC<Props> = ({ chart }) => {
+  const { t, lang, num } = useLanguage();
   const bodies = [
     {
       name: "Ascendant (Lagna)",
@@ -83,12 +85,12 @@ export const PlanetsTable: React.FC<Props> = ({ chart }) => {
       <div className="section-header">
         <h4 className="section-title" style={{ fontSize: "var(--type-heading)" }}>
           <Table size={15} color="var(--gold-vivid)" aria-hidden="true" />
-          Planetary Ephemeris
+          {lang === "ne" ? "ग्रह स्थिति तालिका" : "Planetary Ephemeris"}
           <span
             className="badge badge-gold"
             style={{ fontSize: "var(--type-micro)", marginLeft: "var(--space-2)" }}
           >
-            Nirayana
+            {lang === "ne" ? "निरयण" : "Nirayana"}
           </span>
         </h4>
         <button
@@ -124,7 +126,10 @@ export const PlanetsTable: React.FC<Props> = ({ chart }) => {
                 textTransform: "uppercase",
               }}
             >
-              {["Graha", "Rasi", "Degree", "Bhava", "Nakshatra", "Pada", "Lord", "Motion"].map((h) => (
+              {(lang === "ne"
+                ? ["ग्रह", "राशि", "अंश", "भाव", "नक्षत्र", "पाद", "स्वामी", "गति"]
+                : ["Graha", "Rasi", "Degree", "Bhava", "Nakshatra", "Pada", "Lord", "Motion"]
+              ).map((h) => (
                 <th key={h} style={{ padding: "8px 8px 10px", fontWeight: 600 }}>
                   {h}
                 </th>
@@ -156,7 +161,7 @@ export const PlanetsTable: React.FC<Props> = ({ chart }) => {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    {b.name}
+                    {lang === "ne" ? (t.planets.names[b.name.replace(/ \(.*\)/, "") as keyof typeof t.planets.names] || b.name) : b.name}
                   </td>
 
                   {/* Sign */}
@@ -172,7 +177,7 @@ export const PlanetsTable: React.FC<Props> = ({ chart }) => {
                         cursor: "default",
                       }}
                     >
-                      {b.sign}
+                      {lang === "ne" ? (t.zodiac.signs[b.sign as keyof typeof t.zodiac.signs] || b.sign) : b.sign}
                     </span>
                   </td>
 
@@ -181,7 +186,7 @@ export const PlanetsTable: React.FC<Props> = ({ chart }) => {
                     className="data-mono"
                     style={{ padding: "9px 8px", color: "var(--text-mid)" }}
                   >
-                    {b.degree.toFixed(2)}°
+                    {num(b.degree.toFixed(2))}°
                   </td>
 
                   {/* House */}
@@ -194,7 +199,7 @@ export const PlanetsTable: React.FC<Props> = ({ chart }) => {
                       fontSize: "var(--type-data)",
                     }}
                   >
-                    H{b.house}
+                    {lang === "ne" ? `भाव ${num(b.house)}` : `H${b.house}`}
                   </td>
 
                   {/* Nakshatra */}
@@ -207,20 +212,20 @@ export const PlanetsTable: React.FC<Props> = ({ chart }) => {
                     className="data-mono"
                     style={{ padding: "9px 8px", color: "var(--text-mid)" }}
                   >
-                    {b.pada}
+                    {num(b.pada)}
                   </td>
 
                   {/* Lord */}
                   <td style={{ padding: "9px 8px", color: "var(--text-mid)" }}>
-                    {b.lord}
+                    {lang === "ne" ? (t.planets.names[b.lord as keyof typeof t.planets.names] || b.lord) : b.lord}
                   </td>
 
                   {/* Motion */}
                   <td style={{ padding: "9px 8px" }}>
                     {b.retrograde ? (
-                      <span className="badge badge-rose">℞ Retro</span>
+                      <span className="badge badge-rose">{lang === "ne" ? "℞ वक्री" : "℞ Retro"}</span>
                     ) : (
-                      <span className="badge badge-emerald">Direct</span>
+                      <span className="badge badge-emerald">{lang === "ne" ? "मार्गी" : "Direct"}</span>
                     )}
                   </td>
                 </tr>

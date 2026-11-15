@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { ChartData } from "@/lib/types";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Props {
   chart: ChartData;
@@ -119,6 +120,7 @@ interface PlanetBadgeData {
 }
 
 export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 520 }) => {
+  const { t, lang, num } = useLanguage();
   const [hoveredHouse, setHoveredHouse] = useState<number | null>(null);
 
   const w = 520;
@@ -497,7 +499,7 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
                   fontWeight="800"
                   fontFamily="'Cinzel', 'Outfit', serif"
                 >
-                  {data.signNum}
+                  {num(data.signNum)}
                 </text>
               </g>
 
@@ -524,7 +526,7 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
                     fontFamily="'Outfit', sans-serif"
                     letterSpacing="1.8"
                   >
-                    LAGNA
+                    {lang === "ne" ? "लग्न" : "LAGNA"}
                   </text>
                 </g>
               )}
@@ -588,7 +590,7 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
                             fontWeight="700"
                             fontFamily="'Outfit', sans-serif"
                           >
-                            {p.isAsc ? "ASC" : `${style.glyph} ${p.label}`}
+                            {p.isAsc ? (lang === "ne" ? "ल" : "ASC") : `${style.glyph} ${lang === "ne" ? (t.planets.glyphs[p.name as keyof typeof t.planets.glyphs] || p.label) : p.label}`}
                           </text>
 
                           {/* Retrograde & Dignity Markers (Positioned in center, safe from degree) */}
@@ -652,7 +654,7 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
                               fontWeight="600"
                               fontFamily="'JetBrains Mono', monospace"
                             >
-                              {p.degree}
+                              {num(p.degree)}
                             </text>
                           )}
                         </g>
@@ -709,7 +711,7 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
                           fontWeight="700"
                           fontFamily="'Outfit', sans-serif"
                         >
-                          {p.isAsc ? "ASC" : p.label}
+                          {p.isAsc ? (lang === "ne" ? "ल" : "ASC") : (lang === "ne" ? (t.planets.glyphs[p.name as keyof typeof t.planets.glyphs] || p.label) : p.label)}
                         </text>
                         {p.isRetro ? (
                           <text x="-2" y="3" textAnchor="middle" fill="var(--amber)" fontSize="9" fontWeight="800">
@@ -784,15 +786,15 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
 
             <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", fontSize: "var(--type-micro)", flexWrap: "wrap" }}>
               <span style={{ color: "var(--text-high)", fontWeight: 600 }}>
-                {activeHouseData.signName} ({activeHouseData.signSanskrit})
+                {lang === "ne" ? (t.zodiac.signs[activeHouseData.signName as keyof typeof t.zodiac.signs] || activeHouseData.signName) : `${activeHouseData.signName} (${activeHouseData.signSanskrit})`}
               </span>
               <span style={{ color: "var(--border-subtle)" }}>·</span>
-              <span style={{ color: "var(--gold-vivid)", fontWeight: 600 }}>Lord: {activeHouseData.lord}</span>
+              <span style={{ color: "var(--gold-vivid)", fontWeight: 600 }}>{lang === "ne" ? `स्वामी: ${t.planets.names[activeHouseData.lord as keyof typeof t.planets.names] || activeHouseData.lord}` : `Lord: ${activeHouseData.lord}`}</span>
               <span style={{ color: "var(--border-subtle)" }}>·</span>
               <span style={{ color: "var(--text-mid)" }}>
                 {activeHouseData.planets.length > 0
-                  ? activeHouseData.planets.map((p) => p.name).join(", ")
-                  : "No grahas"}
+                  ? activeHouseData.planets.map((p) => lang === "ne" ? (t.planets.names[p.name as keyof typeof t.planets.names] || p.name) : p.name).join(", ")
+                  : (lang === "ne" ? "ग्रह छैन" : "No grahas")}
               </span>
             </div>
           </div>
@@ -800,20 +802,20 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", gap: "var(--space-2)", flexWrap: "wrap" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap" }}>
               <span style={{ color: "var(--text-low)", fontSize: "0.82rem" }}>
-                Lagna: <strong style={{ color: "var(--gold-bright)", fontFamily: "var(--font-mono)" }}>{chart.ascendant.sign} {chart.ascendant.degree_in_sign.toFixed(1)}°</strong>
+                {lang === "ne" ? "लग्न" : "Lagna"}: <strong style={{ color: "var(--gold-bright)", fontFamily: "var(--font-mono)" }}>{lang === "ne" ? (t.zodiac.signs[chart.ascendant.sign as keyof typeof t.zodiac.signs] || chart.ascendant.sign) : chart.ascendant.sign} {num(chart.ascendant.degree_in_sign.toFixed(1))}°</strong>
               </span>
               <span style={{ color: "var(--border-subtle)" }}>|</span>
               {(() => {
                 const moon = chart.planets.find(p => p.name === "Moon");
                 return (
                   <span style={{ color: "var(--text-low)", fontSize: "0.82rem" }}>
-                    Moon: <strong style={{ color: "var(--text-high)", fontFamily: "var(--font-mono)" }}>{moon ? `${moon.sign} ${moon.degree_in_sign.toFixed(1)}°` : "Moon"}</strong>
+                    {lang === "ne" ? "चन्द्र" : "Moon"}: <strong style={{ color: "var(--text-high)", fontFamily: "var(--font-mono)" }}>{moon ? `${lang === "ne" ? (t.zodiac.signs[moon.sign as keyof typeof t.zodiac.signs] || moon.sign) : moon.sign} ${num(moon.degree_in_sign.toFixed(1))}°` : "Moon"}</strong>
                   </span>
                 );
               })()}
             </div>
             <span style={{ color: "var(--text-mid)", fontSize: "0.76rem" }}>
-              Tap or hover house chamber to inspect
+              {lang === "ne" ? "भाव विवरण हेर्न कुण्डलीमा छुनुहोस्" : "Tap or hover house chamber to inspect"}
             </span>
           </div>
         )}
