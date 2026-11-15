@@ -17,6 +17,11 @@ import {
   MuhurthaIcon,
   RemediesIcon,
   ConsultationIcon,
+  VarshaphalIcon,
+  KalsarpIcon,
+  SpecialLagnasIcon,
+  ChakraIcon,
+  RashiFalIcon,
 } from "@/components/VedicIcons";
 
 export type TabId =
@@ -27,6 +32,11 @@ export type TabId =
   | "compatibility"
   | "muhurtha"
   | "remedies"
+  | "varshaphal"
+  | "kalsarp"
+  | "special-lagnas"
+  | "chakra"
+  | "rashi-fal"
   | "consult";
 
 interface Props {
@@ -119,6 +129,61 @@ const TABS: {
       border: "rgba(124, 58, 237, 0.25)",
     },
     hint: "Parashari & Lal Kitab",
+  },
+  {
+    id: "varshaphal",
+    label: "Varshaphal (Barsha Fal)",
+    Icon: VarshaphalIcon,
+    accent: {
+      color: "var(--graha-sun, #d97706)",
+      bg: "rgba(217, 119, 6, 0.10)",
+      border: "rgba(217, 119, 6, 0.25)",
+    },
+    hint: "Annual Solar Return",
+  },
+  {
+    id: "kalsarp",
+    label: "Kalsarp Dosha",
+    Icon: KalsarpIcon,
+    accent: {
+      color: "var(--graha-rahu, #7c3aed)",
+      bg: "rgba(124, 58, 237, 0.10)",
+      border: "rgba(124, 58, 237, 0.25)",
+    },
+    hint: "Rahu-Ketu nodal axis",
+  },
+  {
+    id: "special-lagnas",
+    label: "Special Lagnas",
+    Icon: SpecialLagnasIcon,
+    accent: {
+      color: "var(--graha-venus, #e11d48)",
+      bg: "rgba(225, 29, 72, 0.10)",
+      border: "rgba(225, 29, 72, 0.25)",
+    },
+    hint: "Arudha, Upapada, Karakamsha & more",
+  },
+  {
+    id: "chakra",
+    label: "Chakra Systems",
+    Icon: ChakraIcon,
+    accent: {
+      color: "var(--graha-mercury, #059669)",
+      bg: "rgba(5, 150, 105, 0.10)",
+      border: "rgba(5, 150, 105, 0.25)",
+    },
+    hint: "Navatara · Compound · Ghati",
+  },
+  {
+    id: "rashi-fal",
+    label: "Rashi Fal",
+    Icon: RashiFalIcon,
+    accent: {
+      color: "var(--graha-moon, #0f766e)",
+      bg: "rgba(15, 118, 110, 0.10)",
+      border: "rgba(15, 118, 110, 0.25)",
+    },
+    hint: "Daily/Monthly/Yearly Moon-sign",
   },
 ];
 

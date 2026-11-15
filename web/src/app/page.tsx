@@ -15,6 +15,11 @@ import { CompatibilityView } from "@/components/CompatibilityView";
 import { MuhurthaView } from "@/components/MuhurthaView";
 import { ConsultationView } from "@/components/ConsultationView";
 import { RemediesView } from "@/components/RemediesView";
+import { VarshaphalView } from "@/components/VarshaphalView";
+import { KalsarpView } from "@/components/KalsarpView";
+import { SpecialLagnasView } from "@/components/SpecialLagnasView";
+import { ChakraView } from "@/components/ChakraView";
+import { RashiFalView } from "@/components/RashiFalView";
 import { BirthDataInput, ChartData, getBirthKey } from "@/lib/types";
 import { fetchChart, checkApiHealth } from "@/lib/api";
 import { Sparkles, Layers } from "lucide-react";
@@ -48,6 +53,11 @@ const VALID_TABS: TabId[] = [
   "compatibility",
   "muhurtha",
   "remedies",
+  "varshaphal",
+  "kalsarp",
+  "special-lagnas",
+  "chakra",
+  "rashi-fal",
   "consult",
 ];
 
@@ -372,7 +382,32 @@ export default function Home() {
           />
         )}
 
-        {/* ═══ AI Consultation ══════════════════════════════════════════ */}
+        {/* ═══ Varshaphal / Barsha Fal ═════════════════════════════════════════════════ */}
+        {activeTab === "varshaphal" && (
+          <VarshaphalView birth={chartData ? birthData : undefined} />
+        )}
+
+        {/* ═══ Kalsarp Dosha Analyzer ═══════════════════════════════════════════════════ */}
+        {activeTab === "kalsarp" && (
+          <KalsarpView birth={chartData ? birthData : undefined} />
+        )}
+
+        {/* ═══ Special Lagnas (Vishesha Lagna) ═════════════════════════════════════════════════════ */}
+        {activeTab === "special-lagnas" && (
+          <SpecialLagnasView birth={chartData ? birthData : undefined} />
+        )}
+
+        {/* ═══ Vedic Chakra Systems ════════════════════════════════════════════════════════════════════ */}
+        {activeTab === "chakra" && (
+          <ChakraView birth={chartData ? birthData : undefined} />
+        )}
+
+        {/* ═══ Rashi Fal — Moon-sign Horoscope ════════════════════════════════════════════════════════════════ */}
+        {activeTab === "rashi-fal" && (
+          <RashiFalView birth={chartData ? birthData : undefined} />
+        )}
+
+        {/* ═══ AI Consultation ═══════════════════════════════════════════════════════════════════════════════════════ */}
         {activeTab === "consult" && (
           <ConsultationView
             key={getBirthKey(chartData ? birthData : undefined)}

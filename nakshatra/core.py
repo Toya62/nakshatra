@@ -402,6 +402,57 @@ class ChartData(BaseModel):
 
         return calculate_remedies(self, transits=transits)
 
+    def get_kalsarp(self) -> Any:
+        """
+        Detect Kalsarp (Kalasarpa) Dosha: all seven classical Grahas hemmed
+        between Rahu and Ketu, classified into Purna/Ardh and one of twelve
+        classical types by the Rahu–Ketu house axis.
+        """
+        from nakshatra.kalsarp import analyze_kalsarp
+
+        return analyze_kalsarp(self)
+
+    def get_special_lagnas(self) -> Any:
+        """
+        Compute the classical special (vishesha) lagnas: Arudha, Upapada, Indu,
+        Bhrigu, Ghati, Sri, and Karakamsha — each with its house, sign, lord,
+        degree and classical rationale.
+        """
+        from nakshatra.additional_lagnas import calculate_special_lagnas
+
+        return calculate_special_lagnas(self)
+
+    def get_chakra(self) -> Any:
+        """
+        Compute Vedic chakra systems: Navatara (9 tara of each planet from the
+        Janma nakshatra), Compound (Panchadha Maitri) relationships for every
+        planet pair, and the Ghatchakra wheel.
+        """
+        from nakshatra.chakra import calculate_chakra_with_ghati
+
+        return calculate_chakra_with_ghati(self)
+
+    def get_rashi_fal(
+        self,
+        period: str = "daily",
+        reference_date: datetime | None = None,
+        ayanamsa: Ayanamsa = Ayanamsa.JHORA_LAHIRI,
+        house_system: HouseSystem = HouseSystem.WHOLE_SIGN,
+    ) -> Any:
+        """
+        Rashi Fal (Moon-sign / Chandra Lagna horoscope): daily, monthly or
+        yearly forecast read from transits relative to the natal Moon sign.
+        """
+        from nakshatra.rashi_fal import calculate_rashi_fal
+
+        return calculate_rashi_fal(
+            self.birth_data,
+            period=period,
+            reference_date=reference_date,
+            ayanamsa=ayanamsa,
+            house_system=house_system,
+        )
+
     def save(self, filepath: str, format: str | None = None) -> str:
         """
         Save chart data directly to file.

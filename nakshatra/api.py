@@ -24,6 +24,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse, Response, StreamingResponse
 from pydantic import BaseModel, Field, field_validator
 
+from nakshatra.additional_lagnas import (
+    SpecialLagnasReport,
+)
 from nakshatra.ai.corpus import IngestResult
 from nakshatra.ai.embeddings import SearchResult
 from nakshatra.ai.service import RAGService
@@ -36,6 +39,9 @@ from nakshatra.calendar_bs import (
     GregorianDate,
     ad_to_bs,
     bs_to_ad,
+)
+from nakshatra.chakra import (
+    ChakraReport,
 )
 from nakshatra.compatibility import (
     CompatibilityReport,
@@ -55,6 +61,9 @@ from nakshatra.geocoding import (
     resolve_timezone_offset,
     search_places,
 )
+from nakshatra.kalsarp import (
+    KalsarpReport,
+)
 from nakshatra.licensing import get_licensing_statement
 from nakshatra.muhurtha import (
     MuhurthaReport,
@@ -62,12 +71,20 @@ from nakshatra.muhurtha import (
 )
 from nakshatra.panchanga import PanchangaData, calculate_panchanga
 from nakshatra.privacy import PrivacyMiddleware, get_privacy_statement
+from nakshatra.rashi_fal import (
+    RashiFalReport,
+    calculate_rashi_fal,
+)
 from nakshatra.rate_limit import RateLimitMiddleware
 from nakshatra.transits import (
     TransitReport,
     TransitWindowReport,
     calculate_transits,
     scan_transit_window,
+)
+from nakshatra.varshaphal import (
+    VarshaphalReport,
+    calculate_varshaphal,
 )
 from nakshatra.yogas import (
     YogaResult,
@@ -288,6 +305,82 @@ class RemediesResponse(BaseModel):
 
     success: bool = True
     data: dict[str, Any]
+    meta: dict = Field(default_factory=dict)
+
+
+class VarshaphalRequest(ChartRequest):
+    """Tajik Varshaphal (annual / Barsha Fal) request."""
+
+    target_year: int | None = Field(
+        None,
+        ge=1,
+        le=3000,
+        description="Calendar year for the annual forecast. Defaults to current year.",
+    )
+
+
+class VarshaphalResponse(BaseModel):
+    """Tajik Varshaphal calculation response."""
+
+    success: bool = True
+    data: VarshaphalReport
+    meta: dict = Field(default_factory=dict)
+
+
+class KalsarpRequest(ChartRequest):
+    """Kalsarp Dosha analysis request."""
+
+
+class SpecialLagnasRequest(ChartRequest):
+    """Special (vishesha) lagnas calculation request."""
+
+
+class ChakraRequest(ChartRequest):
+    """Vedic chakra systems calculation request."""
+
+
+class KalsarpResponse(BaseModel):
+    """Kalsarp Dosha calculation response."""
+
+    success: bool = True
+    data: KalsarpReport
+    meta: dict = Field(default_factory=dict)
+
+
+class SpecialLagnasResponse(BaseModel):
+    """Special lagnas calculation response."""
+
+    success: bool = True
+    data: SpecialLagnasReport
+    meta: dict = Field(default_factory=dict)
+
+
+class ChakraResponse(BaseModel):
+    """Vedic chakra systems calculation response."""
+
+    success: bool = True
+    data: ChakraReport
+    meta: dict = Field(default_factory=dict)
+
+
+class RashiFalRequest(ChartRequest):
+    """Rashi Fal (Moon-sign horoscope) request."""
+
+    period: str = Field(
+        "daily",
+        description="Forecast period: daily, monthly, or yearly.",
+    )
+    reference_date: str | None = Field(
+        None,
+        description="Reference date YYYY-MM-DD for the forecast. Defaults to today.",
+    )
+
+
+class RashiFalResponse(BaseModel):
+    """Rashi Fal calculation response."""
+
+    success: bool = True
+    data: RashiFalReport
     meta: dict = Field(default_factory=dict)
 
 
@@ -911,6 +1004,199 @@ async def remedies_endpoint(request: RemediesRequest) -> RemediesResponse:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Remedies calculation error: {str(e)}")
+
+
+@app.post("/varshaphal", response_model=VarshaphalResponse, tags=["Varshaphal"])
+async def varshaphal_endpoint(request: VarshaphalRequest) -> VarshaphalResponse:
+    """
+    Tajik Varshaphal (Annual / Barsha Fal) report.
+
+    Casts the solar-return chart for ``target_year`` (Sun returns to its natal
+    sidereal longitude) and synthesizes the Muntha, Varsheshwara (Year Lord),
+    Sahams (sensitive points), and month-wise lords — the core Tajika annual
+    horoscopy used for yearly prediction.
+    """
+    try:
+        birth = BirthData(
+            year=request.year,
+            month=request.month,
+            day=request.day,
+            hour=request.hour,
+            minute=request.minute,
+            second=request.second,
+            latitude=request.latitude,
+            longitude=request.longitude,
+            timezone=request.timezone,
+            place_name=request.place_name,
+        )
+        report = calculate_varshaphal(
+            birth,
+            target_year=request.target_year,
+            ayanamsa=request.ayanamsa,
+            house_system=request.house_system,
+        )
+        return VarshaphalResponse(
+            data=report,
+            meta={
+                "ayanamsa": request.ayanamsa.value,
+                "house_system": request.house_system.value,
+                "target_year": report.target_year,
+                "completed_years": report.completed_years,
+            },
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Varshaphal calculation error: {str(e)}")
+
+
+@app.post("/kalsarp", response_model=KalsarpResponse, tags=["Kalsarp"])
+async def kalsarp_endpoint(request: KalsarpRequest) -> KalsarpResponse:
+    """
+    Kalsarp (Kalasarpa) Dosha analysis.
+
+    Detects whether all seven classical Grahas are hemmed between Rahu and Ketu,
+    classifies the dosha as Purna (Complete) or Ardh (Partial), and names one of
+    twelve classical Kalsarp types by the Rahu–Ketu house axis.
+    """
+    try:
+        chart = _build_chart(request)
+        report = chart.get_kalsarp()
+        return KalsarpResponse(
+            data=report,
+            meta={
+                "ayanamsa": chart.ayanamsa.value,
+                "house_system": chart.house_system.value,
+                "has_kalsarp": report.has_kalsarp,
+                "classification": report.classification,
+                "kalsarp_type": report.kalsarp_type or "",
+            },
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Kalsarp calculation error: {str(e)}")
+
+
+@app.post("/special-lagnas", response_model=SpecialLagnasResponse, tags=["Special Lagnas"])
+async def special_lagnas_endpoint(request: SpecialLagnasRequest) -> SpecialLagnasResponse:
+    """
+    Special (Vishesha) Lagnas.
+
+    Computes Arudha, Upapada, Indu, Bhrigu, Ghati, Sri and Karakamsha lagnas
+    — classical Jaimini/Tajika ascendants used for perception, marriage,
+    prosperity, karmic triggers, authority, fortune and soul-direction.
+    """
+    try:
+        chart = _build_chart(request)
+        report = chart.get_special_lagnas()
+        return SpecialLagnasResponse(
+            data=report,
+            meta={
+                "ayanamsa": chart.ayanamsa.value,
+                "house_system": chart.house_system.value,
+                "lagnas": [lagna.name for lagna in report.lagnas],
+            },
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Special lagnas calculation error: {str(e)}")
+
+
+@app.post("/chakra", response_model=ChakraResponse, tags=["Chakra"])
+async def chakra_endpoint(request: ChakraRequest) -> ChakraResponse:
+    """
+    Vedic chakra systems.
+
+    Computes the Navatara Chakra (9 tara of each planet from the Janma
+    nakshatra), Compound (Panchadha Maitri) relationships for every planet
+    pair, and the Ghatchakra wheel — classical support analyses used alongside
+    the birth chart.
+    """
+    try:
+        chart = _build_chart(request)
+        report = chart.get_chakra()
+        return ChakraResponse(
+            data=report,
+            meta={
+                "ayanamsa": chart.ayanamsa.value,
+                "house_system": chart.house_system.value,
+                "janma_nakshatra": report.janma_nakshatra,
+                "navatara_count": len(report.navatara),
+                "compound_pairs": len(report.compound_relationships),
+            },
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Chakra calculation error: {str(e)}")
+
+
+@app.post("/rashi-fal", response_model=RashiFalResponse, tags=["Rashi Fal"])
+async def rashi_fal_endpoint(request: RashiFalRequest) -> RashiFalResponse:
+    """
+    Rashi Fal (Moon-sign / Chandra Lagna horoscope).
+
+    Daily, monthly or yearly forecast read from transits relative to the
+    natal Moon sign treated as House 1, with graha-wise house results,
+    Double Transit detection and Sade Sati status.
+    """
+    try:
+        from datetime import datetime
+
+        ref_date = None
+        if request.reference_date:
+            ref_date = datetime.strptime(request.reference_date, "%Y-%m-%d")
+        report = chart_get_rashi_fal_helper(
+            request,
+            period=request.period,
+            reference_date=ref_date,
+        )
+        return RashiFalResponse(
+            data=report,
+            meta={
+                "period": report.period,
+                "reference_date": report.reference_date,
+                "moon_sign": report.moon_sign,
+                "overall_score": report.overall_score,
+                "sade_sati_active": report.sade_sati_active,
+            },
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Rashi Fal calculation error: {str(e)}")
+
+
+def chart_get_rashi_fal_helper(
+    request: RashiFalRequest,
+    period: str,
+    reference_date: datetime | None,
+) -> RashiFalReport:
+    """Build chart and compute Rashi Fal."""
+    from nakshatra.core import BirthData
+
+    birth = BirthData(
+        year=request.year,
+        month=request.month,
+        day=request.day,
+        hour=request.hour,
+        minute=request.minute,
+        second=request.second,
+        latitude=request.latitude,
+        longitude=request.longitude,
+        timezone=request.timezone,
+        place_name=request.place_name,
+    )
+
+    return calculate_rashi_fal(
+        birth,
+        period=period,
+        reference_date=reference_date,
+        ayanamsa=request.ayanamsa,
+        house_system=request.house_system,
+    )
 
 
 @app.post("/match/compatibility", response_model=CompatibilityResponse, tags=["Compatibility"])

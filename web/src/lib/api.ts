@@ -15,6 +15,16 @@ import {
   YogaResult,
   DomainPrediction,
   RemediesReport,
+  VarshaphalInput,
+  VarshaphalReport,
+  KalsarpReport,
+  SpecialLagnasReport,
+  KalsarpInput,
+  SpecialLagnasInput,
+  ChakraReport,
+  ChakraInput,
+  RashiFalReport,
+  RashiFalInput,
 } from "./types";
 
 const getApiBaseUrl = (): string => {
@@ -506,4 +516,150 @@ export async function fetchRemedies(
   return json.data;
 }
 
+export async function fetchVarshaphal(
+  input: VarshaphalInput
+): Promise<VarshaphalReport> {
+  const baseUrl = getApiBaseUrl();
+  const res = await fetch(`${baseUrl}/varshaphal`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      year: input.year,
+      month: input.month,
+      day: input.day,
+      hour: input.hour,
+      minute: input.minute,
+      second: input.second || 0,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      timezone: input.timezone,
+      place_name: input.place_name,
+      target_year: input.target_year ?? null,
+      ayanamsa: input.ayanamsa || "jhora_lahiri",
+      house_system: input.house_system || "WholeSign",
+    }),
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to calculate Varshaphal: ${res.statusText}`);
+  }
+  const json = await res.json();
+  return json.data;
+}
 
+export async function fetchKalsarp(
+  input: KalsarpInput
+): Promise<KalsarpReport> {
+  const baseUrl = getApiBaseUrl();
+  const res = await fetch(`${baseUrl}/kalsarp`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      year: input.year,
+      month: input.month,
+      day: input.day,
+      hour: input.hour,
+      minute: input.minute,
+      second: input.second || 0,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      timezone: input.timezone,
+      place_name: input.place_name,
+      ayanamsa: input.ayanamsa || "jhora_lahiri",
+      house_system: input.house_system || "WholeSign",
+    }),
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to calculate Kalsarp: ${res.statusText}`);
+  }
+  const json = await res.json();
+  return json.data;
+}
+
+export async function fetchSpecialLagnas(
+  input: SpecialLagnasInput
+): Promise<SpecialLagnasReport> {
+  const baseUrl = getApiBaseUrl();
+  const res = await fetch(`${baseUrl}/special-lagnas`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      year: input.year,
+      month: input.month,
+      day: input.day,
+      hour: input.hour,
+      minute: input.minute,
+      second: input.second || 0,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      timezone: input.timezone,
+      place_name: input.place_name,
+      ayanamsa: input.ayanamsa || "jhora_lahiri",
+      house_system: input.house_system || "WholeSign",
+    }),
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to calculate special lagnas: ${res.statusText}`);
+  }
+  const json = await res.json();
+  return json.data;
+}
+
+export async function fetchChakra(
+  input: ChakraInput
+): Promise<ChakraReport> {
+  const baseUrl = getApiBaseUrl();
+  const res = await fetch(`${baseUrl}/chakra`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      year: input.year,
+      month: input.month,
+      day: input.day,
+      hour: input.hour,
+      minute: input.minute,
+      second: input.second || 0,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      timezone: input.timezone,
+      place_name: input.place_name,
+      ayanamsa: input.ayanamsa || "jhora_lahiri",
+      house_system: input.house_system || "WholeSign",
+    }),
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to calculate chakra: ${res.statusText}`);
+  }
+  const json = await res.json();
+  return json.data;
+}
+
+export async function fetchRashiFal(
+  input: RashiFalInput
+): Promise<RashiFalReport> {
+  const baseUrl = getApiBaseUrl();
+  const res = await fetch(`${baseUrl}/rashi-fal`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      year: input.year,
+      month: input.month,
+      day: input.day,
+      hour: input.hour,
+      minute: input.minute,
+      second: input.second || 0,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      timezone: input.timezone,
+      place_name: input.place_name,
+      period: input.period || "daily",
+      reference_date: input.reference_date ?? null,
+      ayanamsa: input.ayanamsa || "jhora_lahiri",
+      house_system: input.house_system || "WholeSign",
+    }),
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to calculate Rashi Fal: ${res.statusText}`);
+  }
+  const json = await res.json();
+  return json.data;
+}

@@ -184,3 +184,99 @@ export const ConsultationIcon: React.FC<IconProps> = ({ size = 22, ...props }) =
     <polygon points="12,8.5 13,11 15.5,12 13,13 12,15.5 11,13 8.5,12 11,11" fill="currentColor" />
   </svg>
 );
+
+/** 9. Varshaphal / Barsha Fal (Annual Solar Return — Sun with Orbit Ring) */
+export const VarshaphalIcon: React.FC<IconProps> = ({ size = 22, ...props }) => (
+  <svg
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.85"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <circle cx="12" cy="12" r="3.5" stroke="currentColor" />
+    <path d="M12 2 v3 M12 19 v3 M4.93 4.93 l2.12 2.12 M16.95 16.95 l2.12 2.12 M2 12 h3 M19 12 h3 M4.93 19.07 l2.12 -2.12 M16.95 7.05 l2.12 -2.12" stroke="currentColor" />
+  </svg>
+);
+
+/** 10. Kalsarp Dosha (Rahu–Ketu Serpent Axis) */
+export const KalsarpIcon: React.FC<IconProps> = ({ size = 22, ...props }) => (
+  <svg
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.85"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M2 12 C6 7 18 7 22 12 C18 17 6 17 2 12 Z" stroke="currentColor" />
+    <path d="M12 2 v5 M12 19 v5 M4.93 4.93 l2.12 2.12 M16.95 16.95 l2.12 2.12" stroke="currentColor" />
+    <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+  </svg>
+);
+
+/** 11. Special Lagnas (Multiple Ascendant Points — Jewel Crown) */
+export const SpecialLagnasIcon: React.FC<IconProps> = ({ size = 22, ...props }) => (
+  <svg
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.85"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <circle cx="12" cy="12" r="7" stroke="currentColor" />
+    <path d="M12 5 v2 M12 17 v2 M5 12 h2 M17 12 h2" stroke="currentColor" />
+    <path d="M6.34 6.34 l1.41 1.41 M16.24 16.24 l1.41 1.41 M6.34 17.66 l1.41 -1.41 M16.24 7.76 l1.41 -1.41" stroke="currentColor" />
+    <circle cx="12" cy="12" r="1" fill="currentColor" />
+  </svg>
+);
+
+/** 12. Chakra Systems (Navatara / Compound / Ghati — Concentric Wheels) */
+export const ChakraIcon: React.FC<IconProps> = ({ size = 22, ...props }) => (
+  <svg
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.85"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <circle cx="12" cy="12" r="9" stroke="currentColor" />
+    <circle cx="12" cy="12" r="5" stroke="currentColor" strokeDasharray="4 4" />
+    <path d="M12 3 v2 M12 19 v2 M3 12 h2 M19 12 h2" stroke="currentColor" />
+    <circle cx="12" cy="12" r="1" fill="currentColor" />
+  </svg>
+);
+
+/** 13. Rashi Fal / Moon-sign Horoscope (Chandra Lagna — Crescent Moon) */
+export const RashiFalIcon: React.FC<IconProps> = ({ size = 22, ...props }) => (
+  <svg
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.85"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M12 2 C7 2 3 6 3 12 S7 22 12 22 C17 22 21 18 21 12 S17 2 12 2 Z" stroke="currentColor" />
+    <path d="M9 12 A3 3 0 0 1 15 12 A3 3 0 0 1 9 12 Z" fill="currentColor" />
+    <circle cx="12" cy="12" r="1" fill="currentColor" />
+  </svg>
+);

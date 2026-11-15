@@ -430,3 +430,252 @@ export interface RemediesReport {
   lal_kitab_precautions: string[];
 }
 
+export interface SahamInfo {
+  name: string;
+  meaning: string;
+  longitude: number;
+  sign: string;
+  degree_in_sign: number;
+  house: number;
+  formula: string;
+}
+
+export interface MonthPrediction {
+  month: number;
+  month_name: string;
+  lord: string;
+  theme: string;
+  weekday: string;
+}
+
+export interface MunthaInfo {
+  completed_years: number;
+  sign: string;
+  degree_in_sign: number;
+  longitude: number;
+  house: number;
+  lord: string;
+}
+
+export interface VarsheshwaraInfo {
+  planet: string;
+  rationale: string;
+  score: number;
+  dignity: string;
+  house: number;
+  sign: string;
+}
+
+export interface VarshaphalChartSnapshot {
+  ascendant: string;
+  asc_degree: number;
+  planets: {
+    name: string;
+    sign: string;
+    degree: number;
+    house: number;
+    retrograde: boolean;
+    dignity: string | null;
+  }[];
+  houses: {
+    house: number;
+    sign: string;
+    degree: number;
+  }[];
+}
+
+export interface VarshaphalReport {
+  success: boolean;
+  birth_year: number;
+  target_year: number;
+  completed_years: number;
+  solar_return_local: string;
+  solar_return_utc: string;
+  muntha: MunthaInfo;
+  varsheshwara: VarsheshwaraInfo;
+  sahams: SahamInfo[];
+  month_lords: MonthPrediction[];
+  varshaphal_chart: VarshaphalChartSnapshot;
+  summary: string;
+}
+
+export interface VarshaphalInput {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  second?: number;
+  latitude: number;
+  longitude: number;
+  timezone: string;
+  place_name?: string;
+  target_year?: number;
+  ayanamsa?: string;
+  house_system?: string;
+}
+
+export interface KalsarpPlanetStatus {
+  name: string;
+  sign: string;
+  house: number;
+  degree_in_sign: number;
+  longitude: number;
+  within_axis: boolean;
+}
+
+export interface KalsarpReport {
+  success: boolean;
+  has_kalsarp: boolean;
+  classification: string;
+  rahu_house: number;
+  ketu_house: number;
+  kalsarp_type: string | null;
+  kalsarp_type_description: string | null;
+  rahu_sign: string | null;
+  ketu_sign: string | null;
+  axis_arc_degrees: number | null;
+  planets_within_axis: number;
+  total_classical_planets: number;
+  planet_status: KalsarpPlanetStatus[];
+  summary: string;
+}
+
+export interface SpecialLagna {
+  name: string;
+  sign: string;
+  house: number;
+  degree_in_sign: number;
+  longitude: number;
+  lord: string;
+  rationale: string;
+}
+
+export interface SpecialLagnasReport {
+  success: boolean;
+  lagnas: SpecialLagna[];
+  notes: string[];
+}
+
+export interface KalsarpInput {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  second?: number;
+  latitude: number;
+  longitude: number;
+  timezone: string;
+  place_name?: string;
+  ayanamsa?: string;
+  house_system?: string;
+}
+
+export interface SpecialLagnasInput {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  second?: number;
+  latitude: number;
+  longitude: number;
+  timezone: string;
+  place_name?: string;
+  ayanamsa?: string;
+  house_system?: string;
+}
+
+export interface NavataraEntry {
+  planet: string;
+  nakshatra: string;
+  nakshatra_index: number;
+  count_from_janma: number;
+  tara: string;
+  nature: string;
+}
+
+export interface CompoundPair {
+  planet_a: string;
+  planet_b: string;
+  natural: string;
+  temporary: string;
+  compound: string;
+}
+
+export interface GhatiHouse {
+  house: number;
+  ruler: string;
+  sign: string;
+}
+
+export interface ChakraReport {
+  success: boolean;
+  navatara: NavataraEntry[];
+  compound_relationships: CompoundPair[];
+  ghatchakra: GhatiHouse[];
+  janma_nakshatra: string;
+  janma_tara_lord_planet: string | null;
+  summary: string;
+}
+
+export interface ChakraInput {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  second?: number;
+  latitude: number;
+  longitude: number;
+  timezone: string;
+  place_name?: string;
+  ayanamsa?: string;
+  house_system?: string;
+}
+
+export interface GrahaResult {
+  planet: string;
+  sign: string;
+  house_from_moon: number;
+  degree_in_sign: number;
+  retrograde: boolean;
+  favourable: boolean;
+  verdict: string;
+}
+
+export interface RashiFalReport {
+  success: boolean;
+  period: string;
+  period_label: string;
+  reference_date: string;
+  moon_sign: string;
+  moon_nakshatra: string | null;
+  moon_house_from_self: number;
+  overall_verdict: string;
+  overall_score: number;
+  graha_results: GrahaResult[];
+  double_transit_houses: number[];
+  sade_sati_active: boolean;
+  sade_sati_phase: string | null;
+  master_synthesis: string;
+}
+
+export interface RashiFalInput {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  second?: number;
+  latitude: number;
+  longitude: number;
+  timezone: string;
+  place_name?: string;
+  period?: string;
+  reference_date?: string;
+  ayanamsa?: string;
+  house_system?: string;
+}
+
