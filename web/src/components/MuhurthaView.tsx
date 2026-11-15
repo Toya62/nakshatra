@@ -14,6 +14,7 @@ import {
 import { BirthDataInput, MuhurthaReport } from "@/lib/types";
 import { fetchMuhurtha } from "@/lib/api";
 import { DEFAULT_LOCATION } from "@/config/defaults";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Props {
   defaultLat?: number;
@@ -26,6 +27,7 @@ export const MuhurthaView: React.FC<Props> = ({
   defaultLon = DEFAULT_LOCATION.lon || 77.209,
   defaultTz = DEFAULT_LOCATION.tz || "Asia/Kolkata",
 }) => {
+  const { t, lang, num } = useLanguage();
   const [input, setInput] = useState<BirthDataInput>({
     year: 2026,
     month: 10,
@@ -99,13 +101,11 @@ export const MuhurthaView: React.FC<Props> = ({
              <Sun size={18} color="var(--gold-bright)" />
            </div>
            <h2 className="title-serif gold-gradient-text" style={{ fontSize: "1.4rem", fontWeight: 700 }}>
-             Vedic Muhurtha & Planetary Election
+             {t.muhurtha.title}
            </h2>
          </div>
           <p style={{ color: "var(--text-muted)", fontSize: "var(--type-body)", maxWidth: "860px", lineHeight: 1.5 }}>
-           Real-time electional astrology calculating 24 Chaldean Planetary Horas, 16 Choghadiyas,
-           solar culmination (Abhijit & Brahma Muhurthas), Rahu Kalam afflictions, and classical Siddhi Yogas
-           for decision-making and enterprise ventures.
+           {t.muhurtha.subtitle}
          </p>
        </div>
 
@@ -114,7 +114,7 @@ export const MuhurthaView: React.FC<Props> = ({
          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "var(--space-3)", alignItems: "flex-end" }}>
             <div>
               <label style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block", marginBottom: "var(--space-0-5)" }}>
-                Date
+                {t.birthForm.dob}
               </label>
               <input
                 type="date"
@@ -129,7 +129,7 @@ export const MuhurthaView: React.FC<Props> = ({
 
             <div>
               <label style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block", marginBottom: "var(--space-0-5)" }}>
-                Time
+                {t.birthForm.tob}
               </label>
               <input
                 type="time"
@@ -144,7 +144,7 @@ export const MuhurthaView: React.FC<Props> = ({
 
             <div>
               <label style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block", marginBottom: "var(--space-0-5)" }}>
-                Latitude
+                {t.birthForm.latitude}
               </label>
               <input
                 type="number"
@@ -157,7 +157,7 @@ export const MuhurthaView: React.FC<Props> = ({
 
             <div>
               <label style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block", marginBottom: "var(--space-0-5)" }}>
-                Longitude
+                {t.birthForm.longitude}
               </label>
               <input
                 type="number"
@@ -170,7 +170,7 @@ export const MuhurthaView: React.FC<Props> = ({
 
             <div>
               <label style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block", marginBottom: "var(--space-0-5)" }}>
-                Timezone
+                {t.birthForm.timezone}
               </label>
               <input
                 type="text"
@@ -191,7 +191,7 @@ export const MuhurthaView: React.FC<Props> = ({
               }}
             >
               <Calendar size={15} />
-              {loading ? "Evaluating..." : "Evaluate"}
+              {loading ? (lang === "ne" ? "मुहूर्त मूल्याङ्कन गरिँदैछ..." : "Evaluating...") : (lang === "ne" ? "मुहूर्त मूल्याङ्कन गर्नुहोस्" : "Evaluate")}
             </button>
         </div>
       </form>
@@ -237,9 +237,9 @@ export const MuhurthaView: React.FC<Props> = ({
                          : "var(--rose)",
                   }}
                 >
-                  {report.muhurtha_score}
+                  {num(report.muhurtha_score)}
                 </span>
-                <span style={{ fontSize: "1.2rem", color: "var(--text-muted)", fontWeight: 600 }}>/ 100</span>
+                <span style={{ fontSize: "1.2rem", color: "var(--text-muted)", fontWeight: 600 }}>/ {num(100)}</span>
                  <span
                    className={`badge ${
                      report.muhurtha_score >= 70
@@ -260,10 +260,10 @@ export const MuhurthaView: React.FC<Props> = ({
 
              <div style={{ display: "flex", gap: "var(--space-4-5)", color: "var(--text-muted)", fontSize: "0.82rem" }}>
               <div>
-                 <span style={{ color: "var(--amber)", fontWeight: 600 }}>Sunrise:</span> {report.sunrise_time}
+                 <span style={{ color: "var(--amber)", fontWeight: 600 }}>{t.panchanga.sunrise}:</span> {report.sunrise_time}
               </div>
               <div>
-                <span style={{ color: "var(--rose)", fontWeight: 600 }}>Sunset:</span> {report.sunset_time}
+                <span style={{ color: "var(--rose)", fontWeight: 600 }}>{t.panchanga.sunset}:</span> {report.sunset_time}
               </div>
             </div>
           </div>
@@ -273,40 +273,40 @@ export const MuhurthaView: React.FC<Props> = ({
              <div className="card" style={{ padding: "var(--space-5)", borderLeft: "var(--border-width-4) solid var(--amber)" }}>
                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-2)" }}>
                  <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                   Active Planetary Hora
+                   {lang === "ne" ? "सक्रिय ग्रह होरा" : "Active Planetary Hora"}
                  </span>
                  <span className={`badge ${report.current_hora.nature === "Benefic" ? "badge-emerald" : "badge-rose"}`}>
                    {report.current_hora.nature}
                  </span>
                </div>
                <h3 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--text-bright)", marginBottom: "var(--space-0-5)" }}>
-                 {report.current_hora.ruling_planet} Hora
+                 {lang === "ne" ? (t.planets.names[report.current_hora.ruling_planet as keyof typeof t.planets.names] || report.current_hora.ruling_planet) : report.current_hora.ruling_planet} {lang === "ne" ? "होरा" : "Hora"}
                </h3>
                <p style={{ fontSize: "0.82rem", color: "var(--amber)", marginBottom: "var(--space-2-5)" }}>
                  {report.current_hora.start_time} - {report.current_hora.end_time} ({report.current_hora.period_type})
                </p>
               <p style={{ fontSize: "0.84rem", color: "var(--text-muted)", lineHeight: 1.4 }}>
-                <strong>Recommended:</strong> {report.current_hora.recommended_activities}
+                <strong>{lang === "ne" ? "सिफारिस गरिएका कार्यहरू:" : "Recommended:"}</strong> {report.current_hora.recommended_activities}
               </p>
             </div>
 
              <div className="card" style={{ padding: "var(--space-5)", borderLeft: "var(--border-width-4) solid var(--cyan-vivid)" }}>
                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-2)" }}>
                  <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                   Active Choghadiya
+                   {lang === "ne" ? "सक्रिय चौघडिया" : "Active Choghadiya"}
                  </span>
                  <span className={`badge ${report.current_choghadiya.score >= 70 ? "badge-emerald" : "badge-rose"}`}>
                    {report.current_choghadiya.nature}
                  </span>
                </div>
                <h3 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--text-bright)", marginBottom: "var(--space-0-5)" }}>
-                 {report.current_choghadiya.name} Choghadiya
+                 {report.current_choghadiya.name} {lang === "ne" ? "चौघडिया" : "Choghadiya"}
                </h3>
                <p style={{ fontSize: "0.82rem", color: "var(--cyan-vivid)", marginBottom: "var(--space-2-5)" }}>
                  {report.current_choghadiya.start_time} - {report.current_choghadiya.end_time} ({report.current_choghadiya.period_type})
                </p>
               <p style={{ fontSize: "0.84rem", color: "var(--text-muted)", lineHeight: 1.4 }}>
-                Ruler: <strong>{report.current_choghadiya.ruler}</strong> | Quality Score: <strong>{report.current_choghadiya.score}/100</strong>
+                {lang === "ne" ? "स्वामी:" : "Ruler:"} <strong>{report.current_choghadiya.ruler}</strong> | {lang === "ne" ? "गुणस्तर अङ्क:" : "Quality Score:"} <strong>{num(report.current_choghadiya.score)}/{num(100)}</strong>
               </p>
             </div>
           </div>
@@ -314,16 +314,16 @@ export const MuhurthaView: React.FC<Props> = ({
            {/* Enterprise Suitability Matrix */}
            <div className="card" style={{ padding: "var(--space-5)" }}>
              <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--text-bright)", marginBottom: "var(--space-4)" }}>
-               Enterprise Suitability Checklist
+               {lang === "ne" ? "कार्य अनुकूलता परीक्षण सूची" : "Enterprise Suitability Checklist"}
              </h3>
              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "var(--space-2)" }}>
               {[
-                { label: "Business Contracts", ok: report.suitability.business_contract, icon: Briefcase },
-                { label: "Financial Investment", ok: report.suitability.financial_investment, icon: DollarSign },
-                { label: "Travel & Relocation", ok: report.suitability.travel, icon: Plane },
-                { label: "Marriage Ceremonies", ok: report.suitability.marriage, icon: Heart },
-                { label: "Real Estate Acquisition", ok: report.suitability.property_purchase, icon: Home },
-                { label: "Medical Treatments", ok: report.suitability.medical_treatment, icon: Activity },
+                { label: lang === "ne" ? "व्यापार सम्झौता" : "Business Contracts", ok: report.suitability.business_contract, icon: Briefcase },
+                { label: lang === "ne" ? "आर्थिक लगानी" : "Financial Investment", ok: report.suitability.financial_investment, icon: DollarSign },
+                { label: lang === "ne" ? "यात्रा तथा स्थानान्तरण" : "Travel & Relocation", ok: report.suitability.travel, icon: Plane },
+                { label: lang === "ne" ? "विवाह संस्कार" : "Marriage Ceremonies", ok: report.suitability.marriage, icon: Heart },
+                { label: lang === "ne" ? "घरजग्गा खरिद" : "Real Estate Acquisition", ok: report.suitability.property_purchase, icon: Home },
+                { label: lang === "ne" ? "चिकित्सा तथा उपचार" : "Medical Treatments", ok: report.suitability.medical_treatment, icon: Activity },
               ].map((item) => {
                 const Icon = item.icon;
                  return (
@@ -345,7 +345,7 @@ export const MuhurthaView: React.FC<Props> = ({
                         {item.label}
                       </div>
                        <div style={{ fontSize: "var(--type-micro)", color: item.ok ? "var(--emerald)" : "var(--rose)", fontWeight: 600 }}>
-                         {item.ok ? "Favorable" : "Avoid"}
+                         {item.ok ? (lang === "ne" ? "शुभ (अनुकूल)" : "Favorable") : (lang === "ne" ? "त्याज्य (वर्जित)" : "Avoid")}
                        </div>
                     </div>
                   </div>
@@ -357,14 +357,16 @@ export const MuhurthaView: React.FC<Props> = ({
            {/* Special Timing Windows & Alerts */}
            <div className="card" style={{ padding: "var(--space-5)" }}>
              <h3 style={{ fontSize: "var(--type-section)", fontWeight: 700, color: "var(--text-bright)", marginBottom: "var(--space-4)" }}>
-               Auspicious &amp; Inauspicious Timing Windows
+               {t.muhurtha.auspiciousTimings}
              </h3>
              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "var(--space-3-5)" }}>
                {/* Abhijit Muhurtha */}
                <div style={{ padding: "var(--space-3-5)", borderRadius: "var(--radius-md)", background: "rgba(229,185,76,0.05)", border: "var(--border-width) solid rgba(229,185,76,0.2)" }}>
                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-0-5)" }}>
-                    <span style={{ fontWeight: 600, color: "var(--amber)", fontSize: "var(--type-body)" }}>Abhijit Muhurtha</span>
-                   {report.abhijit_muhurtha.is_active && <span className="badge badge-emerald">ACTIVE NOW</span>}
+                    <span style={{ fontWeight: 600, color: "var(--amber)", fontSize: "var(--type-body)" }}>
+                      {lang === "ne" ? "अभिजित मुहूर्त (परम शुभ)" : "Abhijit Muhurtha"}
+                    </span>
+                   {report.abhijit_muhurtha.is_active && <span className="badge badge-emerald">{lang === "ne" ? "अहिले सक्रिय" : "ACTIVE NOW"}</span>}
                  </div>
                 <div style={{ fontSize: "var(--type-small)", color: "var(--text-bright)" }}>
                   {report.abhijit_muhurtha.start_time} - {report.abhijit_muhurtha.end_time}
@@ -377,8 +379,10 @@ export const MuhurthaView: React.FC<Props> = ({
                {/* Brahma Muhurtha */}
                <div style={{ padding: "var(--space-3-5)", borderRadius: "var(--radius-md)", background: "rgba(56,189,248,0.05)", border: "var(--border-width) solid rgba(56,189,248,0.2)" }}>
                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-0-5)" }}>
-                    <span style={{ fontWeight: 600, color: "var(--cyan-vivid)", fontSize: "var(--type-body)" }}>Brahma Muhurtha</span>
-                   {report.brahma_muhurtha.is_active && <span className="badge badge-cyan">ACTIVE NOW</span>}
+                    <span style={{ fontWeight: 600, color: "var(--cyan-vivid)", fontSize: "var(--type-body)" }}>
+                      {lang === "ne" ? "ब्रह्म मुहूर्त (साधना/आरम्भ)" : "Brahma Muhurtha"}
+                    </span>
+                   {report.brahma_muhurtha.is_active && <span className="badge badge-cyan">{lang === "ne" ? "अहिले सक्रिय" : "ACTIVE NOW"}</span>}
                  </div>
                 <div style={{ fontSize: "var(--type-small)", color: "var(--text-bright)" }}>
                   {report.brahma_muhurtha.start_time} - {report.brahma_muhurtha.end_time}
@@ -391,8 +395,10 @@ export const MuhurthaView: React.FC<Props> = ({
                {/* Rahu Kalam */}
                <div style={{ padding: "var(--space-3-5)", borderRadius: "var(--radius-md)", background: "rgba(244,63,94,0.05)", border: "var(--border-width) solid rgba(244,63,94,0.2)" }}>
                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-0-5)" }}>
-                    <span style={{ fontWeight: 600, color: "var(--rose)", fontSize: "var(--type-body)" }}>Rahu Kalam (Avoid)</span>
-                   {report.rahu_kalam.is_active && <span className="badge badge-rose">ALERT: ACTIVE</span>}
+                    <span style={{ fontWeight: 600, color: "var(--rose)", fontSize: "var(--type-body)" }}>
+                      {lang === "ne" ? "राहु काल (सर्वथा त्याज्य)" : "Rahu Kalam (Avoid)"}
+                    </span>
+                   {report.rahu_kalam.is_active && <span className="badge badge-rose">{lang === "ne" ? "सचेत: अहिले सक्रिय" : "ALERT: ACTIVE"}</span>}
                  </div>
                 <div style={{ fontSize: "var(--type-small)", color: "var(--text-bright)" }}>
                   {report.rahu_kalam.start_time} - {report.rahu_kalam.end_time}
@@ -405,8 +411,10 @@ export const MuhurthaView: React.FC<Props> = ({
                {/* Yamaganda */}
                <div style={{ padding: "var(--space-3-5)", borderRadius: "var(--radius-md)", background: "var(--bg-subtle)", border: "var(--border-width) solid var(--border-subtle)" }}>
                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-0-5)" }}>
-                   <span style={{ fontWeight: 600, color: "var(--text-bright)", fontSize: "var(--type-body)" }}>Yamaganda (Avoid)</span>
-                   {report.yamaganda.is_active && <span className="badge badge-rose">ACTIVE</span>}
+                   <span style={{ fontWeight: 600, color: "var(--text-bright)", fontSize: "var(--type-body)" }}>
+                     {lang === "ne" ? "यमघण्ट काल (वर्जित)" : "Yamaganda (Avoid)"}
+                   </span>
+                   {report.yamaganda.is_active && <span className="badge badge-rose">{lang === "ne" ? "सक्रिय" : "ACTIVE"}</span>}
                  </div>
                 <div style={{ fontSize: "var(--type-small)", color: "var(--text-bright)" }}>
                   {report.yamaganda.start_time} - {report.yamaganda.end_time}
@@ -422,7 +430,7 @@ export const MuhurthaView: React.FC<Props> = ({
            <div className="card" style={{ padding: "var(--space-5)" }}>
              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-4)" }}>
               <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--text-bright)" }}>
-                Complete Day Timeline
+                {lang === "ne" ? "सम्पूर्ण दिनको काल-चक्र" : "Complete Day Timeline"}
               </h3>
                <div style={{ display: "flex", gap: "var(--space-1-5)" }}>
                  <button
@@ -434,7 +442,7 @@ export const MuhurthaView: React.FC<Props> = ({
                      background: timelineTab === "horas" ? "var(--gold-dim)" : "transparent",
                    }}
                 >
-                  Planetary Horas (24)
+                  {lang === "ne" ? "ग्रह होरा चक्र (२४)" : "Planetary Horas (24)"}
                 </button>
                  <button
                    onClick={() => setTimelineTab("choghadiyas")}
@@ -445,7 +453,7 @@ export const MuhurthaView: React.FC<Props> = ({
                      background: timelineTab === "choghadiyas" ? "var(--gold-dim)" : "transparent",
                    }}
                 >
-                  Choghadiya Cycles (16)
+                  {lang === "ne" ? "चौघडिया चक्र (१६)" : "Choghadiya Cycles (16)"}
                 </button>
               </div>
             </div>

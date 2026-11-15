@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { BirthDataInput, RemediesReport, PlanetRemedy } from "@/lib/types";
 import { fetchRemedies } from "@/lib/api";
 import { EmptyState } from "./EmptyState";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   ShieldCheck,
   Sparkles,
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
+  const { t, lang, num } = useLanguage();
   const [report, setReport] = useState<RemediesReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -113,24 +115,24 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
             <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
               <ShieldCheck size={22} color="var(--gold-vivid)" aria-hidden="true" />
               <h2 style={{ fontSize: "var(--type-title)", fontWeight: 700, color: "var(--text-high)" }}>
-                Vedic &amp; Lal Kitab Remedies
+                {t.remedies.title}
               </h2>
             </div>
              <p style={{ fontSize: "var(--type-small)", color: "var(--text-mid)", marginTop: "var(--space-1)" }}>
-              Dual-system karmic rectifications: Classical Parashari Mantras, Gemstones, and Dāna paired with Lal Kitab household Upayas and precautions.
+              {t.remedies.subtitle}
             </p>
           </div>
 
           {/* Quick status pills */}
           <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap", alignItems: "center" }}>
              <span className="chip" style={{ fontSize: "var(--type-micro)" }}>
-               Lagna: <strong style={{ color: "var(--gold-vivid)", marginLeft: "var(--space-0-5)" }}>{report.natal_lagna}</strong>
+               {lang === "ne" ? "लग्न:" : "Lagna:"} <strong style={{ color: "var(--gold-vivid)", marginLeft: "var(--space-0-5)" }}>{report.natal_lagna}</strong>
              </span>
              <span className="chip" style={{ fontSize: "var(--type-micro)" }}>
-               Moon: <strong style={{ color: "var(--cyan-vivid)", marginLeft: "var(--space-0-5)" }}>{report.natal_moon}</strong>
+               {lang === "ne" ? "चन्द्र:" : "Moon:"} <strong style={{ color: "var(--cyan-vivid)", marginLeft: "var(--space-0-5)" }}>{report.natal_moon}</strong>
              </span>
              <span className="chip" style={{ fontSize: "var(--type-micro)" }}>
-               Dasha: <strong style={{ color: "var(--gold-vivid)", marginLeft: "var(--space-0-5)" }}>{report.active_dasha}</strong>
+               {lang === "ne" ? "दशा:" : "Dasha:"} <strong style={{ color: "var(--gold-vivid)", marginLeft: "var(--space-0-5)" }}>{report.active_dasha}</strong>
              </span>
           </div>
         </div>
@@ -151,8 +153,8 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
               >
                 <AlertTriangle size={18} color="var(--amber)" flex-shrink={0} />
                 <div style={{ fontSize: "var(--type-small)", color: "var(--text-high)" }}>
-                  <strong style={{ color: "var(--amber)" }}>Saturn Gochar Notice: </strong>
-                 <span>{report.sade_sati_status}. Special Saturday Chhaya Dāna and black dog seva recommended below.</span>
+                  <strong style={{ color: "var(--amber)" }}>{lang === "ne" ? "शनि गोचर सूचना: " : "Saturn Gochar Notice: "}</strong>
+                 <span>{report.sade_sati_status}. {lang === "ne" ? "विशेष शनिबार छाया दान तथा कालो कुकुरको सेवा सिफारिस गरिएको छ।" : "Special Saturday Chhaya Dāna and black dog seva recommended below."}</span>
                </div>
              </div>
            )}
@@ -174,11 +176,11 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
           <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
             <Flame size={17} color="var(--gold-vivid)" />
             <h3 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-              Lal Kitab Golden Rules &amp; Strict Precautions
+              {lang === "ne" ? "लाल किताबका स्वर्णिम नियम तथा कडा सावधानीहरू" : "Lal Kitab Golden Rules & Strict Precautions"}
             </h3>
           </div>
           <button type="button" className="chip" style={{ fontSize: "var(--type-micro)" }}>
-            {showPrecautions ? "Collapse" : "Show Rules"}
+            {showPrecautions ? (lang === "ne" ? "सङ्कुचित गर्नुहोस्" : "Collapse") : (lang === "ne" ? "नियमहरू हेर्नुहोस्" : "Show Rules")}
           </button>
         </div>
 
@@ -212,7 +214,7 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
           className={`chip${filter === "all" ? " active" : ""}`}
           style={{ fontSize: "var(--type-micro)" }}
         >
-          All Afflicted Grahas ({report.total_afflictions})
+          {lang === "ne" ? `सबै पीडित ग्रहहरू (${num(report.total_afflictions)})` : `All Afflicted Grahas (${report.total_afflictions})`}
         </button>
         <button
           type="button"
@@ -220,7 +222,7 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
           className={`chip${filter === "high" ? " active" : ""}`}
           style={{ fontSize: "var(--type-micro)" }}
         >
-          High Severity Priority ({highSeverityCount})
+          {lang === "ne" ? `उच्च प्राथमिकता (${num(highSeverityCount)})` : `High Severity Priority (${highSeverityCount})`}
         </button>
         <button
           type="button"
@@ -228,7 +230,7 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
           className={`chip${filter === "parashari" ? " active" : ""}`}
           style={{ fontSize: "var(--type-micro)" }}
         >
-          Parashari Focus (Mantras &amp; Gems)
+          {lang === "ne" ? "पाराशरी (मन्त्र, रत्न, दान)" : "Parashari Focus (Mantras & Gems)"}
         </button>
         <button
           type="button"
@@ -236,7 +238,7 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
           className={`chip${filter === "lalkitab" ? " active" : ""}`}
           style={{ fontSize: "var(--type-micro)" }}
         >
-          Lal Kitab Focus (Upayas &amp; Animal Seva)
+          {lang === "ne" ? "लाल किताब (घरेलु उपाय तथा सेवा)" : "Lal Kitab Focus (Upayas & Animal Seva)"}
         </button>
       </div>
 
@@ -263,7 +265,7 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
                     <h3 style={{ fontSize: "var(--type-heading)", fontWeight: 700, color: "var(--gold-vivid)" }}>
-                      {p.planet} in House {p.house} ({p.sign})
+                      {lang === "ne" ? (t.planets.names[p.planet as keyof typeof t.planets.names] || p.planet) : p.planet} {lang === "ne" ? `भाव ${num(p.house)} मा` : `in House ${p.house}`} ({lang === "ne" ? (t.zodiac.signs[p.sign as keyof typeof t.zodiac.signs] || p.sign) : p.sign})
                     </h3>
                      <span
                        style={{
@@ -276,10 +278,10 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
                          border: `1px solid ${isHigh ? "var(--rose)" : isMod ? "var(--amber)" : "var(--cyan-vivid)"}`,
                        }}
                      >
-                       {p.severity} Severity
+                       {isHigh ? (lang === "ne" ? "उच्च तीव्रता" : "High Severity") : isMod ? (lang === "ne" ? "मध्यम तीव्रता" : "Moderate Severity") : (lang === "ne" ? "सामान्य तीव्रता" : "Low Severity")}
                      </span>
                      <span className="chip" style={{ fontSize: "var(--type-micro)", padding: "0 var(--space-2)" }}>
-                      Dignity: {p.dignity}
+                      {lang === "ne" ? "स्थिति:" : "Dignity:"} {p.dignity}
                     </span>
                   </div>
 
@@ -318,7 +320,7 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
                   style={{ fontSize: "var(--type-micro)", flexShrink: 0 }}
                 >
                   <Sparkles size={12} color="var(--gold-vivid)" aria-hidden="true" />
-                  <span>Consult AI on {p.planet}</span>
+                  <span>{lang === "ne" ? `${t.planets.names[p.planet as keyof typeof t.planets.names] || p.planet} बारे AI परामर्श` : `Consult AI on ${p.planet}`}</span>
                 </button>
               </div>
 
@@ -351,7 +353,7 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
                      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", borderBottom: "1px solid var(--gold-border)", paddingBottom: "var(--space-2)" }}>
                       <Compass size={15} color="var(--gold-vivid)" />
                       <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                        Classical Parashari Prescription
+                        {lang === "ne" ? "शास्त्रीय पाराशरी विधान (मन्त्र/रत्न/दान)" : "Classical Parashari Prescription"}
                       </h4>
                     </div>
 
@@ -423,7 +425,7 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
                      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", borderBottom: "1px solid var(--cyan-border)", paddingBottom: "var(--space-2)" }}>
                       <ShieldCheck size={15} color="var(--cyan-vivid)" />
                       <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--cyan-vivid)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                        Authentic Lal Kitab Upaya
+                        {lang === "ne" ? "प्रमाणित लाल किताब घरेलु उपाय" : "Authentic Lal Kitab Upaya"}
                       </h4>
                     </div>
 

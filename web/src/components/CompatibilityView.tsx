@@ -15,6 +15,7 @@ import {
 import { BirthDataInput, CompatibilityReport } from "@/lib/types";
 import { fetchCompatibility } from "@/lib/api";
 import { DEFAULT_LOCATION } from "@/config/defaults";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Props {
   defaultBride?: BirthDataInput;
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export const CompatibilityView: React.FC<Props> = ({ defaultBride, defaultGroom }) => {
+  const { t, lang, num } = useLanguage();
   const [brideData, setBrideData] = useState<BirthDataInput>(
     defaultBride || {
       year: 1997,
@@ -110,13 +112,11 @@ Recommendation: ${report.recommendation}
             <Heart size={20} color="#ffffff" />
           </div>
           <h2 className="title-serif gold-gradient-text" style={{ fontSize: "1.4rem", fontWeight: 700 }}>
-            Ashtakoota Kundali Matching & Kuja Dosha
+            {t.compatibility.title}
           </h2>
         </div>
         <p style={{ color: "var(--text-muted)", fontSize: "0.88rem", maxWidth: "860px", lineHeight: 1.5 }}>
-          Deterministic 36-point relationship compatibility engine based on Brihat Parashara Hora Shastra,
-          Muhurtha Chintamani, and VedAstro canons. Computes all 8 Kutas, dosha cancellations, extended Rajju/Vedha pairs,
-          and Mars afflictions from Lagna, Moon, and Venus.
+          {t.compatibility.subtitle}
         </p>
       </div>
 
@@ -126,12 +126,12 @@ Recommendation: ${report.recommendation}
           {/* Bride Card */}
           <div className="card" style={{ padding: "20px" }}>
             <h3 style={{ fontSize: "1.05rem", color: "var(--rose)", fontWeight: 700, marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
-              <span>Bride&apos;s Profile (Kanya)</span>
+              <span>{t.compatibility.bride}</span>
             </h3>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
               <div style={{ gridColumn: "span 2" }}>
                 <label style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>
-                  Name
+                  {lang === "ne" ? "नाम" : "Name"}
                 </label>
                 <input
                   type="text"
@@ -142,7 +142,7 @@ Recommendation: ${report.recommendation}
               </div>
               <div>
                 <label style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>
-                  Date of Birth
+                  {t.birthForm.dob}
                 </label>
                 <input
                   type="date"
@@ -156,7 +156,7 @@ Recommendation: ${report.recommendation}
               </div>
               <div>
                 <label style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>
-                  Time of Birth
+                  {t.birthForm.tob}
                 </label>
                 <input
                   type="time"
@@ -171,7 +171,7 @@ Recommendation: ${report.recommendation}
               </div>
               <div>
                 <label style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>
-                  Latitude
+                  {t.birthForm.latitude}
                 </label>
                 <input
                   type="number"
@@ -183,7 +183,7 @@ Recommendation: ${report.recommendation}
               </div>
               <div>
                 <label style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>
-                  Longitude
+                  {t.birthForm.longitude}
                 </label>
                 <input
                   type="number"
@@ -195,7 +195,7 @@ Recommendation: ${report.recommendation}
               </div>
               <div style={{ gridColumn: "span 2" }}>
                 <label style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>
-                  Timezone (IANA)
+                  {t.birthForm.timezone}
                 </label>
                 <input
                   type="text"
@@ -210,12 +210,12 @@ Recommendation: ${report.recommendation}
           {/* Groom Card */}
           <div className="card" style={{ padding: "20px" }}>
             <h3 style={{ fontSize: "1.05rem", color: "var(--cyan-vivid)", fontWeight: 700, marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
-              <span>Groom&apos;s Profile (Vara)</span>
+              <span>{t.compatibility.groom}</span>
             </h3>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
               <div style={{ gridColumn: "span 2" }}>
                 <label style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>
-                  Name
+                  {lang === "ne" ? "नाम" : "Name"}
                 </label>
                 <input
                   type="text"
@@ -226,7 +226,7 @@ Recommendation: ${report.recommendation}
               </div>
               <div>
                 <label style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>
-                  Date of Birth
+                  {t.birthForm.dob}
                 </label>
                 <input
                   type="date"
@@ -240,7 +240,7 @@ Recommendation: ${report.recommendation}
               </div>
               <div>
                 <label style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>
-                  Time of Birth
+                  {t.birthForm.tob}
                 </label>
                 <input
                   type="time"
@@ -255,7 +255,7 @@ Recommendation: ${report.recommendation}
               </div>
               <div>
                 <label style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>
-                  Latitude
+                  {t.birthForm.latitude}
                 </label>
                 <input
                   type="number"
@@ -267,7 +267,7 @@ Recommendation: ${report.recommendation}
               </div>
               <div>
                 <label style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>
-                  Longitude
+                  {t.birthForm.longitude}
                 </label>
                 <input
                   type="number"
@@ -279,7 +279,7 @@ Recommendation: ${report.recommendation}
               </div>
               <div style={{ gridColumn: "span 2" }}>
                 <label style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>
-                  Timezone (IANA)
+                  {t.birthForm.timezone}
                 </label>
                 <input
                   type="text"
@@ -309,7 +309,7 @@ Recommendation: ${report.recommendation}
           }}
         >
           <Sparkles size={18} />
-          {loading ? "Calculating Match..." : "Calculate Ashtakoota Match"}
+          {loading ? (lang === "ne" ? "गणना गरिँदैछ..." : "Calculating Match...") : (lang === "ne" ? "अष्टकूट गुण मिलान गणना गर्नुहोस्" : "Calculate Ashtakoota Match")}
         </button>
       </form>
 
@@ -355,9 +355,11 @@ Recommendation: ${report.recommendation}
                         : "var(--rose)",
                   }}
                 >
-                  {report.ashtakoota.total_score}
+                  {num(report.ashtakoota.total_score)}
                 </span>
-                <span style={{ fontSize: "1.2rem", color: "var(--text-muted)", fontWeight: 600 }}>/ 36.0 Gunas</span>
+                <span style={{ fontSize: "1.2rem", color: "var(--text-muted)", fontWeight: 600 }}>
+                  / {num(36.0)} {lang === "ne" ? "गुण" : "Gunas"}
+                </span>
                 <span
                   className={`badge ${
                     report.ashtakoota.verdict === "Uttama"
@@ -368,7 +370,9 @@ Recommendation: ${report.recommendation}
                   }`}
                   style={{ fontSize: "0.85rem", padding: "4px 12px" }}
                 >
-                  {report.ashtakoota.verdict} ({report.ashtakoota.percentage}%)
+                  {lang === "ne"
+                    ? (report.ashtakoota.verdict === "Uttama" ? "उत्तम" : report.ashtakoota.verdict === "Madhyama" ? "मध्यम" : "अधम")
+                    : report.ashtakoota.verdict} ({num(report.ashtakoota.percentage)}%)
                 </span>
               </div>
               <p style={{ color: "var(--text-bright)", fontSize: "0.92rem", fontWeight: 500 }}>
@@ -383,7 +387,7 @@ Recommendation: ${report.recommendation}
                 style={{ fontSize: "0.85rem" }}
               >
                 <Copy size={14} />
-                {copied ? "Copied!" : "Copy Report"}
+                {copied ? (lang === "ne" ? "कपी भयो!" : "Copied!") : (lang === "ne" ? "विवरण कपी" : "Copy Report")}
               </button>
             </div>
           </div>
@@ -392,19 +396,19 @@ Recommendation: ${report.recommendation}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: "18px" }}>
             <div className="card" style={{ padding: "18px" }}>
               <h4 style={{ color: "var(--rose)", fontSize: "0.95rem", fontWeight: 700, marginBottom: "8px" }}>
-                {report.bride_name} (Bride)
+                {report.bride_name} ({t.compatibility.bride})
               </h4>
               <p style={{ fontSize: "0.88rem", color: "var(--text-bright)" }}>
-                Moon in <strong>{report.bride_moon_sign}</strong> | Nakshatra: <strong>{report.bride_nakshatra}</strong> (Pada {report.bride_pada})
+                {lang === "ne" ? "चन्द्र राशि:" : "Moon in"} <strong>{lang === "ne" ? (t.zodiac.signs[report.bride_moon_sign as keyof typeof t.zodiac.signs] || report.bride_moon_sign) : report.bride_moon_sign}</strong> | {lang === "ne" ? "नक्षत्र:" : "Nakshatra:"} <strong>{report.bride_nakshatra}</strong> ({lang === "ne" ? "पाद" : "Pada"} {num(report.bride_pada)})
               </p>
             </div>
 
             <div className="card" style={{ padding: "18px" }}>
               <h4 style={{ color: "var(--cyan-vivid)", fontSize: "0.95rem", fontWeight: 700, marginBottom: "8px" }}>
-                {report.groom_name} (Groom)
+                {report.groom_name} ({t.compatibility.groom})
               </h4>
               <p style={{ fontSize: "0.88rem", color: "var(--text-bright)" }}>
-                Moon in <strong>{report.groom_moon_sign}</strong> | Nakshatra: <strong>{report.groom_nakshatra}</strong> (Pada {report.groom_pada})
+                {lang === "ne" ? "चन्द्र राशि:" : "Moon in"} <strong>{lang === "ne" ? (t.zodiac.signs[report.groom_moon_sign as keyof typeof t.zodiac.signs] || report.groom_moon_sign) : report.groom_moon_sign}</strong> | {lang === "ne" ? "नक्षत्र:" : "Nakshatra:"} <strong>{report.groom_nakshatra}</strong> ({lang === "ne" ? "पाद" : "Pada"} {num(report.groom_pada)})
               </p>
             </div>
           </div>
@@ -412,18 +416,18 @@ Recommendation: ${report.recommendation}
           {/* 8 Ashtakoota Breakdown Table */}
           <div className="card" style={{ padding: "20px" }}>
             <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "16px", color: "var(--text-bright)" }}>
-              Ashtakoota Factor Breakdown (8 Pillars)
+              {t.compatibility.ashtakootaMilan}
             </h3>
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.88rem" }}>
                 <thead>
                   <tr style={{ borderBottom: "1px solid var(--border-subtle)", textAlign: "left", color: "var(--text-muted)" }}>
-                    <th style={{ padding: "10px 12px" }}>Koota</th>
-                    <th style={{ padding: "10px 12px" }}>Points</th>
-                    <th style={{ padding: "10px 12px" }}>Bride Value</th>
-                    <th style={{ padding: "10px 12px" }}>Groom Value</th>
-                    <th style={{ padding: "10px 12px" }}>Status</th>
-                    <th style={{ padding: "10px 12px" }}>Analysis</th>
+                    <th style={{ padding: "10px 12px" }}>{lang === "ne" ? "कूट" : "Koota"}</th>
+                    <th style={{ padding: "10px 12px" }}>{lang === "ne" ? "प्राप्ताङ्क" : "Points"}</th>
+                    <th style={{ padding: "10px 12px" }}>{lang === "ne" ? "वधू मान" : "Bride Value"}</th>
+                    <th style={{ padding: "10px 12px" }}>{lang === "ne" ? "वर मान" : "Groom Value"}</th>
+                    <th style={{ padding: "10px 12px" }}>{lang === "ne" ? "स्थिति" : "Status"}</th>
+                    <th style={{ padding: "10px 12px" }}>{lang === "ne" ? "व्याख्या" : "Analysis"}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -441,24 +445,24 @@ Recommendation: ${report.recommendation}
                       <td style={{ padding: "12px", fontWeight: 600, color: "var(--text-bright)" }}>{k.name}</td>
                       <td style={{ padding: "12px" }}>
                         <span style={{ fontWeight: 700, color: k.obtained_score > 0 ? "var(--gold-vivid)" : "var(--rose)" }}>
-                          {k.obtained_score}
+                          {num(k.obtained_score)}
                         </span>
-                        <span style={{ color: "var(--text-dim)", fontSize: "0.8rem" }}> / {k.max_score}</span>
+                        <span style={{ color: "var(--text-dim)", fontSize: "0.8rem" }}> / {num(k.max_score)}</span>
                       </td>
                       <td style={{ padding: "12px", color: "var(--rose)", fontWeight: 500 }}>{k.bride_val}</td>
                       <td style={{ padding: "12px", color: "var(--cyan-vivid)", fontWeight: 500 }}>{k.groom_val}</td>
                       <td style={{ padding: "12px" }}>
                         {k.is_favorable ? (
                           <span className="badge badge-emerald" style={{ gap: "4px" }}>
-                            <CheckCircle2 size={12} /> Pass
+                            <CheckCircle2 size={12} /> {lang === "ne" ? "शुभ (पास)" : "Pass"}
                           </span>
                         ) : k.cancelled ? (
                           <span className="badge badge-gold" style={{ gap: "4px" }}>
-                            <ShieldCheck size={12} /> Cancelled
+                            <ShieldCheck size={12} /> {lang === "ne" ? "दोष परिहार" : "Cancelled"}
                           </span>
                         ) : (
                           <span className="badge badge-rose" style={{ gap: "4px" }}>
-                            <XCircle size={12} /> Afflicted
+                            <XCircle size={12} /> {lang === "ne" ? "दोषयुक्त" : "Afflicted"}
                           </span>
                         )}
                       </td>
@@ -475,7 +479,7 @@ Recommendation: ${report.recommendation}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
               <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-bright)", display: "flex", alignItems: "center", gap: "8px" }}>
                 <ShieldCheck size={18} color="var(--gold-vivid)" />
-                <span>Kuja Dosha (Manglik) Evaluation</span>
+                <span>{t.compatibility.manglikCheck}</span>
               </h3>
               <span
                 className={`badge ${
@@ -492,25 +496,29 @@ Recommendation: ${report.recommendation}
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: "16px" }}>
               <div style={{ padding: "14px", borderRadius: "10px", background: "var(--rose-dim)", border: "1px solid var(--border-subtle)" }}>
-                <div style={{ fontWeight: 600, color: "var(--rose)", marginBottom: "4px" }}>Bride Kuja Dosha</div>
+                <div style={{ fontWeight: 600, color: "var(--rose)", marginBottom: "4px" }}>
+                  {lang === "ne" ? "वधू माङ्गलिक विचार" : "Bride Kuja Dosha"}
+                </div>
                 <div style={{ fontSize: "0.88rem", color: "var(--text-bright)" }}>
-                  Severity: <strong>{report.kuja_dosha.bride.severity}</strong> (Cancelled: {report.kuja_dosha.bride.is_cancelled ? "Yes" : "No"})
+                  {lang === "ne" ? "तीव्रता:" : "Severity:"} <strong>{report.kuja_dosha.bride.severity}</strong> ({lang === "ne" ? "परिहार:" : "Cancelled:"} {report.kuja_dosha.bride.is_cancelled ? (lang === "ne" ? "भएको" : "Yes") : (lang === "ne" ? "नभएको" : "No")})
                 </div>
                 {report.kuja_dosha.bride.cancellations.length > 0 && (
                   <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginTop: "6px" }}>
-                    Cancellations: {report.kuja_dosha.bride.cancellations.join(", ")}
+                    {lang === "ne" ? "परिहार सूत्र:" : "Cancellations:"} {report.kuja_dosha.bride.cancellations.join(", ")}
                   </div>
                 )}
               </div>
 
               <div style={{ padding: "14px", borderRadius: "10px", background: "var(--cyan-dim)", border: "1px solid var(--cyan-border)" }}>
-                <div style={{ fontWeight: 600, color: "var(--cyan-vivid)", marginBottom: "4px" }}>Groom Kuja Dosha</div>
+                <div style={{ fontWeight: 600, color: "var(--cyan-vivid)", marginBottom: "4px" }}>
+                  {lang === "ne" ? "वर माङ्गलिक विचार" : "Groom Kuja Dosha"}
+                </div>
                 <div style={{ fontSize: "0.88rem", color: "var(--text-bright)" }}>
-                  Severity: <strong>{report.kuja_dosha.groom.severity}</strong> (Cancelled: {report.kuja_dosha.groom.is_cancelled ? "Yes" : "No"})
+                  {lang === "ne" ? "तीव्रता:" : "Severity:"} <strong>{report.kuja_dosha.groom.severity}</strong> ({lang === "ne" ? "परिहार:" : "Cancelled:"} {report.kuja_dosha.groom.is_cancelled ? (lang === "ne" ? "भएको" : "Yes") : (lang === "ne" ? "नभएको" : "No")})
                 </div>
                 {report.kuja_dosha.groom.cancellations.length > 0 && (
                   <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginTop: "6px" }}>
-                    Cancellations: {report.kuja_dosha.groom.cancellations.join(", ")}
+                    {lang === "ne" ? "परिहार सूत्र:" : "Cancellations:"} {report.kuja_dosha.groom.cancellations.join(", ")}
                   </div>
                 )}
               </div>
@@ -534,7 +542,7 @@ Recommendation: ${report.recommendation}
                 fontSize: "0.95rem",
               }}
             >
-              <span>Extended Classical Kutas (Mahendra, Stree Deergha, Rajju, Vedha)</span>
+              <span>{lang === "ne" ? "थप शास्त्रीय कूटहरू (महेन्द्र, स्त्री दीर्घ, रज्जु, वेध)" : "Extended Classical Kutas (Mahendra, Stree Deergha, Rajju, Vedha)"}</span>
               {showExtended ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
             </button>
 
@@ -585,7 +593,7 @@ Recommendation: ${report.recommendation}
             <Sparkles size={24} color="var(--gold-vivid)" />
             <div>
               <div style={{ fontWeight: 700, color: "var(--gold-vivid)", fontSize: "0.98rem", marginBottom: "2px" }}>
-                Final Astrological Recommendation
+                {t.compatibility.verdictTitle}
               </div>
               <div style={{ fontSize: "0.9rem", color: "var(--text-bright)" }}>
                 {report.recommendation}
