@@ -500,7 +500,16 @@ class LLMSynthesizer(BaseSynthesizer):
 
     def _complete(self, prompt: str, system_prompt: str = SYSTEM_PROMPT) -> str:
         if self.provider in ("openai", "ollama"):
-            return self._complete_openai(prompt, system_prompt=system_prompt)
+            try:
+                return self._complete_openai(prompt, system_prompt=system_prompt)
+            except Exception as e:
+                google_key = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")
+                if google_key:
+                    try:
+                        return self._complete_google(prompt, system_prompt=system_prompt)
+                    except Exception:
+                        pass
+                raise e
         if self.provider == "google":
             return self._complete_google(prompt, system_prompt=system_prompt)
         raise ValueError(f"Unknown LLM provider: {self.provider}")
@@ -532,6 +541,7 @@ class LLMSynthesizer(BaseSynthesizer):
             self._client = OpenAI(
                 api_key=api_key,
                 base_url=base_url,
+                timeout=15.0,
             )
         return self._client
 
@@ -544,6 +554,7 @@ class LLMSynthesizer(BaseSynthesizer):
                 {"role": "user", "content": prompt},
             ],
             temperature=0.3,
+            timeout=15.0,
         )
         return str(response.choices[0].message.content)
 
@@ -634,6 +645,7 @@ class LLMSynthesizer(BaseSynthesizer):
             ],
             temperature=0.3,
             stream=True,
+            timeout=15.0,
         )
         for chunk in response:
             if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
