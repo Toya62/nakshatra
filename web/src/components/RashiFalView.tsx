@@ -142,7 +142,7 @@ export const RashiFalView: React.FC<Props> = ({ birth }: Props) => {
               Chandra Lagna: {report.moon_sign} {report.moon_nakshatra ? `(${report.moon_nakshatra})` : ""}. Reference: {report.reference_date}.
             </p>
           </div>
-          <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center", flexWrap: "wrap" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-1)" }}>
               <label style={{ fontSize: "var(--type-label)", color: "var(--text-low)", textTransform: "uppercase" }}>Period</label>
               <div style={{ display: "flex", gap: "var(--space-1)" }}>
@@ -278,7 +278,7 @@ export const RashiFalView: React.FC<Props> = ({ birth }: Props) => {
               <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--emerald)", textTransform: "uppercase", margin: 0 }}>Supportive Transits</h4>
             </div>
             <div style={{ color: "var(--text-mid)", fontSize: "var(--type-small)", lineHeight: 1.6 }}>
-              {favourable.map((g) => `${g.planet} (House {g.house_from_moon})`).join("; ")} — these areas flower this period.
+              {favourable.map((g) => `${g.planet} (House ${g.house_from_moon})`).join("; ")} — these areas flower this period.
             </div>
           </div>
         )}
@@ -289,7 +289,7 @@ export const RashiFalView: React.FC<Props> = ({ birth }: Props) => {
               <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--rose)", textTransform: "uppercase", margin: 0 }}>Watchful Transits</h4>
             </div>
             <div style={{ color: "var(--text-mid)", fontSize: "var(--type-small)", lineHeight: 1.6 }}>
-              {challenging.map((g) => `${g.planet} (House {g.house_from_moon})`).join("; ")} — exercise restraint here.
+              {challenging.map((g) => `${g.planet} (House ${g.house_from_moon})`).join("; ")} — exercise restraint here.
             </div>
           </div>
         )}

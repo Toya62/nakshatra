@@ -188,7 +188,7 @@ export const SpecialLagnasView: React.FC<Props> = ({ birth }: Props) => {
           <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase", margin: 0 }}>Master's Reading</h4>
         </div>
         <div style={{ color: "var(--text-high)", lineHeight: 1.7, fontSize: "var(--type-small)", whiteSpace: "pre-wrap" }}>
-          The special lagnas refine the natal reading: {report.lagnas.map((l) => `${l.name} in ${l.sign} (House {l.house}, lord {l.lord})`).join("; ")}. Use Arudha for
+          The special lagnas refine the natal reading: {report.lagnas.map((l) => `${l.name} in ${l.sign} (House ${l.house}, lord ${l.lord})`).join("; ")}. Use Arudha for
           public image, Upapada for marriage timing, Indu for wealth flowering, Bhrigu Bindu for karmic event
           triggers, Ghati for authority, Sri for dharma/fortune, and Karakamsha for the soul's direction.
           Transits and dasha operating on these points mature their promise.
