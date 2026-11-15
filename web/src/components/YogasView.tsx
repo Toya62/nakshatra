@@ -11,7 +11,7 @@ interface Props {
 }
 
 function YogaCard({ yoga }: { yoga: YogaResult }) {
-  const { lang, num } = useLanguage();
+  const { t, lang, num } = useLanguage();
   const [open, setOpen] = useState(false);
 
   return (
@@ -55,7 +55,7 @@ function YogaCard({ yoga }: { yoga: YogaResult }) {
             {yoga.name}
           </span>
           <span className="badge badge-cyan" style={{ fontSize: "var(--type-micro)", flexShrink: 0 }}>
-            {yoga.category}
+            {t.yogas.categories[yoga.category] || yoga.category}
           </span>
         </div>
         {open
@@ -87,7 +87,7 @@ function YogaCard({ yoga }: { yoga: YogaResult }) {
             <div style={{ display: "flex", gap: "var(--space-1)", flexWrap: "wrap", paddingTop: "var(--space-1)" }}>
               {yoga.planets_involved.map((p, i) => (
                 <span key={`p-${i}`} className="badge badge-gold" style={{ fontSize: "var(--type-micro)" }}>
-                  {p}
+                  {lang === "ne" ? (t.planets.names[p as keyof typeof t.planets.names] || p) : p}
                 </span>
               ))}
               {yoga.houses_involved.map((h, i) => (
@@ -104,7 +104,7 @@ function YogaCard({ yoga }: { yoga: YogaResult }) {
 }
 
 export const YogasView: React.FC<Props> = ({ birth }) => {
-  const { t, lang, num } = useLanguage();
+  const { t, num } = useLanguage();
   const [yogas, setYogas] = useState<YogaResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -128,12 +128,12 @@ export const YogasView: React.FC<Props> = ({ birth }) => {
           {t.nav.yogas}
           {!loading && yogas.length > 0 && (
             <span className="badge badge-gold" style={{ fontSize: "var(--type-micro)", marginLeft: "var(--space-2)" }}>
-              {num(yogas.length)} {lang === "ne" ? "योगहरू प्राप्त" : "found"}
+              {num(yogas.length)} {t.yogas.found}
             </span>
           )}
         </h4>
         <span className="badge badge-cyan" style={{ fontSize: "var(--type-micro)" }}>
-          Parashara Engine
+          {t.yogas.parasharaEngine}
         </span>
       </div>
 
@@ -149,14 +149,14 @@ export const YogasView: React.FC<Props> = ({ birth }) => {
       {/* Error */}
       {!loading && error && (
         <p style={{ fontSize: "var(--type-label)", color: "var(--rose)" }}>
-          Could not load yogas: {error}
+          {t.yogas.loadError}: {error}
         </p>
       )}
 
       {/* Empty */}
       {!loading && !error && yogas.length === 0 && (
         <p style={{ fontSize: "var(--type-label)", color: "var(--text-low)", textAlign: "center", padding: "var(--space-6) 0" }}>
-          No major classical yogas detected in this chart.
+          {t.yogas.noYogas}
         </p>
       )}
 

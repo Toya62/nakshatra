@@ -118,7 +118,7 @@ export const KalsarpView: React.FC<Props> = ({ birth }: Props) => {
       <div style={{ maxWidth: "var(--size-container)", margin: "0 auto", width: "100%", padding: "var(--space-6)" }}>
         <div className="card" style={{ padding: "var(--space-6)", borderColor: "var(--rose)" }}>
           <ShieldAlert size={24} color="var(--rose)" style={{ marginBottom: "var(--space-2)" }} />
-          <h3 style={{ color: "var(--rose)", fontSize: "var(--type-body)", fontWeight: 700 }}>Kalsarp Calculation Error</h3>
+          <h3 style={{ color: "var(--rose)", fontSize: "var(--type-body)", fontWeight: 700 }}>{t.kalsarp.calculationError}</h3>
           <p style={{ color: "var(--text-mid)", fontSize: "var(--type-small)" }}>{error || "Unable to analyze Kalsarp Dosha."}</p>
         </div>
       </div>

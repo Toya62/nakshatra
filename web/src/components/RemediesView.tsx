@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { BirthDataInput, RemediesReport, PlanetRemedy } from "@/lib/types";
+import { BirthDataInput, RemediesReport } from "@/lib/types";
 import { fetchRemedies } from "@/lib/api";
 import { EmptyState } from "./EmptyState";
 import { useLanguage } from "@/context/LanguageContext";
@@ -10,11 +10,7 @@ import {
   Sparkles,
   AlertTriangle,
   Flame,
-  Clock,
   Compass,
-  CheckCircle2,
-  Info,
-  ExternalLink,
 } from "lucide-react";
 
 interface Props {
@@ -63,8 +59,8 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
      return (
        <div style={{ maxWidth: "var(--size-container)", margin: "0 auto", width: "100%" }}>
          <EmptyState
-           title="Remedies & Upayas Calculation"
-           description="Enter your birth parameters to calculate tailored Parashari Mantras, Gemstones, Dāna, and authentic Lal Kitab household Upayas."
+           title={t.remedies.emptyTitle}
+           description={t.remedies.emptyDesc}
            icon={ShieldCheck}
          />
        </div>
@@ -76,9 +72,9 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
        <div style={{ maxWidth: "var(--size-container)", margin: "0 auto", width: "100%", padding: "var(--space-6)" }}>
          <div className="card" style={{ padding: "var(--space-8)", textAlign: "center" }}>
            <Sparkles size={28} color="var(--gold-vivid)" className="spin" style={{ margin: "0 auto var(--space-3)" }} />
-           <h3 style={{ fontSize: "var(--type-heading)", color: "var(--gold-vivid)" }}>Synthesizing Vedic & Lal Kitab Remedies...</h3>
+           <h3 style={{ fontSize: "var(--type-heading)", color: "var(--gold-vivid)" }}>{t.remedies.synthesizing}</h3>
            <p style={{ color: "var(--text-mid)", fontSize: "var(--type-small)", marginTop: "var(--space-1)" }}>
-             Evaluating afflicted grahas, dusthana placements, operating dasha lords, and Gochar transits.
+             {t.remedies.synthesizingDesc}
            </p>
          </div>
        </div>
@@ -90,7 +86,7 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
        <div style={{ maxWidth: "var(--size-container)", margin: "0 auto", width: "100%", padding: "var(--space-6)" }}>
          <div className="card" style={{ padding: "var(--space-6)", borderColor: "var(--rose)" }}>
            <AlertTriangle size={24} color="var(--rose)" style={{ marginBottom: "var(--space-2)" }} />
-           <h3 style={{ color: "var(--rose)", fontSize: "var(--type-body)", fontWeight: 700 }}>Remedies Calculation Error</h3>
+           <h3 style={{ color: "var(--rose)", fontSize: "var(--type-body)", fontWeight: 700 }}>{t.remedies.calculationError}</h3>
            <p style={{ color: "var(--text-mid)", fontSize: "var(--type-small)" }}>{error || "Unable to compute remedies."}</p>
          </div>
        </div>
@@ -176,31 +172,31 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
           <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
             <Flame size={17} color="var(--gold-vivid)" />
             <h3 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-              {lang === "ne" ? "लाल किताबका स्वर्णिम नियम तथा कडा सावधानीहरू" : "Lal Kitab Golden Rules & Strict Precautions"}
+              {t.remedies.goldenRules}
             </h3>
           </div>
           <button type="button" className="chip" style={{ fontSize: "var(--type-micro)" }}>
-            {showPrecautions ? (lang === "ne" ? "सङ्कुचित गर्नुहोस्" : "Collapse") : (lang === "ne" ? "नियमहरू हेर्नुहोस्" : "Show Rules")}
+            {showPrecautions ? t.remedies.collapse : t.remedies.showRules}
           </button>
         </div>
 
          {showPrecautions && (
            <div style={{ marginTop: "var(--space-3)", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(var(--size-xl), 1fr))", gap: "var(--space-3)", fontSize: "var(--type-micro)" }}>
               <div style={{ background: "var(--bg-input)", padding: "var(--space-2) var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
-                <strong style={{ color: "var(--gold-vivid)", display: "block", marginBottom: "var(--space-0-5)" }}>☀️ Daytime Rule (Surya Prakash):</strong>
-                <span style={{ color: "var(--text-mid)" }}>All Lal Kitab Upayas must be performed between sunrise and sunset; night-time remedies are forbidden and can trigger reverse affliction.</span>
+                <strong style={{ color: "var(--gold-vivid)", display: "block", marginBottom: "var(--space-0-5)" }}>{t.remedies.daytimeRuleTitle}</strong>
+                <span style={{ color: "var(--text-mid)" }}>{t.remedies.daytimeRuleDesc}</span>
               </div>
               <div style={{ background: "var(--bg-input)", padding: "var(--space-2) var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
-                <strong style={{ color: "var(--gold-vivid)", display: "block", marginBottom: "var(--space-0-5)" }}>⏳ 43-Day Uninterrupted Count:</strong>
-                <span style={{ color: "var(--text-mid)" }}>Perform only one planetary remedy at a time for 40 to 43 consecutive days without missing a single day. If broken, restart from day 1.</span>
+                <strong style={{ color: "var(--gold-vivid)", display: "block", marginBottom: "var(--space-0-5)" }}>{t.remedies.count43Title}</strong>
+                <span style={{ color: "var(--text-mid)" }}>{t.remedies.count43Desc}</span>
               </div>
               <div style={{ background: "var(--bg-input)", padding: "var(--space-2) var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
-                <strong style={{ color: "var(--rose)", display: "block", marginBottom: "var(--space-0-5)" }}>🚫 Never Remedy Exalted Grahas:</strong>
-                <span style={{ color: "var(--text-mid)" }}>Never perform remedies or donate articles for a planet in its own sign or exalted sign; doing so destroys its auspicious protection.</span>
+                <strong style={{ color: "var(--rose)", display: "block", marginBottom: "var(--space-0-5)" }}>{t.remedies.exaltedRuleTitle}</strong>
+                <span style={{ color: "var(--text-mid)" }}>{t.remedies.exaltedRuleDesc}</span>
               </div>
               <div style={{ background: "var(--bg-input)", padding: "var(--space-2) var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
-                <strong style={{ color: "var(--cyan-vivid)", display: "block", marginBottom: "var(--space-0-5)" }}>🧹 Clean Rooftops (Rahu Shanti):</strong>
-                <span style={{ color: "var(--text-mid)" }}>Never keep unserviceable electrical scrap, fused bulbs, rusted iron, or broken furniture on the roof or under staircases.</span>
+                <strong style={{ color: "var(--cyan-vivid)", display: "block", marginBottom: "var(--space-0-5)" }}>{t.remedies.cleanRooftopsTitle}</strong>
+                <span style={{ color: "var(--text-mid)" }}>{t.remedies.cleanRooftopsDesc}</span>
               </div>
           </div>
         )}
@@ -214,7 +210,7 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
           className={`chip${filter === "all" ? " active" : ""}`}
           style={{ fontSize: "var(--type-micro)" }}
         >
-          {lang === "ne" ? `सबै पीडित ग्रहहरू (${num(report.total_afflictions)})` : `All Afflicted Grahas (${report.total_afflictions})`}
+          {`${t.remedies.filterAll} (${num(report.total_afflictions)})`}
         </button>
         <button
           type="button"
@@ -222,7 +218,7 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
           className={`chip${filter === "high" ? " active" : ""}`}
           style={{ fontSize: "var(--type-micro)" }}
         >
-          {lang === "ne" ? `उच्च प्राथमिकता (${num(highSeverityCount)})` : `High Severity Priority (${highSeverityCount})`}
+          {`${t.remedies.filterHigh} (${num(highSeverityCount)})`}
         </button>
         <button
           type="button"
@@ -230,7 +226,7 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
           className={`chip${filter === "parashari" ? " active" : ""}`}
           style={{ fontSize: "var(--type-micro)" }}
         >
-          {lang === "ne" ? "पाराशरी (मन्त्र, रत्न, दान)" : "Parashari Focus (Mantras & Gems)"}
+          {t.remedies.filterParashari}
         </button>
         <button
           type="button"
@@ -238,7 +234,7 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
           className={`chip${filter === "lalkitab" ? " active" : ""}`}
           style={{ fontSize: "var(--type-micro)" }}
         >
-          {lang === "ne" ? "लाल किताब (घरेलु उपाय तथा सेवा)" : "Lal Kitab Focus (Upayas & Animal Seva)"}
+          {t.remedies.filterLalKitab}
         </button>
       </div>
 
@@ -448,7 +444,7 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
                      </div>
 
                      <div>
-                       <span style={{ fontSize: "var(--type-micro)", color: "var(--text-low)", textTransform: "uppercase" }}>Creature &amp; Animal Seva:</span>
+                       <span style={{ fontSize: "var(--type-micro)", color: "var(--text-low)", textTransform: "uppercase" }}>{t.remedies.creatureService}</span>
                        <div style={{ background: "var(--bg-input)", padding: "var(--space-1) var(--space-2)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
                          <p style={{ fontSize: "var(--type-small)", color: "var(--emerald)", marginTop: "var(--space-0)", fontWeight: 500 }}>
                            🐾 {p.lal_kitab.creature_service}
@@ -468,7 +464,7 @@ export const RemediesView: React.FC<Props> = ({ birth, onConsultClick }) => {
                      >
                         <div style={{ display: "flex", alignItems: "center", gap: "var(--space-1-5)", marginBottom: "var(--space-1-5)" }}>
                           <AlertTriangle size={14} color="var(--rose)" />
-                          <strong style={{ fontSize: "var(--type-small)", color: "var(--rose)", textTransform: "uppercase" }}>Strict Lal Kitab Precautions (Savdhanis):</strong>
+                          <strong style={{ fontSize: "var(--type-small)", color: "var(--rose)", textTransform: "uppercase" }}>{t.remedies.strictPrecautions}</strong>
                         </div>
                        <ul style={{ paddingLeft: "var(--space-4-5)", margin: 0, fontSize: "var(--type-small)", color: "var(--text-high)", lineHeight: 1.5 }}>
                         {p.lal_kitab.forbidden_actions.map((act, aIdx) => (

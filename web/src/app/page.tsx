@@ -19,6 +19,7 @@ import { KalsarpView } from "@/components/KalsarpView";
 import { SpecialLagnasView } from "@/components/SpecialLagnasView";
 import { ChakraView } from "@/components/ChakraView";
 import { RashiFalView } from "@/components/RashiFalView";
+import { AshtakavargaView } from "@/components/AshtakavargaView";
 import { BirthDataInput, ChartData, getBirthKey } from "@/lib/types";
 import { fetchChart, checkApiHealth } from "@/lib/api";
 import { Sparkles, Layers } from "lucide-react";
@@ -264,73 +265,78 @@ export default function Home() {
             )}
 
             {chartData && (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "minmax(0, 1.3fr) minmax(0, 1fr)",
-                  gap: "var(--space-6)",
-                }}
-                className="chart-grid"
-              >
-                {/* Visual Chart Card */}
-                <div className="card" style={{ padding: "var(--space-5)" }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      marginBottom: "var(--space-4)",
-                      flexWrap: "wrap",
-                      gap: "var(--space-3)",
-                    }}
-                  >
-                    {/* Section title */}
-                    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
-                      <span className="serif-section" style={{ fontSize: "1.05rem", color: "var(--gold-bright)", letterSpacing: "0.03em" }}>
-                        Kundali Chart
-                      </span>
-                    </div>
-
-                    {/* Varga chips (scrollable row for all 16 Shodashavargas) */}
+              <>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "minmax(0, 1.3fr) minmax(0, 1fr)",
+                    gap: "var(--space-6)",
+                  }}
+                  className="chart-grid"
+                >
+                  {/* Visual Chart Card */}
+                  <div className="card" style={{ padding: "var(--space-5)" }}>
                     <div
                       style={{
                         display: "flex",
+                        justifyContent: "space-between",
                         alignItems: "center",
-                        gap: "var(--space-1)",
-                        overflowX: "auto",
-                        maxWidth: "100%",
-                        width: "100%",
-                        minWidth: 0,
-                        paddingBottom: "2px",
-                        WebkitOverflowScrolling: "touch",
-                        scrollbarWidth: "none",
+                        marginBottom: "var(--space-4)",
+                        flexWrap: "wrap",
+                        gap: "var(--space-3)",
                       }}
-                      tabIndex={0}
-                      aria-label="Divisional chart selector"
                     >
-                      <Layers size={13} color="var(--text-low)" aria-hidden="true" style={{ flexShrink: 0, marginRight: "2px" }} />
-                      {VARGAS.map((v) => (
-                        <button
-                          key={v}
-                          onClick={() => handleVargaChange(v)}
-                          className={`chip${selectedVarga === v ? " active" : ""}`}
-                          aria-pressed={selectedVarga === v}
-                        >
-                          {v}
-                        </button>
-                      ))}
+                      {/* Section title */}
+                      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+                        <span className="serif-section" style={{ fontSize: "1.05rem", color: "var(--gold-bright)", letterSpacing: "0.03em" }}>
+                          Kundali Chart
+                        </span>
+                      </div>
+
+                      {/* Varga chips (scrollable row for all 16 Shodashavargas) */}
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "var(--space-1)",
+                          overflowX: "auto",
+                          maxWidth: "100%",
+                          width: "100%",
+                          minWidth: 0,
+                          paddingBottom: "2px",
+                          WebkitOverflowScrolling: "touch",
+                          scrollbarWidth: "none",
+                        }}
+                        tabIndex={0}
+                        aria-label="Divisional chart selector"
+                      >
+                        <Layers size={13} color="var(--text-low)" aria-hidden="true" style={{ flexShrink: 0, marginRight: "2px" }} />
+                        {VARGAS.map((v) => (
+                          <button
+                            key={v}
+                            onClick={() => handleVargaChange(v)}
+                            className={`chip${selectedVarga === v ? " active" : ""}`}
+                            aria-pressed={selectedVarga === v}
+                          >
+                            {v}
+                          </button>
+                        ))}
+                      </div>
                     </div>
+
+                    <NorthIndianChart chart={chartData} varga={selectedVarga} size={500} />
                   </div>
 
-                  <NorthIndianChart chart={chartData} varga={selectedVarga} size={500} />
+                  {/* Data Rail */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
+                    <PlanetsTable chart={chartData} />
+                    <YogasView birth={birthData} />
+                  </div>
                 </div>
 
-                {/* Data Rail */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
-                  <PlanetsTable chart={chartData} />
-                  <YogasView birth={birthData} />
-                </div>
-              </div>
+                {/* Ashtakavarga Comprehensive System (SAV & BAV) */}
+                <AshtakavargaView ashtakavarga={chartData.ashtakavarga} />
+              </>
             )}
           </div>
         )}

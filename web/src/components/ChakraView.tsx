@@ -115,7 +115,7 @@ export const ChakraView: React.FC<Props> = ({ birth }: Props) => {
       <div style={{ maxWidth: "var(--size-container)", margin: "0 auto", width: "100%", padding: "var(--space-6)" }}>
         <div className="card" style={{ padding: "var(--space-6)", borderColor: "var(--rose)" }}>
           <ShieldAlert size={24} color="var(--rose)" style={{ marginBottom: "var(--space-2)" }} />
-          <h3 style={{ color: "var(--rose)", fontSize: "var(--type-body)", fontWeight: 700 }}>Chakra Calculation Error</h3>
+          <h3 style={{ color: "var(--rose)", fontSize: "var(--type-body)", fontWeight: 700 }}>{t.chakras.calculationError}</h3>
           <p style={{ color: "var(--text-mid)", fontSize: "var(--type-small)" }}>{error || "Unable to compute chakra systems."}</p>
         </div>
       </div>
@@ -162,11 +162,11 @@ export const ChakraView: React.FC<Props> = ({ birth }: Props) => {
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "var(--type-micro)" }}>
             <thead>
               <tr style={{ textAlign: "left", borderBottom: "1px solid var(--border-subtle)" }}>
-                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>Graha</th>
-                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>Nakshatra</th>
-                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>Count from Janma</th>
-                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>Tara</th>
-                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>Nature</th>
+                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>{t.chakras.tableGraha}</th>
+                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>{t.chakras.tableNakshatra}</th>
+                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>{t.chakras.tableCountFromJanma}</th>
+                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>{t.chakras.tableTara}</th>
+                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>{t.chakras.tableNature}</th>
               </tr>
             </thead>
             <tbody>
@@ -174,9 +174,11 @@ export const ChakraView: React.FC<Props> = ({ birth }: Props) => {
                 const s = TARA_STYLE[n.nature];
                 return (
                   <tr key={idx} style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-                    <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-high)", fontWeight: 600 }}>{n.planet}</td>
+                    <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-high)", fontWeight: 600 }}>
+                      {lang === "ne" ? (t.planets.names[n.planet as keyof typeof t.planets.names] || n.planet) : n.planet}
+                    </td>
                     <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-mid)" }}>{n.nakshatra}</td>
-                    <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-mid)", fontFamily: "var(--font-mono)" }}>{n.count_from_janma}</td>
+                    <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-mid)", fontFamily: "var(--font-mono)" }}>{num(n.count_from_janma)}</td>
                     <td style={{ padding: "var(--space-1) var(--space-2)", fontWeight: 600, color: s.color }}>{n.tara}</td>
                     <td style={{ padding: "var(--space-1) var(--space-2)" }}>
                       <span style={{ fontSize: "var(--type-label)", fontWeight: 600, padding: "1px 6px", borderRadius: "var(--radius-sm)", background: s.bg, color: s.color, border: `1px solid ${s.color}` }}>{n.nature}</span>
@@ -188,7 +190,7 @@ export const ChakraView: React.FC<Props> = ({ birth }: Props) => {
           </table>
         </div>
         <p style={{ fontSize: "var(--type-label)", color: "var(--text-low)", marginTop: "var(--space-2)", fontStyle: "italic" }}>
-          Good: Sampat, Kshema, Sadhaka, Mitra, Ati-Mitra &nbsp;•&nbsp; Bad: Janma, Vipat, Pratyari, Vadha.
+          {t.chakras.taraSummaryNote}
         </p>
       </div>
 
@@ -196,17 +198,17 @@ export const ChakraView: React.FC<Props> = ({ birth }: Props) => {
       <div className="card" style={{ padding: "var(--space-4) var(--space-5)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-3)" }}>
           <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase", margin: 0 }}>{t.chakras.compoundTitle}</h4>
-          <span style={{ fontSize: "var(--type-label)", color: "var(--text-low)" }}>{num(report.compound_relationships.length)} {lang === "ne" ? "जोडीहरू" : "pairs"}</span>
+          <span style={{ fontSize: "var(--type-label)", color: "var(--text-low)" }}>{num(report.compound_relationships.length)} {t.chakras.pairsCount}</span>
         </div>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "var(--type-micro)" }}>
             <thead>
               <tr style={{ textAlign: "left", borderBottom: "1px solid var(--border-subtle)" }}>
-                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>Planet A</th>
-                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>Planet B</th>
-                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>Natural</th>
-                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>Temporary</th>
-                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>Compound</th>
+                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>{t.chakras.tablePlanetA}</th>
+                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>{t.chakras.tablePlanetB}</th>
+                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>{t.chakras.tableNatural}</th>
+                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>{t.chakras.tableTemporary}</th>
+                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>{t.chakras.tableCompound}</th>
               </tr>
             </thead>
             <tbody>
@@ -214,8 +216,12 @@ export const ChakraView: React.FC<Props> = ({ birth }: Props) => {
                 const s = COMPOUND_STYLE[c.compound];
                 return (
                   <tr key={idx} style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-                    <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-high)", fontWeight: 600 }}>{c.planet_a}</td>
-                    <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-mid)" }}>{c.planet_b}</td>
+                    <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-high)", fontWeight: 600 }}>
+                      {lang === "ne" ? (t.planets.names[c.planet_a as keyof typeof t.planets.names] || c.planet_a) : c.planet_a}
+                    </td>
+                    <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-mid)" }}>
+                      {lang === "ne" ? (t.planets.names[c.planet_b as keyof typeof t.planets.names] || c.planet_b) : c.planet_b}
+                    </td>
                     <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-mid)" }}>{c.natural}</td>
                     <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-mid)" }}>{c.temporary}</td>
                     <td style={{ padding: "var(--space-1) var(--space-2)" }}>
@@ -228,7 +234,7 @@ export const ChakraView: React.FC<Props> = ({ birth }: Props) => {
           </table>
         </div>
         <p style={{ fontSize: "var(--type-label)", color: "var(--text-low)", marginTop: "var(--space-2)", fontStyle: "italic" }}>
-          Intimate Friend = natural friend + temporary friend &nbsp;•&nbsp; Bitter Enemy = natural enemy + temporary enemy.
+          {t.chakras.compoundSummaryNote}
         </p>
       </div>
 
@@ -236,7 +242,7 @@ export const ChakraView: React.FC<Props> = ({ birth }: Props) => {
       <div className="card" style={{ padding: "var(--space-4) var(--space-5)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-3)" }}>
           <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase", margin: 0 }}>{t.chakras.ghatchakraTitle}</h4>
-          <span style={{ fontSize: "var(--type-label)", color: "var(--text-low)" }}>{num(report.ghatchakra.length)} {lang === "ne" ? "भावहरू" : "houses"}</span>
+          <span style={{ fontSize: "var(--type-label)", color: "var(--text-low)" }}>{num(report.ghatchakra.length)} {t.chakras.housesCount}</span>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "var(--space-2)" }}>
           {report.ghatchakra.map((g: GhatiHouse, idx: number) => (
@@ -244,9 +250,9 @@ export const ChakraView: React.FC<Props> = ({ birth }: Props) => {
               key={idx}
               style={{ background: "var(--bg-subtle)", padding: "var(--space-2) var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)", textAlign: "center", fontSize: "var(--type-micro)" }}
             >
-              <div style={{ fontWeight: 600, color: "var(--text-low)", fontSize: "var(--type-label)", textTransform: "uppercase" }}>House {g.house}</div>
-              <div style={{ color: "var(--gold-vivid)", fontWeight: 700 }}>{g.sign}</div>
-              <div style={{ color: "var(--text-mid)", fontSize: "var(--type-label)" }}>Ruler: {g.ruler}</div>
+              <div style={{ fontWeight: 600, color: "var(--text-low)", fontSize: "var(--type-label)", textTransform: "uppercase" }}>{t.common.house} {num(g.house)}</div>
+              <div style={{ color: "var(--gold-vivid)", fontWeight: 700 }}>{lang === "ne" ? (t.zodiac.signs[g.sign as keyof typeof t.zodiac.signs] || g.sign) : g.sign}</div>
+              <div style={{ color: "var(--text-mid)", fontSize: "var(--type-label)" }}>{t.common.lord}: {lang === "ne" ? (t.planets.names[g.ruler as keyof typeof t.planets.names] || g.ruler) : g.ruler}</div>
             </div>
           ))}
         </div>

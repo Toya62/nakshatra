@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { BirthDataInput, ChartData, DashaPeriod, VimshottariData, BikramSambatDate, DevanagariNomenclature } from "@/lib/types";
+import { BirthDataInput, ChartData, DashaPeriod, BikramSambatDate, DevanagariNomenclature } from "@/lib/types";
 import { fetchBikramSambat, fetchNomenclature } from "@/lib/api";
-import { Clock, Calendar, Sparkles, AlertCircle, Compass, Shield, ChevronRight, Eye } from "lucide-react";
+import { Clock, Calendar, Sparkles, AlertCircle, Compass, Eye } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Props {
   birth: BirthDataInput;
@@ -30,7 +31,9 @@ const ZODIAC_SIGNS = [
 ];
 
 export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
+  const { t, lang, num } = useLanguage();
   const [useDevanagari, setUseDevanagari] = useState<boolean>(false);
+  const isDevanagari = lang === "ne" || useDevanagari;
   const [bsDate, setBsDate] = useState<BikramSambatDate | null>(null);
   const [nomenclature, setNomenclature] = useState<DevanagariNomenclature | null>(null);
   const [selectedMd, setSelectedMd] = useState<DashaPeriod | null>(null);
@@ -120,13 +123,8 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
 
   const translateGraha = (name: string): string => {
     const normalized = name === "North Node" ? "Rahu" : name === "South Node" ? "Ketu" : name;
-    if (!useDevanagari || !nomenclature?.planets) return normalized;
-    return nomenclature.planets[normalized] || nomenclature.planets[name] || normalized;
-  };
-
-  const translateSign = (name: string): string => {
-    if (!useDevanagari || !nomenclature?.signs) return name;
-    return nomenclature.signs[name] || name;
+    if (!isDevanagari) return normalized;
+    return t.planets.names[normalized as keyof typeof t.planets.names] || nomenclature?.planets?.[normalized] || nomenclature?.planets?.[name] || normalized;
   };
 
   return (
@@ -138,23 +136,24 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
             <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px" }}>
               <Clock size={22} color="var(--gold-vivid)" />
               <h2 className="title-serif gold-gradient-text" style={{ fontSize: "1.35rem", fontWeight: 700 }}>
-                Unified 120-Year Dasha & Gochar Life Timeline
+                {t.dasha.title}
               </h2>
             </div>
-            <p style={{ fontSize: "0.84rem", color: "var(--text-muted)" }}>
-              Astronomical Vimshottari progression mapped onto Gregorian & Nepali Bikram Sambat (BS) epochs.
+            <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginTop: "2px" }}>
+              {t.dasha.subtitle}
             </p>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
-            {/* Bikram Sambat Badge */}
+            {/* Bikram Sambat Date Pill */}
             {bsDate && (
               <div
+                className="badge badge-gold"
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "8px",
-                  padding: "6px 14px",
+                  gap: "6px",
+                  padding: "7px 14px",
                   borderRadius: "20px",
                   background: "var(--gold-dim)",
                   border: "1px solid var(--gold-border)",
@@ -164,14 +163,14 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
                 }}
               >
                 <Calendar size={14} color="var(--gold-vivid)" />
-                <span>BS: {useDevanagari ? bsDate.formatted_ne : bsDate.formatted}</span>
+                <span>वि.सं.: {isDevanagari ? bsDate.formatted_ne : bsDate.formatted}</span>
               </div>
             )}
 
             {/* Devanagari Sanskrit Toggle */}
             <button
               onClick={() => setUseDevanagari((prev) => !prev)}
-              className={`badge ${useDevanagari ? "badge-gold" : "badge-cyan"}`}
+              className={`badge ${isDevanagari ? "badge-gold" : "badge-cyan"}`}
               style={{
                 cursor: "pointer",
                 padding: "7px 14px",
@@ -179,12 +178,12 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
                 display: "flex",
                 alignItems: "center",
                 gap: "6px",
-                background: useDevanagari ? "var(--gold-dim)" : "var(--bg-subtle)",
+                background: isDevanagari ? "var(--gold-dim)" : "var(--bg-subtle)",
                 fontWeight: 600,
               }}
             >
               <Sparkles size={14} />
-              {useDevanagari ? "संस्कृत (Devanagari)" : "English / IAST"}
+              {isDevanagari ? "संस्कृत (Devanagari)" : "English / IAST"}
             </button>
 
             {/* Sade Sati Toggle */}
@@ -203,7 +202,7 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
               }}
             >
               <Compass size={14} />
-              {showSadeSati ? "Sade Sati: Visible" : "Sade Sati: Hidden"}
+              {showSadeSati ? t.dasha.sadeSatiToggleVisible : t.dasha.sadeSatiToggleHidden}
             </button>
           </div>
         </div>
@@ -235,23 +234,23 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
               }}
             />
             <span style={{ fontSize: "0.85rem", color: "var(--text-main)", fontWeight: 600 }}>
-              Current Age: <strong style={{ color: "var(--gold-bright)" }}>{currentAgeYears.toFixed(2)} years</strong>
+              {t.dasha.currentAge}: <strong style={{ color: "var(--gold-bright)" }}>{num(currentAgeYears.toFixed(2))} {t.dasha.years}</strong>
             </span>
           </div>
 
           {dashas?.current_md && (
             <div style={{ display: "flex", gap: "10px", fontSize: "0.82rem" }}>
               <span className="badge badge-gold">
-                Mahadasha: {translateGraha(dashas.current_md.lord)}
+                {t.dasha.mahadasha}: {translateGraha(dashas.current_md.lord)}
               </span>
               {dashas.current_ad && (
                 <span className="badge badge-cyan">
-                  Antardasha: {translateGraha(dashas.current_ad.lord)}
+                  {t.dasha.antardasha}: {translateGraha(dashas.current_ad.lord)}
                 </span>
               )}
               {dashas.current_pd && (
                 <span className="badge badge-emerald">
-                  Pratyantar: {translateGraha(dashas.current_pd.lord)}
+                  {t.dasha.pratyantardasha}: {translateGraha(dashas.current_pd.lord)}
                 </span>
               )}
             </div>
@@ -261,13 +260,13 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
 
       {/* 120-Year Interactive Horizontal Life Timeline */}
       <div className="card" style={{ padding: "24px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "8px" }}>
           <h3 className="title-serif" style={{ fontSize: "1.1rem", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "8px" }}>
             <Compass size={18} color="var(--gold-vivid)" />
-            Vimshottari 120-Year Macro Timeline (Click any Mahadasha block to inspect)
+            {t.dasha.macroTimelineTitle}
           </h3>
           <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-            Proportional Astronomical Duration
+            {t.dasha.proportionalDuration}
           </span>
         </div>
 
@@ -408,7 +407,7 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
                     color: "var(--rose)",
                   }}
                 >
-                  <strong>Age {win.startAge.toFixed(1)} – {win.endAge.toFixed(1)}</strong> (~{win.approxYear} AD)
+                  <strong>{t.varshaphal.age} {num(win.startAge.toFixed(1))} – {num(win.endAge.toFixed(1))}</strong> (~{num(win.approxYear)} AD)
                 </div>
               ))}
             </div>
@@ -432,16 +431,16 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
                   aria-hidden="true"
                 />
                 <h3 style={{ fontSize: "var(--type-heading)", fontWeight: 700, color: "var(--gold-bright)" }}>
-                  {translateGraha(selectedMd.lord)} Mahadasha Breakdown
+                  {translateGraha(selectedMd.lord)} {lang === "ne" ? "महादशा विश्लेषण" : "Mahadasha Breakdown"}
                 </h3>
               </div>
               <p style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", marginTop: "2px", fontFamily: "var(--font-mono)" }}>
-                Epoch: {selectedMd.start.slice(0, 10)} → {selectedMd.end.slice(0, 10)}
+                {num(selectedMd.start.slice(0, 10))} → {num(selectedMd.end.slice(0, 10))}
               </p>
             </div>
 
             <div className="badge badge-gold" style={{ fontSize: "var(--type-micro)" }}>
-              9 Sub-Antardasha Cycles (Bhuktis)
+              {lang === "ne" ? "९ अन्तर्दशा चक्र (भुक्ति)" : "9 Sub-Antardasha Cycles (Bhuktis)"}
             </div>
           </div>
 

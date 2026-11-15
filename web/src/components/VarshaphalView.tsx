@@ -110,7 +110,7 @@ export const VarshaphalView: React.FC<Props> = ({ birth }: Props) => {
       <div style={{ maxWidth: "var(--size-container)", margin: "0 auto", width: "100%", padding: "var(--space-6)" }}>
         <div className="card" style={{ padding: "var(--space-6)", borderColor: "var(--rose)" }}>
           <ShieldAlert size={24} color="var(--rose)" style={{ marginBottom: "var(--space-2)" }} />
-          <h3 style={{ color: "var(--rose)", fontSize: "var(--type-body)", fontWeight: 700 }}>Varshaphal Calculation Error</h3>
+          <h3 style={{ color: "var(--rose)", fontSize: "var(--type-body)", fontWeight: 700 }}>{t.varshaphal.calculationError}</h3>
           <p style={{ color: "var(--text-mid)", fontSize: "var(--type-small)" }}>{error || "Unable to compute annual horoscope."}</p>
         </div>
       </div>
@@ -170,25 +170,25 @@ export const VarshaphalView: React.FC<Props> = ({ birth }: Props) => {
         <div className="card" style={{ padding: "var(--space-4) var(--space-5)", borderLeft: "4px solid var(--graha-mercury, #059669)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-2)" }}>
             <Award size={16} color="var(--gold-vivid)" />
-            <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase" }}>Varsheshwara - Year Lord</h4>
+            <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase" }}>{t.varshaphal.yearLordTitle}</h4>
           </div>
           <div style={{ fontSize: "var(--type-small)", color: "var(--text-mid)", marginBottom: "var(--space-2)" }}>{v.rationale}</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-2)", fontSize: "var(--type-micro)" }}>
             <div style={{ background: "var(--bg-subtle)", padding: "var(--space-1) var(--space-2)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
-              <span style={{ color: "var(--text-low)", display: "block", textTransform: "uppercase", fontSize: "var(--type-label)" }}>Planet</span>
-              <span style={{ color: "var(--text-high)", fontWeight: 600 }}>{v.planet}</span>
+              <span style={{ color: "var(--text-low)", display: "block", textTransform: "uppercase", fontSize: "var(--type-label)" }}>{t.transits.tablePlanet}</span>
+              <span style={{ color: "var(--text-high)", fontWeight: 600 }}>{lang === "ne" ? (t.planets.names[v.planet as keyof typeof t.planets.names] || v.planet) : v.planet}</span>
             </div>
             <div style={{ background: "var(--bg-subtle)", padding: "var(--space-1) var(--space-2)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
-              <span style={{ color: "var(--text-low)", display: "block", textTransform: "uppercase", fontSize: "var(--type-label)" }}>Dignity</span>
+              <span style={{ color: "var(--text-low)", display: "block", textTransform: "uppercase", fontSize: "var(--type-label)" }}>{t.varshaphal.dignity}</span>
               <span style={{ color: DIGNITY_COLOR[v.dignity] || "var(--text-mid)", fontWeight: 600 }}>{v.dignity}</span>
             </div>
             <div style={{ background: "var(--bg-subtle)", padding: "var(--space-1) var(--space-2)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
-              <span style={{ color: "var(--text-low)", display: "block", textTransform: "uppercase", fontSize: "var(--type-label)" }}>Sign</span>
-              <span style={{ color: "var(--text-high)" }}>{v.sign}</span>
+              <span style={{ color: "var(--text-low)", display: "block", textTransform: "uppercase", fontSize: "var(--type-label)" }}>{t.common.sign}</span>
+              <span style={{ color: "var(--text-high)" }}>{lang === "ne" ? (t.zodiac.signs[v.sign as keyof typeof t.zodiac.signs] || v.sign) : v.sign}</span>
             </div>
             <div style={{ background: "var(--bg-subtle)", padding: "var(--space-1) var(--space-2)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
-              <span style={{ color: "var(--text-low)", display: "block", textTransform: "uppercase", fontSize: "var(--type-label)" }}>House</span>
-              <span style={{ color: "var(--text-high)", fontWeight: 600 }}>{v.house}</span>
+              <span style={{ color: "var(--text-low)", display: "block", textTransform: "uppercase", fontSize: "var(--type-label)" }}>{t.common.house}</span>
+              <span style={{ color: "var(--text-high)", fontWeight: 600 }}>{num(v.house)}</span>
             </div>
           </div>
         </div>
@@ -196,27 +196,27 @@ export const VarshaphalView: React.FC<Props> = ({ birth }: Props) => {
         <div className="card" style={{ padding: "var(--space-4) var(--space-5)", borderLeft: "4px solid var(--graha-moon, #0f766e)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-2)" }}>
             <Layers size={16} color="var(--cyan-vivid)" />
-            <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--cyan-vivid)", textTransform: "uppercase" }}>Muntha - Annual Ascendant</h4>
+            <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--cyan-vivid)", textTransform: "uppercase" }}>{t.varshaphal.munthaTitle}</h4>
           </div>
           <div style={{ fontSize: "var(--type-small)", color: "var(--text-mid)", marginBottom: "var(--space-2)" }}>
-            Progresses one sign per year from the natal Ascendant. Completed years: <strong>{m.completed_years}</strong>.
+            {t.varshaphal.munthaDesc} <strong>{num(m.completed_years)}</strong>.
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-2)", fontSize: "var(--type-micro)" }}>
             <div style={{ background: "var(--bg-subtle)", padding: "var(--space-1) var(--space-2)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
-              <span style={{ color: "var(--text-low)", display: "block", textTransform: "uppercase", fontSize: "var(--type-label)" }}>Sign</span>
-              <span style={{ color: "var(--text-high)", fontWeight: 600 }}>{m.sign}</span>
+              <span style={{ color: "var(--text-low)", display: "block", textTransform: "uppercase", fontSize: "var(--type-label)" }}>{t.common.sign}</span>
+              <span style={{ color: "var(--text-high)", fontWeight: 600 }}>{lang === "ne" ? (t.zodiac.signs[m.sign as keyof typeof t.zodiac.signs] || m.sign) : m.sign}</span>
             </div>
             <div style={{ background: "var(--bg-subtle)", padding: "var(--space-1) var(--space-2)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
-              <span style={{ color: "var(--text-low)", display: "block", textTransform: "uppercase", fontSize: "var(--type-label)" }}>Degree in Sign</span>
-              <span style={{ color: "var(--text-high)" }}>{m.degree_in_sign.toFixed(2)}°</span>
+              <span style={{ color: "var(--text-low)", display: "block", textTransform: "uppercase", fontSize: "var(--type-label)" }}>{t.varshaphal.degreeInSign}</span>
+              <span style={{ color: "var(--text-high)" }}>{num(m.degree_in_sign.toFixed(2))}°</span>
             </div>
             <div style={{ background: "var(--bg-subtle)", padding: "var(--space-1) var(--space-2)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
-              <span style={{ color: "var(--text-low)", display: "block", textTransform: "uppercase", fontSize: "var(--type-label)" }}>House</span>
-              <span style={{ color: "var(--text-high)", fontWeight: 600 }}>{m.house}</span>
+              <span style={{ color: "var(--text-low)", display: "block", textTransform: "uppercase", fontSize: "var(--type-label)" }}>{t.common.house}</span>
+              <span style={{ color: "var(--text-high)", fontWeight: 600 }}>{num(m.house)}</span>
             </div>
             <div style={{ background: "var(--bg-subtle)", padding: "var(--space-1) var(--space-2)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
-              <span style={{ color: "var(--text-low)", display: "block", textTransform: "uppercase", fontSize: "var(--type-label)" }}>Lord</span>
-              <span style={{ color: "var(--text-high)", fontWeight: 600 }}>{m.lord}</span>
+              <span style={{ color: "var(--text-low)", display: "block", textTransform: "uppercase", fontSize: "var(--type-label)" }}>{t.common.lord}</span>
+              <span style={{ color: "var(--text-high)", fontWeight: 600 }}>{lang === "ne" ? (t.planets.names[m.lord as keyof typeof t.planets.names] || m.lord) : m.lord}</span>
             </div>
           </div>
         </div>

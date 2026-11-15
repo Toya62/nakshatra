@@ -2,24 +2,53 @@ import test from "node:test";
 import assert from "node:assert";
 import { dictionaries } from "./index.ts";
 
+function getLeafPaths(obj: Record<string, unknown>, prefix = ""): Record<string, unknown> {
+  const leaves: Record<string, unknown> = {};
+  for (const [key, val] of Object.entries(obj)) {
+    const fullPath = prefix ? `${prefix}.${key}` : key;
+    if (val !== null && typeof val === "object" && !Array.isArray(val)) {
+      Object.assign(leaves, getLeafPaths(val as Record<string, unknown>, fullPath));
+    } else {
+      leaves[fullPath] = val;
+    }
+  }
+  return leaves;
+}
+
 test("en and ne dictionaries have identical top-level namespaces", () => {
   const enNamespaces = Object.keys(dictionaries.en).sort();
   const neNamespaces = Object.keys(dictionaries.ne).sort();
   assert.deepStrictEqual(neNamespaces, enNamespaces);
 });
 
-test("en and ne have identical keys in all nested namespaces", () => {
-  const en = dictionaries.en as unknown as Record<string, Record<string, unknown>>;
-  const ne = dictionaries.ne as unknown as Record<string, Record<string, unknown>>;
+test("en and ne have identical recursive leaf keys and valid values", () => {
+  const enLeaves = getLeafPaths(dictionaries.en as unknown as Record<string, unknown>);
+  const neLeaves = getLeafPaths(dictionaries.ne as unknown as Record<string, unknown>);
 
-  for (const ns of Object.keys(en)) {
-    const enKeys = Object.keys(en[ns]).sort();
-    const neKeys = Object.keys(ne[ns]).sort();
-    assert.deepStrictEqual(
-      neKeys,
-      enKeys,
-      `Mismatch in keys for namespace: "${ns}". Missing in NE: ${enKeys.filter((k) => !neKeys.includes(k))}, Extra in NE: ${neKeys.filter((k) => !enKeys.includes(k))}`
-    );
+  const enKeys = Object.keys(enLeaves).sort();
+  const neKeys = Object.keys(neLeaves).sort();
+
+  assert.deepStrictEqual(
+    neKeys,
+    enKeys,
+    `Mismatch in recursive leaf keys. Missing in NE: ${enKeys.filter((k) => !neKeys.includes(k))}, Extra in NE: ${neKeys.filter((k) => !enKeys.includes(k))}`
+  );
+
+  // Assert no leaf value in NE is empty, undefined, null, or whitespace-only
+  for (const [key, val] of Object.entries(neLeaves)) {
+    if (typeof val === "string") {
+      assert.ok(val.trim().length > 0, `Empty or whitespace-only leaf string at "${key}" in NE`);
+    } else if (Array.isArray(val)) {
+      assert.ok(val.length > 0, `Empty leaf array at "${key}" in NE`);
+      for (let i = 0; i < val.length; i++) {
+        if (typeof val[i] === "string") {
+          assert.ok(val[i].trim().length > 0, `Empty string at array index ${i} in "${key}" in NE`);
+        }
+      }
+    } else {
+      assert.notStrictEqual(val, null, `Null leaf at "${key}" in NE`);
+      assert.notStrictEqual(val, undefined, `Undefined leaf at "${key}" in NE`);
+    }
   }
 });
 

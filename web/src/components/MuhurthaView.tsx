@@ -442,7 +442,7 @@ export const MuhurthaView: React.FC<Props> = ({
                      background: timelineTab === "horas" ? "var(--gold-dim)" : "transparent",
                    }}
                 >
-                  {lang === "ne" ? "ग्रह होरा चक्र (२४)" : "Planetary Horas (24)"}
+                  {t.muhurtha.tabHoras}
                 </button>
                  <button
                    onClick={() => setTimelineTab("choghadiyas")}
@@ -453,7 +453,7 @@ export const MuhurthaView: React.FC<Props> = ({
                      background: timelineTab === "choghadiyas" ? "var(--gold-dim)" : "transparent",
                    }}
                 >
-                  {lang === "ne" ? "चौघडिया चक्र (१६)" : "Choghadiya Cycles (16)"}
+                  {t.muhurtha.tabChoghadiyas}
                 </button>
               </div>
             </div>
@@ -463,11 +463,11 @@ export const MuhurthaView: React.FC<Props> = ({
                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
                    <thead>
                      <tr style={{ borderBottom: "var(--border-width) solid var(--border-subtle)", textAlign: "left", color: "var(--text-muted)" }}>
-                       <th style={{ padding: "var(--space-2) var(--space-3)" }}>#</th>
-                       <th style={{ padding: "var(--space-2) var(--space-3)" }}>Time</th>
-                       <th style={{ padding: "var(--space-2) var(--space-3)" }}>Ruling Planet</th>
-                       <th style={{ padding: "var(--space-2) var(--space-3)" }}>Nature</th>
-                       <th style={{ padding: "var(--space-2) var(--space-3)" }}>Recommended Activities</th>
+                       <th style={{ padding: "var(--space-2) var(--space-3)" }}>{t.muhurtha.tableIndex}</th>
+                       <th style={{ padding: "var(--space-2) var(--space-3)" }}>{t.muhurtha.tableTime}</th>
+                       <th style={{ padding: "var(--space-2) var(--space-3)" }}>{t.muhurtha.tableRulingPlanet}</th>
+                       <th style={{ padding: "var(--space-2) var(--space-3)" }}>{t.muhurtha.tableNature}</th>
+                       <th style={{ padding: "var(--space-2) var(--space-3)" }}>{t.muhurtha.tableActivities}</th>
                      </tr>
                    </thead>
                    <tbody>
@@ -480,17 +480,17 @@ export const MuhurthaView: React.FC<Props> = ({
                          }}
                        >
                          <td style={{ padding: "var(--space-2-5) var(--space-3)", fontWeight: 600, color: "var(--text-dim)" }}>
-                           {h.hora_index} ({h.period_type})
+                           {num(h.hora_index)} ({h.period_type === "Day" ? t.muhurtha.day : t.muhurtha.night})
                          </td>
                           <td style={{ padding: "var(--space-2-5) var(--space-3)", color: h.is_current ? "var(--amber)" : "var(--text-bright)", fontWeight: h.is_current ? 700 : 400 }}>
-                           {h.start_time} - {h.end_time} {h.is_current && "(Active)"}
+                           {num(h.start_time)} - {num(h.end_time)} {h.is_current && `(${t.muhurtha.activeBadge})`}
                          </td>
                          <td style={{ padding: "var(--space-2-5) var(--space-3)", fontWeight: 600, color: "var(--text-bright)" }}>
-                           {h.ruling_planet}
+                           {lang === "ne" ? (t.planets.names[h.ruling_planet as keyof typeof t.planets.names] || h.ruling_planet) : h.ruling_planet}
                          </td>
                          <td style={{ padding: "var(--space-2-5) var(--space-3)" }}>
                            <span className={`badge ${h.nature === "Benefic" ? "badge-emerald" : "badge-rose"}`}>
-                             {h.nature}
+                             {h.nature === "Benefic" ? t.muhurtha.benefic : t.muhurtha.malefic}
                            </span>
                          </td>
                          <td style={{ padding: "var(--space-2-5) var(--space-3)", color: "var(--text-muted)", fontSize: "0.8rem" }}>
@@ -508,12 +508,12 @@ export const MuhurthaView: React.FC<Props> = ({
                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
                    <thead>
                      <tr style={{ borderBottom: "var(--border-width) solid var(--border-subtle)", textAlign: "left", color: "var(--text-muted)" }}>
-                       <th style={{ padding: "var(--space-2) var(--space-3)" }}>#</th>
-                       <th style={{ padding: "var(--space-2) var(--space-3)" }}>Time</th>
-                       <th style={{ padding: "var(--space-2) var(--space-3)" }}>Choghadiya</th>
-                       <th style={{ padding: "var(--space-2) var(--space-3)" }}>Nature</th>
-                       <th style={{ padding: "var(--space-2) var(--space-3)" }}>Ruling Planet</th>
-                       <th style={{ padding: "var(--space-2) var(--space-3)" }}>Quality Score</th>
+                       <th style={{ padding: "var(--space-2) var(--space-3)" }}>{t.muhurtha.tableIndex}</th>
+                       <th style={{ padding: "var(--space-2) var(--space-3)" }}>{t.muhurtha.tableTime}</th>
+                       <th style={{ padding: "var(--space-2) var(--space-3)" }}>{t.muhurtha.tableChoghadiya}</th>
+                       <th style={{ padding: "var(--space-2) var(--space-3)" }}>{t.muhurtha.tableNature}</th>
+                       <th style={{ padding: "var(--space-2) var(--space-3)" }}>{t.muhurtha.tableRulingPlanet}</th>
+                       <th style={{ padding: "var(--space-2) var(--space-3)" }}>{t.muhurtha.tableScore}</th>
                      </tr>
                    </thead>
                    <tbody>
@@ -526,10 +526,10 @@ export const MuhurthaView: React.FC<Props> = ({
                          }}
                        >
                          <td style={{ padding: "var(--space-2-5) var(--space-3)", fontWeight: 600, color: "var(--text-dim)" }}>
-                           {c.index} ({c.period_type})
+                           {num(c.index)} ({c.period_type === "Day" ? t.muhurtha.day : t.muhurtha.night})
                          </td>
                           <td style={{ padding: "var(--space-2-5) var(--space-3)", color: c.is_current ? "var(--cyan-vivid)" : "var(--text-bright)", fontWeight: c.is_current ? 700 : 400 }}>
-                           {c.start_time} - {c.end_time} {c.is_current && "(Active)"}
+                           {num(c.start_time)} - {num(c.end_time)} {c.is_current && `(${t.muhurtha.activeBadge})`}
                          </td>
                          <td style={{ padding: "var(--space-2-5) var(--space-3)", fontWeight: 600, color: "var(--text-bright)" }}>
                            {c.name}
@@ -540,10 +540,10 @@ export const MuhurthaView: React.FC<Props> = ({
                            </span>
                          </td>
                          <td style={{ padding: "var(--space-2-5) var(--space-3)", color: "var(--text-muted)" }}>
-                           {c.ruler}
+                           {lang === "ne" ? (t.planets.names[c.ruler as keyof typeof t.planets.names] || c.ruler) : c.ruler}
                          </td>
                          <td style={{ padding: "var(--space-2-5) var(--space-3)", fontWeight: 600, color: c.score >= 70 ? "var(--emerald)" : "var(--rose)" }}>
-                           {c.score}/100
+                           {num(c.score)}/100
                          </td>
                       </tr>
                     ))}

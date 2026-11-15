@@ -193,6 +193,21 @@ export interface TranslationSchema {
     duration: string;
     balanceAtBirth: string;
     currentDasha: string;
+    emptyTitle: string;
+    emptyDesc: string;
+    goToChart: string;
+    timelineTree: string;
+    activeNow: string;
+    balance: string;
+    birthNakshatra: string;
+    years: string;
+    viewTimeline: string;
+    viewCards: string;
+    currentAge: string;
+    macroTimelineTitle: string;
+    proportionalDuration: string;
+    sadeSatiToggleVisible: string;
+    sadeSatiToggleHidden: string;
   };
   ashtakavarga: {
     title: string;
@@ -204,6 +219,45 @@ export interface TranslationSchema {
     strengthHigh: string;
     strengthMedium: string;
     strengthLow: string;
+  };
+  transits: {
+    title: string;
+    subtitle: string;
+    transitDate: string;
+    saturnTransit: string;
+    sadeSati: string;
+    active: string;
+    inactive: string;
+    noCycle: string;
+    currentlyIn: string;
+    fromNatalMoon: string;
+    ashtamaShani: string;
+    kantakaShani: string;
+    doubleTransit: string;
+    auspicious: string;
+    doubleTransitHouses: string;
+    noDoubleTransit: string;
+    doubleTransitDesc: string;
+    currentPositions: string;
+    tablePlanet: string;
+    tableTransitSign: string;
+    tableDegree: string;
+    tableFromLagna: string;
+    tableFromMoon: string;
+    tableMotion: string;
+    retrograde: string;
+    direct: string;
+    loadError: string;
+  };
+  yogas: {
+    title: string;
+    parasharaEngine: string;
+    loadError: string;
+    noYogas: string;
+    found: string;
+    planetsInvolved: string;
+    housesInvolved: string;
+    categories: Record<string, string>;
   };
   varshaphal: {
     title: string;
@@ -218,6 +272,13 @@ export interface TranslationSchema {
     monthLords: string;
     annualReading: string;
     chartSnapshot: string;
+    yearLordTitle: string;
+    munthaTitle: string;
+    munthaDesc: string;
+    degreeInSign: string;
+    calculationError: string;
+    dignity: string;
+    age: string;
   };
   kalsarp: {
     title: string;
@@ -230,6 +291,7 @@ export interface TranslationSchema {
     noKalsarp: string;
     grahaStatus: string;
     types: Record<string, string>;
+    calculationError: string;
   };
   specialLagnas: {
     title: string;
@@ -238,6 +300,7 @@ export interface TranslationSchema {
     calculationNotes: string;
     mastersReading: string;
     names: Record<string, string>;
+    calculationError: string;
   };
   chakras: {
     title: string;
@@ -252,6 +315,22 @@ export interface TranslationSchema {
       good: string;
       bad: string;
     };
+    calculationError: string;
+    tableGraha: string;
+    tableNakshatra: string;
+    tableCountFromJanma: string;
+    tableTara: string;
+    tableNature: string;
+    tablePlanetA: string;
+    tablePlanetB: string;
+    tableNatural: string;
+    tableTemporary: string;
+    tableCompound: string;
+    taraSummaryNote: string;
+    compoundSummaryNote: string;
+    planetsCount: string;
+    pairsCount: string;
+    housesCount: string;
   };
   rashiFal: {
     title: string;
@@ -272,6 +351,7 @@ export interface TranslationSchema {
     watchfulTransits: string;
     mastersSynthesis: string;
     grahaResults: string;
+    calculationError: string;
   };
   muhurtha: {
     title: string;
@@ -283,6 +363,20 @@ export interface TranslationSchema {
       moderate: string;
       inauspicious: string;
     };
+    tableIndex: string;
+    tableTime: string;
+    tableRulingPlanet: string;
+    tableNature: string;
+    tableActivities: string;
+    tableChoghadiya: string;
+    tableScore: string;
+    benefic: string;
+    malefic: string;
+    day: string;
+    night: string;
+    activeBadge: string;
+    tabHoras: string;
+    tabChoghadiyas: string;
   };
   compatibility: {
     title: string;
@@ -307,6 +401,28 @@ export interface TranslationSchema {
     yantra: string;
     rudraksha: string;
     fasting: string;
+    calculationError: string;
+    emptyTitle: string;
+    emptyDesc: string;
+    synthesizing: string;
+    synthesizingDesc: string;
+    goldenRules: string;
+    collapse: string;
+    showRules: string;
+    daytimeRuleTitle: string;
+    daytimeRuleDesc: string;
+    count43Title: string;
+    count43Desc: string;
+    exaltedRuleTitle: string;
+    exaltedRuleDesc: string;
+    cleanRooftopsTitle: string;
+    cleanRooftopsDesc: string;
+    filterAll: string;
+    filterHigh: string;
+    filterParashari: string;
+    filterLalKitab: string;
+    strictPrecautions: string;
+    creatureService: string;
   };
   consultation: {
     title: string;
@@ -320,5 +436,14 @@ export interface TranslationSchema {
     clearChat: string;
     exportChat: string;
     samples: string[];
+    domainVerdict: string;
+    tier: string;
+    natalPromise: string;
+    vargaConfirmation: string;
+    dashaTrigger: string;
+    gocharTransits: string;
+    scripturalAuthorities: string;
+    recommendedRemedies: string;
+    askDomainPrompt: string;
   };
 }

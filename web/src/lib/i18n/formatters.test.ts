@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert";
-import { toDevanagariDigits, formatNumber, formatDegree } from "./formatters.ts";
+import { toDevanagariDigits, formatNumber, formatDegree, formatDateByLang } from "./formatters.ts";
 
 test("converts arabic digits to devanagari", () => {
   assert.strictEqual(toDevanagariDigits("2026"), "२०२६");
@@ -19,4 +19,11 @@ test("formats degrees by language", () => {
   assert.strictEqual(formatDegree(24.385, "ne", 2), "२४.३९°");
   assert.strictEqual(formatDegree(24.385, "en", 2), "24.39°");
   assert.strictEqual(formatDegree(0, "ne", 1), "०.०°");
+});
+
+test("formats dates by language", () => {
+  assert.strictEqual(formatDateByLang(2026, 11, 15, "ne"), "२०२६-११-१५");
+  assert.strictEqual(formatDateByLang(2026, 11, 15, "en"), "2026-11-15");
+  assert.strictEqual(formatDateByLang(1997, 4, 5, "ne"), "१९९७-०४-०५");
+  assert.strictEqual(formatDateByLang(1997, 4, 5, "en"), "1997-04-05");
 });

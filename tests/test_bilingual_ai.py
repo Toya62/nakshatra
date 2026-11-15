@@ -33,6 +33,8 @@ def test_get_system_prompt_languages():
     ne_prompt = get_system_prompt("ne")
     assert "तपाईं एक सिद्ध, पूज्य तथा धर्मनिष्ठ वैदिक ज्योतिषाचार्य हुनुहुन्छ" in ne_prompt
     assert "वृहत् पराशर होरा शास्त्र" in ne_prompt
+    assert "१. भाषा र आदरार्थी शैली" in ne_prompt
+    assert "९. स्पष्ट कालक्रम तथा फलादेश संश्लेषण" in ne_prompt
 
     nepali_prompt = get_system_prompt("nepali")
     assert nepali_prompt == ne_prompt

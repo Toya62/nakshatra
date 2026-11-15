@@ -23,9 +23,9 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToC
     return (
       <EmptyState
         icon={Clock}
-        title="Vimshottari Dasha Timeline"
-        description="Calculate your birth chart to unlock your personalized 120-year planetary dasha periods, current Mahadasha, Antardasha, and sub-cycle progression."
-        actionLabel={onNavigateToChart ? "Go to Birth Chart" : undefined}
+        title={t.dasha.emptyTitle}
+        description={t.dasha.emptyDesc}
+        actionLabel={onNavigateToChart ? t.dasha.goToChart : undefined}
         onAction={onNavigateToChart}
       />
     );
@@ -59,7 +59,7 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToC
             aria-pressed={activeMode === "timeline"}
           >
             <Calendar size={14} aria-hidden="true" />
-            {lang === "ne" ? "१२० वर्षे जीवन चक्र र वि.सं. क्यालेन्डर" : "Visual 120-Yr Timeline & BS Calendar"}
+            {t.dasha.viewTimeline}
           </button>
           <button
             onClick={() => setActiveMode("cards")}
@@ -67,7 +67,7 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToC
             aria-pressed={activeMode === "cards"}
           >
             <Activity size={14} aria-hidden="true" />
-            {lang === "ne" ? "शास्त्रीय महादशा / अन्तर्दशा तालिका" : "Classical Progress & Tree View"}
+            {t.dasha.viewCards}
           </button>
         </div>
       )}
@@ -95,10 +95,10 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToC
 
               <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
                 <span className="badge badge-gold">
-                  {lang === "ne" ? "जन्म नक्षत्र" : "Birth"}: {dashas.birth_nakshatra} ({dashas.birth_nakshatra_lord})
+                  {t.dasha.birthNakshatra}: {dashas.birth_nakshatra} ({lang === "ne" ? (t.planets.names[dashas.birth_nakshatra_lord as keyof typeof t.planets.names] || dashas.birth_nakshatra_lord) : dashas.birth_nakshatra_lord})
                 </span>
                 <span className="badge badge-cyan">
-                  {lang === "ne" ? "दशा शेष" : "Balance"}: {dashas.balance_lord} ({num(dashas.balance_years.toFixed(2))} {lang === "ne" ? "वर्ष" : "yrs"})
+                  {t.dasha.balance}: {lang === "ne" ? (t.planets.names[dashas.balance_lord as keyof typeof t.planets.names] || dashas.balance_lord) : dashas.balance_lord} ({num(dashas.balance_years.toFixed(2))} {t.dasha.years})
                 </span>
               </div>
             </div>
@@ -109,17 +109,17 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToC
               {dashas.current_md && (
                 <div style={{ background: "var(--bg-subtle)", padding: "var(--space-4)", borderRadius: "var(--radius-sm)", border: "1px solid var(--gold-border)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--space-1)" }}>
-                    <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", letterSpacing: "0.05em" }}>MAHADASHA (MD)</span>
-                    <span style={{ fontSize: "var(--type-label)", color: "var(--gold-bright)", fontWeight: 700 }}>{mdProgress.toFixed(1)}%</span>
+                    <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", letterSpacing: "0.05em" }}>{t.dasha.mahadasha}</span>
+                    <span style={{ fontSize: "var(--type-label)", color: "var(--gold-bright)", fontWeight: 700 }}>{num(mdProgress.toFixed(1))}%</span>
                   </div>
                   <h4 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--gold-bright)", marginBottom: "var(--space-2)" }}>
-                    {dashas.current_md.lord}
+                    {lang === "ne" ? (t.planets.names[dashas.current_md.lord as keyof typeof t.planets.names] || dashas.current_md.lord) : dashas.current_md.lord}
                   </h4>
                   <div style={{ width: "100%", height: "6px", background: "var(--border-subtle)", borderRadius: "3px", overflow: "hidden", marginBottom: "var(--space-2)" }}>
                     <div style={{ width: `${mdProgress}%`, height: "100%", background: "var(--gold-vivid)" }} />
                   </div>
                   <p style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", fontFamily: "var(--font-mono)" }}>
-                    {dashas.current_md.start.slice(0, 10)} → {dashas.current_md.end.slice(0, 10)}
+                    {num(dashas.current_md.start.slice(0, 10))} → {num(dashas.current_md.end.slice(0, 10))}
                   </p>
                 </div>
               )}
@@ -128,17 +128,17 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToC
               {dashas.current_ad && (
                 <div style={{ background: "var(--bg-subtle)", padding: "var(--space-4)", borderRadius: "var(--radius-sm)", border: "1px solid rgba(56,189,248,0.25)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--space-1)" }}>
-                    <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", letterSpacing: "0.05em" }}>ANTARDASHA (AD)</span>
-                    <span style={{ fontSize: "var(--type-label)", color: "var(--cyan-vivid)", fontWeight: 700 }}>{adProgress.toFixed(1)}%</span>
+                    <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", letterSpacing: "0.05em" }}>{t.dasha.antardasha}</span>
+                    <span style={{ fontSize: "var(--type-label)", color: "var(--cyan-vivid)", fontWeight: 700 }}>{num(adProgress.toFixed(1))}%</span>
                   </div>
                   <h4 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--cyan-vivid)", marginBottom: "var(--space-2)" }}>
-                    {dashas.current_ad.lord}
+                    {lang === "ne" ? (t.planets.names[dashas.current_ad.lord as keyof typeof t.planets.names] || dashas.current_ad.lord) : dashas.current_ad.lord}
                   </h4>
                   <div style={{ width: "100%", height: "6px", background: "var(--border-subtle)", borderRadius: "3px", overflow: "hidden", marginBottom: "var(--space-2)" }}>
                     <div style={{ width: `${adProgress}%`, height: "100%", background: "var(--cyan-vivid)" }} />
                   </div>
                   <p style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", fontFamily: "var(--font-mono)" }}>
-                    {dashas.current_ad.start.slice(0, 10)} → {dashas.current_ad.end.slice(0, 10)}
+                    {num(dashas.current_ad.start.slice(0, 10))} → {num(dashas.current_ad.end.slice(0, 10))}
                   </p>
                 </div>
               )}
@@ -147,17 +147,17 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToC
               {dashas.current_pd && (
                 <div style={{ background: "var(--bg-subtle)", padding: "var(--space-4)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--space-1)" }}>
-                    <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", letterSpacing: "0.05em" }}>PRATYANTARDASHA (PD)</span>
-                    <span style={{ fontSize: "var(--type-label)", color: "var(--text-high)", fontWeight: 700 }}>{pdProgress.toFixed(1)}%</span>
+                    <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", letterSpacing: "0.05em" }}>{t.dasha.pratyantardasha}</span>
+                    <span style={{ fontSize: "var(--type-label)", color: "var(--text-high)", fontWeight: 700 }}>{num(pdProgress.toFixed(1))}%</span>
                   </div>
                   <h4 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--text-high)", marginBottom: "var(--space-2)" }}>
-                    {dashas.current_pd.lord}
+                    {lang === "ne" ? (t.planets.names[dashas.current_pd.lord as keyof typeof t.planets.names] || dashas.current_pd.lord) : dashas.current_pd.lord}
                   </h4>
                   <div style={{ width: "100%", height: "6px", background: "var(--border-subtle)", borderRadius: "3px", overflow: "hidden", marginBottom: "var(--space-2)" }}>
                     <div style={{ width: `${pdProgress}%`, height: "100%", background: "var(--gold-vivid)" }} />
                   </div>
                   <p style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", fontFamily: "var(--font-mono)" }}>
-                    {dashas.current_pd.start.slice(0, 10)} → {dashas.current_pd.end.slice(0, 10)}
+                    {num(dashas.current_pd.start.slice(0, 10))} → {num(dashas.current_pd.end.slice(0, 10))}
                   </p>
                 </div>
               )}
@@ -167,7 +167,7 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToC
           {/* Mahadasha Timeline Accordion */}
           <div className="card" style={{ padding: "var(--space-5)" }}>
             <h4 style={{ fontSize: "var(--type-heading)", fontWeight: 700, marginBottom: "var(--space-3)", color: "var(--text-high)" }}>
-              Lifelong Mahadasha Timeline Tree
+              {t.dasha.timelineTree}
             </h4>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
@@ -208,13 +208,13 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToC
                       <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
                         {isExpanded ? <ChevronDown size={15} aria-hidden="true" /> : <ChevronRight size={15} aria-hidden="true" />}
                         <span style={{ fontWeight: 600, color: isCurrent ? "var(--gold-bright)" : "var(--text-high)" }}>
-                          {md.lord} Mahadasha
+                          {lang === "ne" ? `${t.planets.names[md.lord as keyof typeof t.planets.names] || md.lord} महादशा` : `${md.lord} Mahadasha`}
                         </span>
-                        {isCurrent && <span className="badge badge-gold">Active Now</span>}
+                        {isCurrent && <span className="badge badge-gold">{t.dasha.activeNow}</span>}
                       </div>
 
                       <span style={{ fontSize: "var(--type-label)", color: "var(--text-mid)", fontFamily: "var(--font-mono)" }}>
-                        {md.start.slice(0, 10)} → {md.end.slice(0, 10)} ({md.duration_years ? `${md.duration_years.toFixed(1)} yrs` : ""})
+                        {num(md.start.slice(0, 10))} → {num(md.end.slice(0, 10))} ({md.duration_years ? `${num(md.duration_years.toFixed(1))} ${t.dasha.years}` : ""})
                       </span>
                     </div>
 
@@ -230,9 +230,11 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToC
                               border: "1px solid var(--border-subtle)",
                             }}
                           >
-                            <div style={{ fontWeight: 600, fontSize: "var(--type-label)", color: "var(--cyan-vivid)" }}>{ad.lord}</div>
+                            <div style={{ fontWeight: 600, fontSize: "var(--type-label)", color: "var(--cyan-vivid)" }}>
+                              {lang === "ne" ? (t.planets.names[ad.lord as keyof typeof t.planets.names] || ad.lord) : ad.lord}
+                            </div>
                             <div style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", fontFamily: "var(--font-mono)" }}>
-                              {ad.start.slice(0, 10)} → {ad.end.slice(0, 10)}
+                              {num(ad.start.slice(0, 10))} → {num(ad.end.slice(0, 10))}
                             </div>
                           </div>
                         ))}

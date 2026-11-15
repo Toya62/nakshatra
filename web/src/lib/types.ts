@@ -62,9 +62,13 @@ export interface VimshottariData {
 }
 
 export interface AshtakavargaData {
-  grand_total: number;
-  bav: Record<string, Record<string, number>>;
-  sav: Record<string, number>;
+  grand_total?: number;
+  sarvashtakavarga?: number[];
+  bhinnashtakavarga?: Record<string, number[]>;
+  sav?: Record<string, number>;
+  bav?: Record<string, Record<string, number>>;
+  shodhita_sarvashtakavarga?: number[];
+  shodhita_bhinnashtakavarga?: Record<string, number[]>;
 }
 
 export interface VedicAspect {

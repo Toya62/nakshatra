@@ -424,7 +424,7 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
                     <h3 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "capitalize" }}>
-                      {predictions[selectedDomain].domain.replace("_", " ")} Verdict
+                      {predictions[selectedDomain].domain.replace("_", " ")} {t.consultation.domainVerdict}
                     </h3>
                     <span
                       className="chip"
@@ -436,7 +436,7 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
                         color: "var(--gold-vivid)",
                       }}
                     >
-                      Tier: {predictions[selectedDomain].promise_tier}
+                      {t.consultation.tier}: {predictions[selectedDomain].promise_tier}
                     </span>
                   </div>
                   <p style={{ fontSize: "var(--type-small)", color: "var(--text-high)", marginTop: "4px", fontStyle: "italic", borderLeft: "2px solid var(--gold-vivid)", paddingLeft: "8px" }}>
@@ -446,12 +446,16 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
 
                 <button
                   type="button"
-                  onClick={() => handleSend(`Based on Maharishi Parashara's classical rules, synthesize my ${predictions[selectedDomain].domain.replace("_", " ")} promise and operating dasha timing.`)}
+                  onClick={() => handleSend(
+                    lang === "ne"
+                      ? `${t.consultation.askDomainPrompt} ${predictions[selectedDomain].domain.replace("_", " ")} योग र दशा समयबारे फलादेश गर्नुहोस्।`
+                      : `Based on Maharishi Parashara's classical rules, synthesize my ${predictions[selectedDomain].domain.replace("_", " ")} promise and operating dasha timing.`
+                  )}
                   className="chip active"
                   style={{ fontSize: "var(--type-micro)", flexShrink: 0 }}
                 >
                   <Sparkles size={12} color="var(--gold-vivid)" aria-hidden="true" />
-                  <span>Consult AI Astrologer on this</span>
+                  <span>{lang === "ne" ? "यसबारे AI ज्योतिषीसँग परामर्श गर्नुहोस्" : "Consult AI Astrologer on this"}</span>
                 </button>
               </div>
 
@@ -465,19 +469,19 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
                 }}
               >
                 <div style={{ background: "var(--bg-subtle)", padding: "var(--space-2) var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
-                  <strong style={{ color: "var(--cyan-vivid)", display: "block", marginBottom: "2px" }}>1. Natal Promise (D1):</strong>
+                  <strong style={{ color: "var(--cyan-vivid)", display: "block", marginBottom: "2px" }}>{t.consultation.natalPromise}</strong>
                   <span style={{ color: "var(--text-mid)" }}>{predictions[selectedDomain].promise_summary}</span>
                 </div>
                 <div style={{ background: "var(--bg-subtle)", padding: "var(--space-2) var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
-                  <strong style={{ color: "var(--cyan-vivid)", display: "block", marginBottom: "2px" }}>2. Varga Confirmation:</strong>
+                  <strong style={{ color: "var(--cyan-vivid)", display: "block", marginBottom: "2px" }}>{t.consultation.vargaConfirmation}</strong>
                   <span style={{ color: "var(--text-mid)" }}>{predictions[selectedDomain].varga_confirmation}</span>
                 </div>
                 <div style={{ background: "var(--bg-subtle)", padding: "var(--space-2) var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
-                  <strong style={{ color: "var(--gold-vivid)", display: "block", marginBottom: "2px" }}>3. Operating Dasha Trigger:</strong>
+                  <strong style={{ color: "var(--gold-vivid)", display: "block", marginBottom: "2px" }}>{t.consultation.dashaTrigger}</strong>
                   <span style={{ color: "var(--text-mid)" }}>{predictions[selectedDomain].dasha_timing}</span>
                 </div>
                 <div style={{ background: "var(--bg-subtle)", padding: "var(--space-2) var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)" }}>
-                  <strong style={{ color: "var(--gold-vivid)", display: "block", marginBottom: "2px" }}>4. Astronomical Gochar Transits:</strong>
+                  <strong style={{ color: "var(--gold-vivid)", display: "block", marginBottom: "2px" }}>{t.consultation.gocharTransits}</strong>
                   <span style={{ color: "var(--text-mid)" }}>{predictions[selectedDomain].active_transits.join(" ")}</span>
                 </div>
               </div>
@@ -485,11 +489,11 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
               {/* Citations & Remedies strip */}
               <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "var(--space-2)", borderTop: "1px solid var(--border-subtle)", paddingTop: "var(--space-2)", fontSize: "var(--type-micro)" }}>
                 <div>
-                  <span style={{ color: "var(--text-low)", textTransform: "uppercase", fontWeight: 600 }}>Scriptural Authorities: </span>
+                  <span style={{ color: "var(--text-low)", textTransform: "uppercase", fontWeight: 600 }}>{t.consultation.scripturalAuthorities} </span>
                   <span style={{ color: "var(--text-mid)" }}>{predictions[selectedDomain].classical_citations.join(" • ")}</span>
                 </div>
                 <div>
-                  <span style={{ color: "var(--text-low)", textTransform: "uppercase", fontWeight: 600 }}>Recommended Remedies: </span>
+                  <span style={{ color: "var(--text-low)", textTransform: "uppercase", fontWeight: 600 }}>{t.consultation.recommendedRemedies} </span>
                   <span style={{ color: "var(--text-mid)" }}>{predictions[selectedDomain].remedies.join(" • ")}</span>
                 </div>
               </div>
