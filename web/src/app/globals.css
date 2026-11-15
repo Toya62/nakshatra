@@ -14,7 +14,7 @@
 
   /* Typography — Next.js Self-Hosted Fonts with zero layout shift */
   --font-serif:   var(--font-cinzel), 'Cinzel', Georgia, serif;
-  --font-sans:    var(--font-outfit), 'Outfit', system-ui, -apple-system, sans-serif;
+  --font-sans:    var(--font-outfit), var(--font-devanagari), 'Noto Sans Devanagari', 'Mukta', 'Outfit', system-ui, -apple-system, sans-serif;
   --font-mono:    var(--font-mono-jb), 'JetBrains Mono', monospace;
 
   --type-display: 2.35rem;  /* 37.6px - wordmark only */

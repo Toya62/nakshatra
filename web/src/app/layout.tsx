@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Cinzel, JetBrains_Mono, Outfit } from "next/font/google";
+import { Cinzel, JetBrains_Mono, Outfit, Noto_Sans_Devanagari } from "next/font/google";
+import { LanguageProvider } from "@/context/LanguageContext";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -35,6 +36,13 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+const notoSansDevanagari = Noto_Sans_Devanagari({
+  subsets: ["devanagari", "latin"],
+  variable: "--font-devanagari",
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Nakshatra | Vedic Astrology AI Engine",
   description: "Swiss Ephemeris Birth Charts, Shodashavarga, Gochar Transits, Vimshottari Dashas, and Scripture-Grounded AI Consultations",
@@ -52,7 +60,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${cinzel.variable} ${outfit.variable} ${jetbrainsMono.variable}`}
+      className={`${cinzel.variable} ${outfit.variable} ${jetbrainsMono.variable} ${notoSansDevanagari.variable}`}
       suppressHydrationWarning
     >
       <head>
@@ -61,17 +69,23 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  var saved = localStorage.getItem('nakshatra_theme');
-                  var pref = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-                  var theme = saved || pref;
+                  var savedTheme = localStorage.getItem('nakshatra_theme');
+                  var prefTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                  var theme = savedTheme || prefTheme;
                   document.documentElement.setAttribute('data-theme', theme);
+                  var savedLang = localStorage.getItem('nakshatra_language');
+                  if (savedLang) {
+                    document.documentElement.lang = savedLang;
+                  }
                 } catch (e) {}
               })();
             `,
           }}
         />
       </head>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        <LanguageProvider>{children}</LanguageProvider>
+      </body>
     </html>
   );
 }
