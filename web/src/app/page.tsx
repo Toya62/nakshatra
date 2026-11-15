@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Sidebar, TabId } from "@/components/Sidebar";
-import { BirthForm } from "@/components/BirthForm";
 import { BirthSummaryPill } from "@/components/BirthSummaryPill";
 import { NorthIndianChart } from "@/components/NorthIndianChart";
 import { PlanetsTable } from "@/components/PlanetsTable";

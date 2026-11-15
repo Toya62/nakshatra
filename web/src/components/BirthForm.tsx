@@ -5,7 +5,6 @@ import { BirthDataInput, BikramSambatDate, PlaceResult, TimezoneOffsetInfo } fro
 import { searchPlaces, fetchTimezoneOffset } from "@/lib/api";
 import { MapPin, Calendar, Clock, Settings, Sparkles, Check, Globe, Compass, Sliders } from "lucide-react";
 import { DEFAULT_LOCATION } from "@/config/defaults";
-import { CalendarSwitcher } from "./CalendarSwitcher";
 import { getCalendarSystem, setCalendarSystem, convertAdToBs, convertBsToAd, CalendarSystem } from "@/lib/calendar";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -62,7 +61,7 @@ const COMMON_TIMEZONES = [
 ];
 
 export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) => {
-  const { t, lang, num } = useLanguage();
+  const { t } = useLanguage();
   // Store values as editable strings so users can clear inputs without getting trapped on "0"
   const [year, setYear] = useState(String(initialData?.year ?? 1997));
   const [month, setMonth] = useState(String(initialData?.month ?? 5));

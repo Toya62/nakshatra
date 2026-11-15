@@ -144,7 +144,6 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
 
     if (vData && vKey !== "D1") {
       const ascSign = vData["Ascendant"] || chart.ascendant.sign;
-      const ascSignNumLocal = SIGN_NAMES_TO_NUM[ascSign] || 1;
       signPlanets[ascSign]?.push({
         key: "Asc",
         label: "ASC",

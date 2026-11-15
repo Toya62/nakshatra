@@ -16,6 +16,14 @@
   --font-serif:   var(--font-cinzel), 'Cinzel', Georgia, serif;
   --font-sans:    var(--font-outfit), var(--font-devanagari), 'Noto Sans Devanagari', 'Mukta', 'Outfit', system-ui, -apple-system, sans-serif;
   --font-mono:    var(--font-mono-jb), 'JetBrains Mono', monospace;
+}
+
+html[lang="ne"] {
+  --font-sans: var(--font-devanagari), 'Noto Sans Devanagari', var(--font-outfit), 'Mukta', system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+}
+
+:root {
 
   --type-display: 2.35rem;  /* 37.6px - wordmark only */
   --type-title:   1.35rem;  /* 21.6px - major tab headers & modal titles */
