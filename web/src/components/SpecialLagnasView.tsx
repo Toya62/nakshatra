@@ -4,12 +4,14 @@ import React, { useEffect, useState } from "react";
 import { Sun, ShieldAlert, Clock, Award, Activity } from "lucide-react";
 import { BirthDataInput, SpecialLagna, SpecialLagnasInput, SpecialLagnasReport } from "@/lib/types";
 import { fetchSpecialLagnas } from "@/lib/api";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Props {
   birth?: BirthDataInput;
 }
 
 export const SpecialLagnasView: React.FC<Props> = ({ birth }: Props) => {
+  const { t, lang, num } = useLanguage();
   const [report, setReport] = useState<SpecialLagnasReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -109,11 +111,11 @@ export const SpecialLagnasView: React.FC<Props> = ({ birth }: Props) => {
             <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
               <Activity size={24} color="var(--gold-vivid)" />
               <h2 style={{ fontSize: "var(--type-title)", fontWeight: 700, color: "var(--text-high)" }}>
-                Special Lagnas — Vishesha Lagna
+                {t.specialLagnas.title}
               </h2>
             </div>
             <p style={{ fontSize: "var(--type-small)", color: "var(--text-mid)", marginTop: "var(--space-1)" }}>
-              {report.lagnas.length} classical special ascendants, each with sign, house, lord and degree.
+              {t.specialLagnas.subtitle}
             </p>
           </div>
           <span
@@ -129,7 +131,7 @@ export const SpecialLagnasView: React.FC<Props> = ({ birth }: Props) => {
               letterSpacing: "0.05em",
             }}
           >
-            {report.lagnas.length} lagnas
+            {num(report.lagnas.length)} {lang === "ne" ? "लग्नहरू" : "lagnas"}
           </span>
         </div>
       </div>
@@ -144,21 +146,21 @@ export const SpecialLagnasView: React.FC<Props> = ({ birth }: Props) => {
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase", margin: 0 }}>
-                {l.name}
+                {t.specialLagnas.names[l.name] || l.name}
               </h4>
               <span style={{ fontSize: "var(--type-label)", fontWeight: 600, color: "var(--cyan-vivid)", textTransform: "uppercase" }}>
-                House {l.house}
+                {lang === "ne" ? `भाव ${num(l.house)}` : `House ${l.house}`}
               </span>
             </div>
             <div style={{ fontSize: "var(--type-small)", color: "var(--text-high)", fontWeight: 700 }}>
-              {l.sign}
+              {lang === "ne" ? (t.zodiac.signs[l.sign as keyof typeof t.zodiac.signs] || l.sign) : l.sign}
             </div>
             <div style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", display: "flex", justifyContent: "space-between", gap: "var(--space-2)" }}>
               <span>
-                <span style={{ color: "var(--text-low)" }}>Lord:</span> <span style={{ color: "var(--text-high)", fontWeight: 600 }}>{l.lord}</span>
+                <span style={{ color: "var(--text-low)" }}>{lang === "ne" ? "स्वामी" : "Lord"}:</span> <span style={{ color: "var(--text-high)", fontWeight: 600 }}>{lang === "ne" ? (t.planets.names[l.lord as keyof typeof t.planets.names] || l.lord) : l.lord}</span>
               </span>
               <span>
-                <span style={{ color: "var(--text-low)" }}>Degree:</span> <span style={{ color: "var(--text-high)", fontFamily: "var(--font-mono)" }}>{l.degree_in_sign.toFixed(2)}°</span>
+                <span style={{ color: "var(--text-low)" }}>{lang === "ne" ? "अंश" : "Degree"}:</span> <span style={{ color: "var(--text-high)", fontFamily: "var(--font-mono)" }}>{num(l.degree_in_sign.toFixed(2))}°</span>
               </span>
             </div>
             <div style={{ fontSize: "var(--type-label)", color: "var(--text-low)", fontStyle: "italic", marginTop: "var(--space-1)" }}>{l.rationale}</div>
@@ -171,7 +173,7 @@ export const SpecialLagnasView: React.FC<Props> = ({ birth }: Props) => {
         <div className="card" style={{ padding: "var(--space-4) var(--space-5)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-2)" }}>
             <Clock size={16} color="var(--gold-vivid)" />
-            <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase", margin: 0 }}>Calculation Notes</h4>
+            <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase", margin: 0 }}>{t.specialLagnas.calculationNotes}</h4>
           </div>
           <ul style={{ color: "var(--text-mid)", fontSize: "var(--type-small)", lineHeight: 1.7, paddingLeft: "var(--space-4)", margin: 0 }}>
             {report.notes.map((n, idx) => (
@@ -185,7 +187,7 @@ export const SpecialLagnasView: React.FC<Props> = ({ birth }: Props) => {
       <div className="card" style={{ padding: "var(--space-4) var(--space-5)", background: "linear-gradient(135deg, var(--gold-dim) 0%, var(--bg-card) 100%)", border: "1px solid var(--gold-border)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-2)" }}>
           <Award size={16} color="var(--gold-vivid)" />
-          <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase", margin: 0 }}>Master's Reading</h4>
+          <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase", margin: 0 }}>{t.specialLagnas.mastersReading}</h4>
         </div>
         <div style={{ color: "var(--text-high)", lineHeight: 1.7, fontSize: "var(--type-small)", whiteSpace: "pre-wrap" }}>
           The special lagnas refine the natal reading: {report.lagnas.map((l) => `${l.name} in ${l.sign} (House ${l.house}, lord ${l.lord})`).join("; ")}. Use Arudha for

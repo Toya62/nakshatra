@@ -11,6 +11,7 @@ import {
   NavataraEntry,
 } from "@/lib/types";
 import { fetchChakra } from "@/lib/api";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Props {
   birth?: BirthDataInput;
@@ -31,6 +32,7 @@ const COMPOUND_STYLE: Record<string, { color: string; bg: string }> = {
 };
 
 export const ChakraView: React.FC<Props> = ({ birth }: Props) => {
+  const { t, lang, num } = useLanguage();
   const [report, setReport] = useState<ChakraReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -132,16 +134,16 @@ export const ChakraView: React.FC<Props> = ({ birth }: Props) => {
             <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
               <Activity size={24} color="var(--gold-vivid)" />
               <h2 style={{ fontSize: "var(--type-title)", fontWeight: 700, color: "var(--text-high)" }}>
-                Vedic Chakra Systems
+                {t.chakras.title}
               </h2>
             </div>
             <p style={{ fontSize: "var(--type-small)", color: "var(--text-mid)", marginTop: "var(--space-1)" }}>
-              Janma Nakshatra: <strong>{report.janma_nakshatra}</strong>. {good} good / {bad} bad tara positions.
+              {t.chakras.janmaNakshatra}: <strong>{report.janma_nakshatra}</strong>. {num(good)} {t.chakras.goodTara} / {num(bad)} {t.chakras.badTara}.
             </p>
           </div>
           <div style={{ display: "flex", gap: "var(--space-2)" }}>
-            <span style={{ fontSize: "var(--type-micro)", fontWeight: 700, padding: "var(--space-0-5) var(--space-2)", borderRadius: "var(--radius-sm)", background: "var(--emerald-dim)", border: "1px solid var(--emerald)", color: "var(--emerald)" }}>{good} Good Tara</span>
-            <span style={{ fontSize: "var(--type-micro)", fontWeight: 700, padding: "var(--space-0-5) var(--space-2)", borderRadius: "var(--radius-sm)", background: "var(--rose-dim)", border: "1px solid var(--rose)", color: "var(--rose)" }}>{bad} Bad Tara</span>
+            <span style={{ fontSize: "var(--type-micro)", fontWeight: 700, padding: "var(--space-0-5) var(--space-2)", borderRadius: "var(--radius-sm)", background: "var(--emerald-dim)", border: "1px solid var(--emerald)", color: "var(--emerald)" }}>{num(good)} {t.chakras.goodTara}</span>
+            <span style={{ fontSize: "var(--type-micro)", fontWeight: 700, padding: "var(--space-0-5) var(--space-2)", borderRadius: "var(--radius-sm)", background: "var(--rose-dim)", border: "1px solid var(--rose)", color: "var(--rose)" }}>{num(bad)} {t.chakras.badTara}</span>
           </div>
         </div>
 
@@ -153,8 +155,8 @@ export const ChakraView: React.FC<Props> = ({ birth }: Props) => {
       {/* ── Navatara Chakra ── */}
       <div className="card" style={{ padding: "var(--space-4) var(--space-5)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-3)" }}>
-          <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase", margin: 0 }}>Navatara Chakra (9 Tara)</h4>
-          <span style={{ fontSize: "var(--type-label)", color: "var(--text-low)" }}>{report.navatara.length} planets</span>
+          <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase", margin: 0 }}>{t.chakras.navataraTitle}</h4>
+          <span style={{ fontSize: "var(--type-label)", color: "var(--text-low)" }}>{num(report.navatara.length)} {lang === "ne" ? "ग्रहहरू" : "planets"}</span>
         </div>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "var(--type-micro)" }}>
@@ -193,8 +195,8 @@ export const ChakraView: React.FC<Props> = ({ birth }: Props) => {
       {/* ── Compound Relationship ── */}
       <div className="card" style={{ padding: "var(--space-4) var(--space-5)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-3)" }}>
-          <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase", margin: 0 }}>Compound Relationship (Panchadha Maitri)</h4>
-          <span style={{ fontSize: "var(--type-label)", color: "var(--text-low)" }}>{report.compound_relationships.length} pairs</span>
+          <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase", margin: 0 }}>{t.chakras.compoundTitle}</h4>
+          <span style={{ fontSize: "var(--type-label)", color: "var(--text-low)" }}>{num(report.compound_relationships.length)} {lang === "ne" ? "जोडीहरू" : "pairs"}</span>
         </div>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "var(--type-micro)" }}>
@@ -233,8 +235,8 @@ export const ChakraView: React.FC<Props> = ({ birth }: Props) => {
       {/* ── Ghatchakra ── */}
       <div className="card" style={{ padding: "var(--space-4) var(--space-5)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-3)" }}>
-          <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase", margin: 0 }}>Ghatchakra Wheel</h4>
-          <span style={{ fontSize: "var(--type-label)", color: "var(--text-low)" }}>{report.ghatchakra.length} houses</span>
+          <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase", margin: 0 }}>{t.chakras.ghatchakraTitle}</h4>
+          <span style={{ fontSize: "var(--type-label)", color: "var(--text-low)" }}>{num(report.ghatchakra.length)} {lang === "ne" ? "भावहरू" : "houses"}</span>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "var(--space-2)" }}>
           {report.ghatchakra.map((g: GhatiHouse, idx: number) => (

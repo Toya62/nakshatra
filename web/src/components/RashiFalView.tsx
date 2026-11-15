@@ -9,6 +9,7 @@ import {
   RashiFalReport,
 } from "@/lib/types";
 import { fetchRashiFal } from "@/lib/api";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Props {
   birth?: BirthDataInput;
@@ -29,6 +30,7 @@ const VERDICT_STYLE: Record<string, { color: string; bg: string; border: string 
 };
 
 export const RashiFalView: React.FC<Props> = ({ birth }: Props) => {
+  const { t, lang, num, deg } = useLanguage();
   const [report, setReport] = useState<RashiFalReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -135,39 +137,42 @@ export const RashiFalView: React.FC<Props> = ({ birth }: Props) => {
             <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
               <Activity size={24} color="var(--gold-vivid)" />
               <h2 style={{ fontSize: "var(--type-title)", fontWeight: 700, color: "var(--text-high)" }}>
-                Rashi Fal — {report.period_label}
+                {t.rashiFal.title} — {report.period_label}
               </h2>
             </div>
             <p style={{ fontSize: "var(--type-small)", color: "var(--text-mid)", marginTop: "var(--space-1)" }}>
-              Chandra Lagna: {report.moon_sign} {report.moon_nakshatra ? `(${report.moon_nakshatra})` : ""}. Reference: {report.reference_date}.
+              {t.rashiFal.chandraLagna}: {lang === "ne" ? (t.zodiac.signs[report.moon_sign as keyof typeof t.zodiac.signs] || report.moon_sign) : report.moon_sign} {report.moon_nakshatra ? `(${report.moon_nakshatra})` : ""}. {t.rashiFal.referenceDate}: {report.reference_date}.
             </p>
           </div>
           <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center", flexWrap: "wrap" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-1)" }}>
-              <label style={{ fontSize: "var(--type-label)", color: "var(--text-low)", textTransform: "uppercase" }}>Period</label>
+              <label style={{ fontSize: "var(--type-label)", color: "var(--text-low)", textTransform: "uppercase" }}>{t.rashiFal.period}</label>
               <div style={{ display: "flex", gap: "var(--space-1)" }}>
-                {PERIODS.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => setPeriod(p.id)}
-                    style={{
-                      padding: "4px 10px",
-                      borderRadius: "var(--radius-sm)",
-                      border: `1px solid ${period === p.id ? "var(--gold-border)" : "var(--border-subtle)"}`,
-                      background: period === p.id ? "var(--gold-dim)" : "var(--bg-subtle)",
-                      color: period === p.id ? "var(--gold-vivid)" : "var(--text-mid)",
-                      fontSize: "var(--type-micro)",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                    }}
-                  >
-                    {p.label}
-                  </button>
-                ))}
+                {PERIODS.map((p) => {
+                  const label = p.id === "daily" ? t.rashiFal.periods.daily : p.id === "monthly" ? t.rashiFal.periods.monthly : p.id === "yearly" ? t.rashiFal.periods.yearly : p.label;
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => setPeriod(p.id)}
+                      style={{
+                        padding: "4px 10px",
+                        borderRadius: "var(--radius-sm)",
+                        border: `1px solid ${period === p.id ? "var(--gold-border)" : "var(--border-subtle)"}`,
+                        background: period === p.id ? "var(--gold-dim)" : "var(--bg-subtle)",
+                        color: period === p.id ? "var(--gold-vivid)" : "var(--text-mid)",
+                        fontSize: "var(--type-micro)",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-1)" }}>
-              <label style={{ fontSize: "var(--type-label)", color: "var(--text-low)", textTransform: "uppercase" }}>Reference Date</label>
+              <label style={{ fontSize: "var(--type-label)", color: "var(--text-low)", textTransform: "uppercase" }}>{t.rashiFal.referenceDate}</label>
               <input
                 type="date"
                 value={referenceDate}
@@ -194,15 +199,15 @@ export const RashiFalView: React.FC<Props> = ({ birth }: Props) => {
           >
             {report.overall_verdict}
           </span>
-          <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)" }}>Score {report.overall_score} / +5</span>
+          <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)" }}>{lang === "ne" ? `अङ्क ${num(report.overall_score)} / +५` : `Score ${report.overall_score} / +5`}</span>
           {report.sade_sati_active && (
             <span style={{ fontSize: "var(--type-micro)", color: "var(--rose)", fontWeight: 600 }}>
-              Sade Sati: {report.sade_sati_phase}
+              {t.rashiFal.sadeSati}: {report.sade_sati_phase}
             </span>
           )}
           {report.double_transit_houses.length > 0 && (
             <span style={{ fontSize: "var(--type-micro)", color: "var(--gold-vivid)", fontWeight: 600 }}>
-              Double Transit: House {report.double_transit_houses.join(", ")}
+              {t.rashiFal.doubleTransit}: {lang === "ne" ? `भाव ${report.double_transit_houses.map(num).join(", ")}` : `House ${report.double_transit_houses.join(", ")}`}
             </span>
           )}
         </div>
@@ -212,7 +217,7 @@ export const RashiFalView: React.FC<Props> = ({ birth }: Props) => {
       <div className="card" style={{ padding: "var(--space-4) var(--space-5)", background: "linear-gradient(135deg, var(--gold-dim) 0%, var(--bg-card) 100%)", border: "1px solid var(--gold-border)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-2)" }}>
           <Calendar size={16} color="var(--gold-vivid)" />
-          <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase", margin: 0 }}>Master's {report.period_label}</h4>
+          <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase", margin: 0 }}>{t.rashiFal.mastersSynthesis}</h4>
         </div>
         <div style={{ color: "var(--text-high)", lineHeight: 1.7, fontSize: "var(--type-small)", whiteSpace: "pre-wrap" }}>{report.master_synthesis}</div>
       </div>
@@ -220,19 +225,19 @@ export const RashiFalView: React.FC<Props> = ({ birth }: Props) => {
       {/* ── Graha Results ── */}
       <div className="card" style={{ padding: "var(--space-4) var(--space-5)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-3)" }}>
-          <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase", margin: 0 }}>Graha-wise Results from Chandra Lagna</h4>
-          <span style={{ fontSize: "var(--type-label)", color: "var(--text-low)" }}>{report.graha_results.length} planets</span>
+          <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase", margin: 0 }}>{t.rashiFal.grahaResults}</h4>
+          <span style={{ fontSize: "var(--type-label)", color: "var(--text-low)" }}>{num(report.graha_results.length)} {lang === "ne" ? "ग्रहहरू" : "planets"}</span>
         </div>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "var(--type-micro)" }}>
             <thead>
               <tr style={{ textAlign: "left", borderBottom: "1px solid var(--border-subtle)" }}>
-                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>Graha</th>
-                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>Sign</th>
-                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>House from Moon</th>
-                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>Degree</th>
-                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>Status</th>
-                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>Verdict</th>
+                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>{lang === "ne" ? "ग्रह" : "Graha"}</th>
+                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>{lang === "ne" ? "राशि" : "Sign"}</th>
+                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>{lang === "ne" ? "चन्द्रबाट भाव" : "House from Moon"}</th>
+                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>{lang === "ne" ? "अंश" : "Degree"}</th>
+                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>{lang === "ne" ? "स्थिति" : "Status"}</th>
+                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>{lang === "ne" ? "फल/निर्णय" : "Verdict"}</th>
               </tr>
             </thead>
             <tbody>
@@ -240,10 +245,18 @@ export const RashiFalView: React.FC<Props> = ({ birth }: Props) => {
                 const s = g.favourable ? VERDICT_STYLE.good : VERDICT_STYLE.challenging;
                 return (
                   <tr key={idx} style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-                    <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-high)", fontWeight: 600 }}>{g.planet}</td>
-                    <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-mid)" }}>{g.sign}</td>
-                    <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-mid)", fontFamily: "var(--font-mono)" }}>H{g.house_from_moon}</td>
-                    <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-mid)", fontFamily: "var(--font-mono)" }}>{g.degree_in_sign.toFixed(2)}°</td>
+                    <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-high)", fontWeight: 600 }}>
+                      {lang === "ne" ? (t.planets.names[g.planet as keyof typeof t.planets.names] || g.planet) : g.planet}
+                    </td>
+                    <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-mid)" }}>
+                      {lang === "ne" ? (t.zodiac.signs[g.sign as keyof typeof t.zodiac.signs] || g.sign) : g.sign}
+                    </td>
+                    <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-mid)", fontFamily: "var(--font-mono)" }}>
+                      {lang === "ne" ? `भाव ${num(g.house_from_moon)}` : `H${g.house_from_moon}`}
+                    </td>
+                    <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-mid)", fontFamily: "var(--font-mono)" }}>
+                      {deg(g.degree_in_sign)}
+                    </td>
                     <td style={{ padding: "var(--space-1) var(--space-2)" }}>
                       <span
                         style={{
@@ -257,7 +270,7 @@ export const RashiFalView: React.FC<Props> = ({ birth }: Props) => {
                           textTransform: "uppercase",
                         }}
                       >
-                        {g.favourable ? "Favourable" : "Testing"}
+                        {g.favourable ? (lang === "ne" ? "शुभ" : "Favourable") : (lang === "ne" ? "चुनौतीपूर्ण" : "Testing")}
                       </span>
                     </td>
                     <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-mid)" }}>{g.verdict}</td>
@@ -275,10 +288,15 @@ export const RashiFalView: React.FC<Props> = ({ birth }: Props) => {
           <div className="card" style={{ padding: "var(--space-4) var(--space-5)", borderLeft: "4px solid var(--emerald)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-2)" }}>
               <Sun size={16} color="var(--emerald)" />
-              <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--emerald)", textTransform: "uppercase", margin: 0 }}>Supportive Transits</h4>
+              <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--emerald)", textTransform: "uppercase", margin: 0 }}>
+                {t.rashiFal.supportiveTransits}
+              </h4>
             </div>
             <div style={{ color: "var(--text-mid)", fontSize: "var(--type-small)", lineHeight: 1.6 }}>
-              {favourable.map((g) => `${g.planet} (House ${g.house_from_moon})`).join("; ")} — these areas flower this period.
+              {favourable
+                .map((g) => `${lang === "ne" ? (t.planets.names[g.planet as keyof typeof t.planets.names] || g.planet) : g.planet} (${lang === "ne" ? "भाव" : "House"} ${num(g.house_from_moon)})`)
+                .join("; ")}{" "}
+              — {lang === "ne" ? "यस अवधिमा यी क्षेत्रहरू उन्नतिशील रहनेछन्।" : "these areas flower this period."}
             </div>
           </div>
         )}
@@ -286,10 +304,15 @@ export const RashiFalView: React.FC<Props> = ({ birth }: Props) => {
           <div className="card" style={{ padding: "var(--space-4) var(--space-5)", borderLeft: "4px solid var(--rose)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-2)" }}>
               <Sun size={16} color="var(--rose)" />
-              <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--rose)", textTransform: "uppercase", margin: 0 }}>Watchful Transits</h4>
+              <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--rose)", textTransform: "uppercase", margin: 0 }}>
+                {t.rashiFal.watchfulTransits}
+              </h4>
             </div>
             <div style={{ color: "var(--text-mid)", fontSize: "var(--type-small)", lineHeight: 1.6 }}>
-              {challenging.map((g) => `${g.planet} (House ${g.house_from_moon})`).join("; ")} — exercise restraint here.
+              {challenging
+                .map((g) => `${lang === "ne" ? (t.planets.names[g.planet as keyof typeof t.planets.names] || g.planet) : g.planet} (${lang === "ne" ? "भाव" : "House"} ${num(g.house_from_moon)})`)
+                .join("; ")}{" "}
+              — {lang === "ne" ? "यी क्षेत्रहरूमा संयमता र सतर्कता अपनाउनुहोस्।" : "exercise restraint here."}
             </div>
           </div>
         )}

@@ -10,6 +10,7 @@ import {
   VarshaphalInput,
 } from "@/lib/types";
 import { fetchVarshaphal } from "@/lib/api";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Props {
   birth?: BirthDataInput;
@@ -25,6 +26,7 @@ const DIGNITY_COLOR: Record<string, string> = {
 };
 
 export const VarshaphalView: React.FC<Props> = ({ birth }: Props) => {
+  const { t, lang, num } = useLanguage();
   const [report, setReport] = useState<VarshaphalReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -126,19 +128,19 @@ export const VarshaphalView: React.FC<Props> = ({ birth }: Props) => {
             <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
               <Sun size={24} color="var(--gold-vivid)" />
               <h2 style={{ fontSize: "var(--type-title)", fontWeight: 700, color: "var(--text-high)" }}>
-                Varshaphal - {report.target_year} Annual Horoscope
+                {t.varshaphal.title} - {num(report.target_year)}
               </h2>
             </div>
             <p style={{ fontSize: "var(--type-small)", color: "var(--text-mid)", marginTop: "var(--space-1)" }}>
-              Tajik solar-return (Barsha Fal) cast for the moment the Sun returns to its natal longitude. Age {report.completed_years}.
+              {t.varshaphal.subtitle}. {lang === "ne" ? `उमेर ${num(report.completed_years)}` : `Age ${report.completed_years}`}.
             </p>
             <div style={{ marginTop: "var(--space-3)", fontSize: "var(--type-micro)", color: "var(--text-low)", fontFamily: "var(--font-mono)" }}>
-              Solar return (local): {report.solar_return_local} . UTC: {report.solar_return_utc}
+              {t.varshaphal.solarReturn} (local): {report.solar_return_local} • UTC: {report.solar_return_utc}
             </div>
           </div>
           <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "flex-start" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-1)" }}>
-              <label style={{ fontSize: "var(--type-label)", color: "var(--text-low)", textTransform: "uppercase" }}>Target Year</label>
+              <label style={{ fontSize: "var(--type-label)", color: "var(--text-low)", textTransform: "uppercase" }}>{t.varshaphal.targetYear}</label>
               <input
                 type="number"
                 min="1"
@@ -153,13 +155,13 @@ export const VarshaphalView: React.FC<Props> = ({ birth }: Props) => {
         <div style={{ marginTop: "var(--space-4)", padding: "var(--space-3) var(--space-4)", background: "var(--gold-dim)", border: "1px solid var(--gold-border)", borderRadius: "var(--radius-md)", display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap" }}>
           <Award size={16} color="var(--gold-vivid)" />
           <div style={{ fontSize: "var(--type-small)", color: "var(--text-high)" }}>
-            <strong style={{ color: "var(--gold-vivid)" }}>Varsheshwara (Year Lord):</strong> <span style={{ color: "var(--text-mid)", fontWeight: 600 }}>{v.planet}</span>
+            <strong style={{ color: "var(--gold-vivid)" }}>{t.varshaphal.varsheshwara}:</strong> <span style={{ color: "var(--text-mid)", fontWeight: 600 }}>{lang === "ne" ? (t.planets.names[v.planet as keyof typeof t.planets.names] || v.planet) : v.planet}</span>
           </div>
           <div style={{ fontSize: "var(--type-small)", color: "var(--text-high)" }}>
-            <strong style={{ color: "var(--cyan-vivid)" }}>Muntha:</strong> <span style={{ color: "var(--text-mid)", fontWeight: 600 }}>{m.sign} (House {m.house})</span>
+            <strong style={{ color: "var(--cyan-vivid)" }}>{t.varshaphal.muntha}:</strong> <span style={{ color: "var(--text-mid)", fontWeight: 600 }}>{lang === "ne" ? (t.zodiac.signs[m.sign as keyof typeof t.zodiac.signs] || m.sign) : m.sign} ({lang === "ne" ? `भाव ${num(m.house)}` : `House ${m.house}`})</span>
           </div>
           <div style={{ fontSize: "var(--type-small)", color: "var(--text-high)" }}>
-            <strong style={{ color: "var(--cyan-vivid)" }}>Muntha Lord:</strong> <span style={{ color: "var(--text-mid)", fontWeight: 600 }}>{m.lord}</span>
+            <strong style={{ color: "var(--cyan-vivid)" }}>{t.varshaphal.munthaLord}:</strong> <span style={{ color: "var(--text-mid)", fontWeight: 600 }}>{lang === "ne" ? (t.planets.names[m.lord as keyof typeof t.planets.names] || m.lord) : m.lord}</span>
           </div>
         </div>
       </div>
@@ -222,8 +224,8 @@ export const VarshaphalView: React.FC<Props> = ({ birth }: Props) => {
 
       <div className="card" style={{ padding: "var(--space-4) var(--space-5)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-3)" }}>
-          <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase" }}>Sahams (Sensitive Points)</h4>
-          <span style={{ fontSize: "var(--type-label)", color: "var(--text-low)" }}>{report.sahams.length} calculated</span>
+          <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase" }}>{t.varshaphal.sahams}</h4>
+          <span style={{ fontSize: "var(--type-label)", color: "var(--text-low)" }}>{num(report.sahams.length)} {lang === "ne" ? "सहमहरू" : "calculated"}</span>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "var(--space-2)" }}>
           {report.sahams.map((s: SahamInfo, idx: number) => (
@@ -233,9 +235,9 @@ export const VarshaphalView: React.FC<Props> = ({ birth }: Props) => {
             >
               <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 600, color: "var(--gold-vivid)", marginBottom: "var(--space-0-5)" }}>
                 <span>{s.name}</span>
-                <span>{s.sign}</span>
+                <span>{lang === "ne" ? (t.zodiac.signs[s.sign as keyof typeof t.zodiac.signs] || s.sign) : s.sign}</span>
               </div>
-              <div style={{ color: "var(--text-mid)", fontSize: "var(--type-label)" }}>{s.degree_in_sign.toFixed(2)}° • House {s.house}</div>
+              <div style={{ color: "var(--text-mid)", fontSize: "var(--type-label)" }}>{num(s.degree_in_sign.toFixed(2))}° • {lang === "ne" ? `भाव ${num(s.house)}` : `House ${s.house}`}</div>
               <div style={{ color: "var(--text-low)", fontSize: "var(--type-label)", marginTop: "var(--space-0-5)" }}>{s.formula}</div>
               <div style={{ color: "var(--text-mid)", fontSize: "var(--type-label)", marginTop: "var(--space-0-5)", fontStyle: "italic" }}>{s.meaning}</div>
             </div>
@@ -244,7 +246,7 @@ export const VarshaphalView: React.FC<Props> = ({ birth }: Props) => {
       </div>
 
       <div className="card" style={{ padding: "var(--space-4) var(--space-5)" }}>
-        <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase", marginBottom: "var(--space-3)" }}>Month-wise Lords &amp; Themes</h4>
+        <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase", marginBottom: "var(--space-3)" }}>{t.varshaphal.monthLords}</h4>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "var(--space-2)" }}>
           {report.month_lords.map((mo: MonthPrediction, idx: number) => (
             <div
@@ -252,10 +254,10 @@ export const VarshaphalView: React.FC<Props> = ({ birth }: Props) => {
               style={{ background: "var(--bg-subtle)", padding: "var(--space-2) var(--space-3)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-subtle)", fontSize: "var(--type-micro)" }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 600, color: "var(--cyan-vivid)", marginBottom: "var(--space-0-5)" }}>
-                <span>Month {mo.month}</span>
+                <span>{lang === "ne" ? `महिना ${num(mo.month)}` : `Month ${mo.month}`}</span>
                 <span>{mo.weekday}</span>
               </div>
-              <div style={{ color: "var(--text-high)", fontWeight: 600 }}>{mo.lord}</div>
+              <div style={{ color: "var(--text-high)", fontWeight: 600 }}>{lang === "ne" ? (t.planets.names[mo.lord as keyof typeof t.planets.names] || mo.lord) : mo.lord}</div>
               <div style={{ color: "var(--text-mid)", fontSize: "var(--type-label)", marginTop: "var(--space-0-5)" }}>{mo.theme}</div>
             </div>
           ))}
@@ -265,14 +267,14 @@ export const VarshaphalView: React.FC<Props> = ({ birth }: Props) => {
       <div className="card" style={{ padding: "var(--space-4) var(--space-5)", background: "linear-gradient(135deg, var(--gold-dim) 0%, var(--bg-card) 100%)", border: "1px solid var(--gold-border)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-2)" }}>
           <Clock size={16} color="var(--gold-vivid)" />
-          <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase" }}>Master's Annual Reading</h4>
+          <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase" }}>{t.varshaphal.annualReading}</h4>
         </div>
         <div style={{ color: "var(--text-high)", lineHeight: 1.7, fontSize: "var(--type-small)", whiteSpace: "pre-wrap" }}>{report.summary}</div>
       </div>
 
       <div className="card" style={{ padding: "var(--space-4) var(--space-5)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-3)" }}>
-          <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase" }}>Solar Return Chart (D1 Snapshot)</h4>
+          <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase" }}>{t.varshaphal.chartSnapshot}</h4>
           <span style={{ fontSize: "var(--type-label)", color: "var(--text-low)" }}>{report.varshaphal_chart.ascendant} Asc</span>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "var(--space-1)", fontSize: "var(--type-label)" }}>

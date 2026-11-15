@@ -9,6 +9,7 @@ import {
   KalsarpReport,
 } from "@/lib/types";
 import { fetchKalsarp } from "@/lib/api";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Props {
   birth?: BirthDataInput;
@@ -33,6 +34,7 @@ const CLASSIFICATION_STYLE: Record<string, { color: string; bg: string; border: 
 };
 
 export const KalsarpView: React.FC<Props> = ({ birth }: Props) => {
+  const { t, lang, num } = useLanguage();
   const [report, setReport] = useState<KalsarpReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -134,14 +136,14 @@ export const KalsarpView: React.FC<Props> = ({ birth }: Props) => {
             <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
               <Activity size={24} color="var(--gold-vivid)" />
               <h2 style={{ fontSize: "var(--type-title)", fontWeight: 700, color: "var(--text-high)" }}>
-                Kalsarp Dosha Analysis
+                {t.kalsarp.title}
               </h2>
             </div>
             <p style={{ fontSize: "var(--type-small)", color: "var(--text-mid)", marginTop: "var(--space-1)" }}>
-              Rahu–Ketu nodal axis diagnostic across the twelve classical types.
+              {t.kalsarp.subtitle}
             </p>
             <div style={{ marginTop: "var(--space-3)", fontSize: "var(--type-micro)", color: "var(--text-low)", fontFamily: "var(--font-mono)" }}>
-              Rahu: {report.rahu_sign} (House {report.rahu_house}) &nbsp;•&nbsp; Ketu: {report.ketu_sign} (House {report.ketu_house}) &nbsp;•&nbsp; Axis arc: {report.axis_arc_degrees?.toFixed(2) ?? "—"}°
+              {lang === "ne" ? "राहु" : "Rahu"}: {lang === "ne" ? (t.zodiac.signs[report.rahu_sign as keyof typeof t.zodiac.signs] || report.rahu_sign) : report.rahu_sign} ({lang === "ne" ? `भाव ${num(report.rahu_house)}` : `House ${report.rahu_house}`}) • {lang === "ne" ? "केतु" : "Ketu"}: {lang === "ne" ? (t.zodiac.signs[report.ketu_sign as keyof typeof t.zodiac.signs] || report.ketu_sign) : report.ketu_sign} ({lang === "ne" ? `भाव ${num(report.ketu_house)}` : `House ${report.ketu_house}`}) • {t.kalsarp.axisArc}: {report.axis_arc_degrees ? `${num(report.axis_arc_degrees.toFixed(2))}°` : "—"}
             </div>
           </div>
 
@@ -159,7 +161,9 @@ export const KalsarpView: React.FC<Props> = ({ birth }: Props) => {
                 letterSpacing: "0.05em",
               }}
             >
-              {report.has_kalsarp ? report.classification + " Kalsarp" : "No Kalsarp"}
+              {report.has_kalsarp
+                ? (report.classification === "Full" || report.classification === "Purna" ? t.kalsarp.fullKalsarp : t.kalsarp.partialKalsarp)
+                : t.kalsarp.noKalsarp}
             </span>
             {report.has_kalsarp && report.kalsarp_type && (
               <span
@@ -173,7 +177,7 @@ export const KalsarpView: React.FC<Props> = ({ birth }: Props) => {
                   color: "var(--gold-vivid)",
                 }}
               >
-                {report.kalsarp_type}
+                {t.kalsarp.types[report.kalsarp_type] || report.kalsarp_type}
               </span>
             )}
           </div>
@@ -190,7 +194,7 @@ export const KalsarpView: React.FC<Props> = ({ birth }: Props) => {
           <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-2)" }}>
             <Award size={16} color={style.color} />
             <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: style.color, textTransform: "uppercase" }}>
-              {report.kalsarp_type} — Classical Type
+              {t.kalsarp.types[report.kalsarp_type || ""] || report.kalsarp_type}
             </h4>
           </div>
           <div style={{ color: "var(--text-mid)", fontSize: "var(--type-small)" }}>{report.kalsarp_type_description}</div>
@@ -200,32 +204,36 @@ export const KalsarpView: React.FC<Props> = ({ birth }: Props) => {
       {/* ── Classification Stats ── */}
       <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
         <div style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-sm)", padding: "var(--space-3) var(--space-4)", flex: 1, minWidth: 140 }}>
-          <div style={{ fontSize: "var(--type-label)", color: "var(--text-low)", textTransform: "uppercase" }}>Planets Within Axis</div>
+          <div style={{ fontSize: "var(--type-label)", color: "var(--text-low)", textTransform: "uppercase" }}>{t.kalsarp.planetsWithinAxis}</div>
           <div style={{ fontSize: "var(--type-heading)", fontWeight: 700, color: "var(--gold-vivid)" }}>
-            {report.planets_within_axis} / {report.total_classical_planets}
+            {num(report.planets_within_axis)} / {num(report.total_classical_planets)}
           </div>
         </div>
         <div style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-sm)", padding: "var(--space-3) var(--space-4)", flex: 1, minWidth: 140 }}>
-          <div style={{ fontSize: "var(--type-label)", color: "var(--text-low)", textTransform: "uppercase" }}>Classification</div>
-          <div style={{ fontSize: "var(--type-heading)", fontWeight: 700, color: style.color }}>{report.classification}</div>
+          <div style={{ fontSize: "var(--type-label)", color: "var(--text-low)", textTransform: "uppercase" }}>{t.kalsarp.classification}</div>
+          <div style={{ fontSize: "var(--type-heading)", fontWeight: 700, color: style.color }}>
+            {report.has_kalsarp
+              ? (report.classification === "Full" || report.classification === "Purna" ? t.kalsarp.fullKalsarp : t.kalsarp.partialKalsarp)
+              : t.kalsarp.noKalsarp}
+          </div>
         </div>
       </div>
 
       {/* ── Planet Status Table ── */}
       <div className="card" style={{ padding: "var(--space-4) var(--space-5)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-3)" }}>
-          <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase" }}>Classical Graha Axis Status</h4>
-          <span style={{ fontSize: "var(--type-label)", color: "var(--text-low)" }}>{report.planet_status.length} planets</span>
+          <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase" }}>{t.kalsarp.grahaStatus}</h4>
+          <span style={{ fontSize: "var(--type-label)", color: "var(--text-low)" }}>{num(report.planet_status.length)} {lang === "ne" ? "ग्रहहरू" : "planets"}</span>
         </div>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "var(--type-micro)" }}>
             <thead>
               <tr style={{ textAlign: "left", borderBottom: "1px solid var(--border-subtle)" }}>
-                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>Graha</th>
-                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>Sign</th>
-                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>Degree</th>
-                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>House</th>
-                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>Within Axis</th>
+                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>{lang === "ne" ? "ग्रह" : "Graha"}</th>
+                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>{lang === "ne" ? "राशि" : "Sign"}</th>
+                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>{lang === "ne" ? "अंश" : "Degree"}</th>
+                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>{lang === "ne" ? "भाव" : "House"}</th>
+                <th style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-low)", fontSize: "var(--type-label)" }}>{lang === "ne" ? "अक्षभित्र" : "Within Axis"}</th>
               </tr>
             </thead>
             <tbody>
@@ -237,10 +245,10 @@ export const KalsarpView: React.FC<Props> = ({ birth }: Props) => {
                     background: p.within_axis ? "rgba(239, 68, 68, 0.04)" : "transparent",
                   }}
                 >
-                  <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-high)", fontWeight: 600 }}>{p.name}</td>
-                  <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-mid)" }}>{p.sign}</td>
-                  <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-mid)", fontFamily: "var(--font-mono)" }}>{p.degree_in_sign.toFixed(2)}°</td>
-                  <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-mid)" }}>{p.house}</td>
+                  <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-high)", fontWeight: 600 }}>{lang === "ne" ? (t.planets.names[p.name as keyof typeof t.planets.names] || p.name) : p.name}</td>
+                  <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-mid)" }}>{lang === "ne" ? (t.zodiac.signs[p.sign as keyof typeof t.zodiac.signs] || p.sign) : p.sign}</td>
+                  <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-mid)", fontFamily: "var(--font-mono)" }}>{num(p.degree_in_sign.toFixed(2))}°</td>
+                  <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-mid)" }}>{lang === "ne" ? `भाव ${num(p.house)}` : `H${p.house}`}</td>
                   <td style={{ padding: "var(--space-1) var(--space-2)" }}>
                     <span
                       style={{
@@ -248,12 +256,13 @@ export const KalsarpView: React.FC<Props> = ({ birth }: Props) => {
                         fontWeight: 600,
                         padding: "1px 6px",
                         borderRadius: "var(--radius-sm)",
-                        background: p.within_axis ? "var(--rose-dim)" : "var(--emerald-dim)",
+                        background: p.within_axis ? "rgba(239, 68, 68, 0.12)" : "rgba(16, 185, 129, 0.12)",
                         color: p.within_axis ? "var(--rose)" : "var(--emerald)",
                         border: `1px solid ${p.within_axis ? "var(--rose)" : "var(--emerald)"}`,
+                        textTransform: "uppercase",
                       }}
                     >
-                      {p.within_axis ? "Within" : "Outside"}
+                      {p.within_axis ? (lang === "ne" ? "अक्षभित्र" : "Within") : (lang === "ne" ? "मुक्त" : "Free")}
                     </span>
                   </td>
                 </tr>
