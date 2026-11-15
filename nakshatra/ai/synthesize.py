@@ -561,14 +561,6 @@ class LLMSynthesizer(BaseSynthesizer):
     def _complete_google(self, prompt: str, system_prompt: str = SYSTEM_PROMPT) -> str:
         rotation_models = [
             "gemini-3.8-flash",
-            "gemini-3.7-flash",
-            "gemini-3.6-flash",
-            "gemini-3.5-flash",
-            "gemini-3.5-flash-lite",
-            "gemini-3.1-flash-lite",
-            "gemini-3-flash-preview",
-            "gemini-flash-latest",
-            "gemini-flash-lite-latest",
         ]
         candidates = [self.model]
         for m in rotation_models:
@@ -654,14 +646,6 @@ class LLMSynthesizer(BaseSynthesizer):
     def _stream_google(self, prompt: str, system_prompt: str = SYSTEM_PROMPT) -> Iterator[str]:
         rotation_models = [
             "gemini-3.8-flash",
-            "gemini-3.7-flash",
-            "gemini-3.6-flash",
-            "gemini-3.5-flash",
-            "gemini-3.5-flash-lite",
-            "gemini-3.1-flash-lite",
-            "gemini-3-flash-preview",
-            "gemini-flash-latest",
-            "gemini-flash-lite-latest",
         ]
         candidates = [self.model]
         for m in rotation_models:
