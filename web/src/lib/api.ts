@@ -183,13 +183,15 @@ export async function fetchYogas(input: BirthDataInput): Promise<YogaResult[]> {
 export async function askConsultation(
   question: string,
   birth?: BirthDataInput,
-  topK: number = 4
+  topK: number = 4,
+  language: string = "en"
 ): Promise<{ answer: RAGAnswer; references: SearchReference[] }> {
   const baseUrl = getApiBaseUrl();
   const body: Record<string, unknown> = {
     question,
     top_k: topK,
     index_dir: "index",
+    language,
   };
 
   if (birth) {
@@ -236,13 +238,15 @@ export async function askConsultationStream(
   handlers: StreamHandlers,
   birth?: BirthDataInput,
   topK: number = 4,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  language: string = "en"
 ): Promise<void> {
   const baseUrl = getApiBaseUrl();
   const body: Record<string, unknown> = {
     question,
     top_k: topK,
     index_dir: "index",
+    language,
   };
 
   if (birth) {

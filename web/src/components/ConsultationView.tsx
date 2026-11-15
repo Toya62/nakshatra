@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { BirthDataInput, RAGAnswer, SearchReference, DomainPrediction, getBirthKey } from "@/lib/types";
 import { askConsultationStream, fetchPredictions } from "@/lib/api";
+import { useLanguage } from "@/context/LanguageContext";
 import { BookOpen, Send, Sparkles, User, Bot, Quote, HelpCircle, ShieldCheck, X, Compass, Square, ArrowDown } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -34,8 +35,12 @@ const INITIAL_MESSAGE: Message = {
 };
 
 export const ConsultationView: React.FC<Props> = ({ birth }) => {
+  const { t, lang } = useLanguage();
   const currentChartKey = getBirthKey(birth);
-  const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
+  const initialText = lang === "ne"
+    ? "नमस्ते। म तपाईंको नक्षत्र वैदिक ज्योतिष परामर्शदाता हुँ, जो प्रामाणिक शास्त्रीय ग्रन्थहरू (वृहत् पराशर होरा शास्त्र, फलदीपिका, सारावली) मा आधारित छ। आफ्नो कुण्डली वा ज्योतिष सम्बन्धी कुनै पनि जिज्ञासा सोध्नुहोस्।"
+    : "Namaste. I am your Nakshatra Vedic Consultant, grounded in authentic classical treatises (Brihat Parashara Hora Shastra, Phaladeepika, Saravali). Ask any astrological question or query your chart placements.";
+  const [messages, setMessages] = useState<Message[]>([{ role: "assistant", text: initialText }]);
   const [input, setInput] = useState("");
   const [includeChart, setIncludeChart] = useState(Boolean(birth));
   const [loading, setLoading] = useState(false);
@@ -270,7 +275,8 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
         },
         includeChart ? birth : undefined,
         4,
-        controller.signal
+        controller.signal,
+        lang
       );
     } catch (e: unknown) {
       const err = e as Error;
@@ -290,10 +296,10 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
         <div>
           <h2 style={{ fontSize: "var(--type-heading)", fontWeight: 700, display: "flex", alignItems: "center", gap: "var(--space-2)", color: "var(--text-high)" }}>
             <BookOpen size={18} color="var(--gold-vivid)" aria-hidden="true" />
-            Vedic Scripture Consultation
+            {t.consultation.title}
           </h2>
           <p style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", marginTop: "2px" }}>
-            Zero-hallucination RAG synthesized via Gemini with verified classical shloka citations
+            {t.consultation.subtitle}
           </p>
         </div>
 
@@ -301,7 +307,7 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
           {/* Privacy badge */}
           <div style={{ display: "flex", alignItems: "center", gap: "var(--space-1)", fontSize: "var(--type-micro)", color: "var(--cyan-vivid)", background: "var(--cyan-dim)", padding: "3px 8px", borderRadius: "var(--radius-sm)", border: "1px solid rgba(56, 189, 248, 0.25)" }}>
             <ShieldCheck size={13} aria-hidden="true" />
-            <span>Zero Persistence • In-Memory</span>
+            <span>{lang === "ne" ? "शून्य भण्डारण • स्मृतिमा मात्र" : "Zero Persistence • In-Memory"}</span>
           </div>
 
           {messages.length > 1 && (
@@ -312,7 +318,7 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
               style={{ fontSize: "var(--type-micro)" }}
               aria-label="Reset consultation chat history"
             >
-              Reset Chat
+              {lang === "ne" ? "नयाँ कुराकानी" : "Reset Chat"}
             </button>
           )}
 
@@ -325,7 +331,7 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
               aria-label="Toggle Natal Chart context grounding"
             >
               <Sparkles size={13} color={includeChart ? "var(--gold-vivid)" : "var(--text-mid)"} aria-hidden="true" />
-              <span>Chart Context: {includeChart ? "Active" : "Off"}</span>
+              <span>{lang === "ne" ? `कुण्डली सन्दर्भ: ${includeChart ? "सक्रिय" : "बन्द"}` : `Chart Context: ${includeChart ? "Active" : "Off"}`}</span>
             </button>
           )}
         </div>
@@ -337,20 +343,20 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-2)", flexWrap: "wrap", gap: "var(--space-2)" }}>
             <span style={{ fontSize: "var(--type-micro)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase", letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: "6px" }}>
               <Compass size={13} aria-hidden="true" />
-              Hierarchical Vedic Predictions (Deterministic Ground Truth)
+              {lang === "ne" ? "शास्त्रीय वैदिक फलादेश (स्वीस एफिमरिस आधार)" : "Hierarchical Vedic Predictions (Deterministic Ground Truth)"}
             </span>
             {predictLoading && (
-              <span style={{ fontSize: "var(--type-micro)", color: "var(--text-low)" }}>Calculating yogas & transits...</span>
+              <span style={{ fontSize: "var(--type-micro)", color: "var(--text-low)" }}>{lang === "ne" ? "योग तथा गोचर गणना गरिँदैछ..." : "Calculating yogas & transits..."}</span>
             )}
           </div>
           <div style={{ display: "flex", gap: "var(--space-2)", overflowX: "auto", paddingBottom: "2px", scrollbarWidth: "thin", maxWidth: "100%", width: "100%", minWidth: 0, WebkitOverflowScrolling: "touch" }}>
             {[
-              { id: "all", label: "Overview", icon: "🌌" },
-              { id: "career", label: "Career & Status", icon: "👑" },
-              { id: "relationship", label: "Marriage & Love", icon: "💍" },
-              { id: "wealth", label: "Wealth & Dhana", icon: "💎" },
-              { id: "spiritual_dharma", label: "Spiritual Dharma", icon: "🪷" },
-              { id: "health", label: "Vitality & Ayur", icon: "🌿" },
+              { id: "all", label: lang === "ne" ? "समग्र सारांश" : "Overview", icon: "🌌" },
+              { id: "career", label: lang === "ne" ? "करियर तथा पदप्रतिष्ठा" : "Career & Status", icon: "👑" },
+              { id: "relationship", label: lang === "ne" ? "विवाह तथा सम्बन्ध" : "Marriage & Love", icon: "💍" },
+              { id: "wealth", label: lang === "ne" ? "धन तथा आर्थिक स्थिति" : "Wealth & Dhana", icon: "💎" },
+              { id: "spiritual_dharma", label: lang === "ne" ? "आध्यात्म तथा धर्म" : "Spiritual Dharma", icon: "🪷" },
+              { id: "health", label: lang === "ne" ? "आरोग्य तथा आयु" : "Vitality & Ayur", icon: "🌿" },
             ].map((d) => {
               const isActive = selectedDomain === (d.id === "all" ? null : d.id);
               const pred = predictions && d.id !== "all" ? predictions[d.id] : null;
@@ -510,9 +516,9 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
         aria-label="Suggested classical questions"
       >
         <span style={{ fontSize: "var(--type-micro)", color: "var(--text-low)", textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "4px" }}>
-          <Sparkles size={11} color="var(--gold-vivid)" aria-hidden="true" /> Prompts:
+          <Sparkles size={11} color="var(--gold-vivid)" aria-hidden="true" /> {t.consultation.sampleQueriesTitle}:
         </span>
-        {SAMPLE_QUESTIONS.map((q, idx) => (
+        {(t.consultation.samples && t.consultation.samples.length > 0 ? t.consultation.samples : SAMPLE_QUESTIONS).map((q, idx) => (
           <button
             key={idx}
             type="button"
@@ -763,7 +769,7 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
             aria-label="Scroll to bottom"
           >
             <ArrowDown size={13} aria-hidden="true" />
-            <span>Scroll to bottom</span>
+            <span>{lang === "ne" ? "तल जानुहोस्" : "Scroll to bottom"}</span>
           </button>
         )}
       </div>
@@ -780,7 +786,7 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask an astrological question (e.g. 'How does Jupiter in 9th house affect destiny?')..."
+          placeholder={t.consultation.inputPlaceholder}
           style={{ flex: 1, padding: "12px 16px", borderRadius: "var(--radius-md)", fontSize: "var(--type-body)", minWidth: 0 }}
           disabled={loading}
           aria-label="Astrological consultation question"
@@ -805,11 +811,11 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
               fontSize: "var(--type-small)",
               flexShrink: 0,
             }}
-            aria-label="Stop generating response"
-            title="Stop generation"
+            aria-label={t.consultation.stopBtn}
+            title={t.consultation.stopBtn}
           >
             <Square size={13} fill="currentColor" aria-hidden="true" />
-            <span>Stop</span>
+            <span>{t.consultation.stopBtn}</span>
           </button>
         ) : (
           <button
@@ -817,7 +823,7 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
             disabled={!input.trim()}
             className="btn-primary"
             style={{ height: "44px", padding: "0 18px", flexShrink: 0 }}
-            aria-label="Send question"
+            aria-label={t.consultation.sendBtn}
           >
             <Send size={16} aria-hidden="true" />
           </button>

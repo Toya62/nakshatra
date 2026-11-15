@@ -415,6 +415,7 @@ class RAGAskRequest(BaseModel):
     index_dir: str = Field("index", description="Index directory to query")
     top_k: int = Field(5, ge=1, le=20, description="References to retrieve")
     birth: ChartRequest | None = Field(None, description="Optional natal chart context")
+    language: str = Field("en", description="Consultation response language ('en' or 'ne')")
 
 
 class RAGAskResponse(BaseModel):
@@ -1403,6 +1404,7 @@ async def rag_ask(request: RAGAskRequest) -> RAGAskResponse:
             index_dir=request.index_dir,
             top_k=request.top_k,
             birth_context=birth_context,
+            language=request.language,
         )
         return RAGAskResponse(
             data=answer,
@@ -1451,6 +1453,7 @@ async def rag_ask_stream(request: RAGAskRequest) -> StreamingResponse:
                 index_dir=request.index_dir,
                 top_k=request.top_k,
                 birth_context=birth_context,
+                language=request.language,
             )
             ref_data = [
                 {

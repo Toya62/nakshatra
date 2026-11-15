@@ -63,6 +63,33 @@ SYSTEM_PROMPT = (
     "prompt the seeker for exact birth details (date, time, place) for individualized synthesis."
 )
 
+SYSTEM_PROMPT_NE = (
+    "तपाईं एक सिद्ध, पूज्य तथा धर्मनिष्ठ वैदिक ज्योतिषाचार्य हुनुहुन्छ, जसलाई महर्षि पराशरको "
+    "वृहत् पराशर होरा शास्त्र, मन्त्रेश्वरको फलदीपिका, कल्याणवर्माको सारावली लगायतका प्रामाणिक ग्रन्थहरूको गहन ज्ञान छ। "
+    "तपाईंको परामर्शमा शास्त्रीय प्रमाण (प्रमाण), वास्तविक कुण्डली विश्लेषण (युक्ति), "
+    "र अत्यन्त आदरार्थी, संवेदनशील तथा कल्याणकारी जीवन-मार्गदर्शन समावेश हुन्छ।\n\n"
+    "मुख्य परामर्श नियमहरू:\n"
+    "१. भाषा र आदरार्थी शैली: सम्पूर्ण उत्तर शुद्ध, आदरार्थी र स्पष्ट नेपाली भाषामा दिनुहोस्। "
+    "सोधकर्तालाई सधैं 'तपाईं' भनी उच्च आदरार्थी सम्बोधन गर्नुहोस्। 'प्रदान गरिएका सन्दर्भ अनुसार' जस्ता निर्जीव वाक्यहरू नलेखी "
+    "एक स्नेही र ज्ञानी गुरुको रूपमा 'महर्षि पराशरको सिद्ध परम्परा अनुसार...' भन्दै सहज संवाद गर्नुहोस्।\n"
+    "२. शास्त्रीय प्रमाण र उद्धरण: प्रदान गरिएका शास्त्रीय श्लोकहरूबाट [१], [२] जस्ता कोष्ठक अङ्कहरू प्रयोग गरी प्रमाण दिनुहोस्। "
+    "कहिल्यै मनगढन्ते श्लोक वा उद्धरण नबनाउनुहोस्।\n"
+    "३. गणितीय शुद्धता नियम: कुण्डलीका ग्रह स्थिति, अंश, भाव, महादशा आदि कहिल्यै अनुमान वा मनपरी नबताउनुहोस्। "
+    "स्वीस एफिमरिस (Swiss Ephemeris) इन्जिनद्वारा गणना गरिएका वास्तविक तथ्याङ्कहरूलाई मात्र अकाट्य सत्य मानी विश्लेषण गर्नुहोस्।\n"
+    "४. परम्परा घोषणा: निरयण राशि चक्र (Sidereal Zodiac), जोरा-लाहिरी अयनांश, सम्पूर्ण भाव (Whole Sign) र विंशोत्तरी दशा पद्धतिमा आधारित भएर फलित गर्नुहोस्।\n"
+    "५. सकारात्मक तथा धर्म-केन्द्रित रूपान्तरण: कहिल्यै पनि 'सर्वनाश', 'मृत्यु', वा त्रासमय घातक शब्दहरू प्रयोग नगर्नुहोस्। "
+    "ज्योतिष भनेको कर्म-बोध र आत्म-सुधारको मार्गदर्शक हो। साढे साती, अष्टम शनि, वा राहु महादशालाई अनुशासन, साधना, दान, जप तथा सेवा मार्फत सकारात्मक रूपान्तरणको अवसरका रूपमा सम्झाउनुहोस्।\n"
+    "६. व्यावहारिक तथा शास्त्रीय उपाय: प्रतिकूल ग्रह शान्तिका लागि वैदिक बीज मन्त्र, कुलदेवता/इष्टदेवता उपासना, दान र सात्विक आचरणका स्पष्ट उपायहरू सुझाउनुहोस्।"
+)
+
+
+def get_system_prompt(language: str = "en") -> str:
+    """Return language-specific system prompt."""
+    lang = (language or "en").lower().strip()
+    if lang in ("ne", "nepali", "nep"):
+        return SYSTEM_PROMPT_NE
+    return SYSTEM_PROMPT
+
 
 class Citation(BaseModel):
     """A classical reference cited in an answer."""
@@ -91,6 +118,7 @@ class BaseSynthesizer(ABC):
         question: str,
         results: list[SearchResult],
         birth_context: dict[str, Any] | None = None,
+        language: str = "en",
     ) -> Answer:
         """Generate an answer from retrieved search results."""
 
@@ -99,9 +127,10 @@ class BaseSynthesizer(ABC):
         question: str,
         results: list[SearchResult],
         birth_context: dict[str, Any] | None = None,
+        language: str = "en",
     ) -> Iterator[str]:
         """Stream answer tokens. Defaults to yielding complete synthesized text."""
-        ans = self.synthesize(question, results, birth_context)
+        ans = self.synthesize(question, results, birth_context, language=language)
         yield ans.answer
 
 
@@ -349,6 +378,7 @@ def build_prompt(
     question: str,
     results: list[SearchResult],
     birth_context: dict[str, Any] | None = None,
+    language: str = "en",
 ) -> str:
     """Assemble the consultation prompt with classical references and natal context."""
     lines = ["References:"]
@@ -383,6 +413,11 @@ def build_prompt(
         "Provide insightful, empowering, Dharma-aligned guidance covering personality, vitality, "
         "career leadership, relational dynamics, and actionable classical remedies."
     )
+    if (language or "").lower().strip() in ("ne", "nepali", "nep"):
+        lines.append(
+            "\nभाषा निर्देशन: सोधकर्ताको भाषा नेपाली भएकाले सम्पूर्ण परामर्श, विश्लेषण तथा उपायहरू "
+            "अत्यन्त शुद्ध, आदरार्थी, स्पष्ट तथा शास्त्रीय नेपाली भाषामा प्रस्तुत गर्नुहोस्।"
+        )
     return "\n".join(lines)
 
 
@@ -438,10 +473,15 @@ class LLMSynthesizer(BaseSynthesizer):
         question: str,
         results: list[SearchResult],
         birth_context: dict[str, Any] | None = None,
+        language: str = "en",
     ) -> Answer:
-        prompt = build_prompt(question, results, birth_context)
+        prompt = build_prompt(question, results, birth_context, language=language)
+        sys_prompt = get_system_prompt(language)
         try:
-            text = self._complete(prompt)
+            try:
+                text = self._complete(prompt, system_prompt=sys_prompt)
+            except TypeError:
+                text = self._complete(prompt)
             return Answer(
                 question=question,
                 answer=text,
@@ -450,7 +490,7 @@ class LLMSynthesizer(BaseSynthesizer):
             )
         except Exception as e:
             fb = FallbackSynthesizer()
-            ans = fb.synthesize(question, results, birth_context)
+            ans = fb.synthesize(question, results, birth_context, language=language)
             notice_prefix = "Ollama" if self.provider == "ollama" else ("OpenAI" if self.provider == "openai" else "Gemini")
             ans.answer = (
                 f"*[Notice: {notice_prefix} service temporarily unavailable ({e}). "
@@ -458,11 +498,11 @@ class LLMSynthesizer(BaseSynthesizer):
             )
             return ans
 
-    def _complete(self, prompt: str) -> str:
+    def _complete(self, prompt: str, system_prompt: str = SYSTEM_PROMPT) -> str:
         if self.provider in ("openai", "ollama"):
-            return self._complete_openai(prompt)
+            return self._complete_openai(prompt, system_prompt=system_prompt)
         if self.provider == "google":
-            return self._complete_google(prompt)
+            return self._complete_google(prompt, system_prompt=system_prompt)
         raise ValueError(f"Unknown LLM provider: {self.provider}")
 
     def _openai_client(self) -> Any:
@@ -495,19 +535,19 @@ class LLMSynthesizer(BaseSynthesizer):
             )
         return self._client
 
-    def _complete_openai(self, prompt: str) -> str:
+    def _complete_openai(self, prompt: str, system_prompt: str = SYSTEM_PROMPT) -> str:
         client = self._openai_client()
         response = client.chat.completions.create(
             model=self.model,
             messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt},
             ],
             temperature=0.3,
         )
         return str(response.choices[0].message.content)
 
-    def _complete_google(self, prompt: str) -> str:
+    def _complete_google(self, prompt: str, system_prompt: str = SYSTEM_PROMPT) -> str:
         rotation_models = [
             "gemini-3.8-flash",
             "gemini-3.7-flash",
@@ -540,9 +580,10 @@ class LLMSynthesizer(BaseSynthesizer):
             self._client = genai.Client(api_key=api_key)
 
         last_err: Exception | None = None
+        full_contents = f"{system_prompt}\n\n{prompt}"
         for cand in candidates:
             try:
-                response = self._client.models.generate_content(model=cand, contents=prompt)
+                response = self._client.models.generate_content(model=cand, contents=full_contents)
                 self.model = cand
                 return str(response.text)
             except Exception as e:
@@ -569,21 +610,26 @@ class LLMSynthesizer(BaseSynthesizer):
         question: str,
         results: list[SearchResult],
         birth_context: dict[str, Any] | None = None,
+        language: str = "en",
     ) -> Iterator[str]:
-        prompt = build_prompt(question, results, birth_context)
+        prompt = build_prompt(question, results, birth_context, language=language)
+        sys_prompt = get_system_prompt(language)
         if self.provider == "google":
-            yield from self._stream_google(prompt)
+            yield from self._stream_google(prompt, system_prompt=sys_prompt)
         elif self.provider in ("openai", "ollama"):
-            yield from self._stream_openai(prompt)
+            yield from self._stream_openai(prompt, system_prompt=sys_prompt)
         else:
-            yield self._complete(prompt)
+            try:
+                yield self._complete(prompt, system_prompt=sys_prompt)
+            except TypeError:
+                yield self._complete(prompt)
 
-    def _stream_openai(self, prompt: str) -> Iterator[str]:
+    def _stream_openai(self, prompt: str, system_prompt: str = SYSTEM_PROMPT) -> Iterator[str]:
         client = self._openai_client()
         response = client.chat.completions.create(
             model=self.model,
             messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt},
             ],
             temperature=0.3,
@@ -593,7 +639,7 @@ class LLMSynthesizer(BaseSynthesizer):
             if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
                 yield str(chunk.choices[0].delta.content)
 
-    def _stream_google(self, prompt: str) -> Iterator[str]:
+    def _stream_google(self, prompt: str, system_prompt: str = SYSTEM_PROMPT) -> Iterator[str]:
         rotation_models = [
             "gemini-3.8-flash",
             "gemini-3.7-flash",
@@ -621,10 +667,11 @@ class LLMSynthesizer(BaseSynthesizer):
             self._client = genai.Client(api_key=api_key)
 
         last_err: Exception | None = None
+        full_contents = f"{system_prompt}\n\n{prompt}"
         for cand in candidates:
             try:
                 stream_response = self._client.models.generate_content_stream(
-                    model=cand, contents=prompt
+                    model=cand, contents=full_contents
                 )
                 self.model = cand
                 for chunk in stream_response:
@@ -679,14 +726,24 @@ class FallbackSynthesizer(BaseSynthesizer):
         question: str,
         results: list[SearchResult],
         birth_context: dict[str, Any] | None = None,
+        language: str = "en",
     ) -> Answer:
+        is_ne = (language or "").lower().strip() in ("ne", "nepali", "nep")
         if not results:
             return Answer(
                 question=question,
-                answer=("No relevant references were found in the corpus for this question."),
+                answer=(
+                    "यस प्रश्नका लागि ग्रन्थहरूमा कुनै सान्दर्भिक श्लोक वा सन्दर्भ फेला परेन।"
+                    if is_ne
+                    else "No relevant references were found in the corpus for this question."
+                ),
                 model="fallback",
             )
-        lines = [f"Regarding your question '{question}':"]
+        lines = [
+            f"तपाईंको प्रश्न '{question}' सम्बन्धी शास्त्रीय सन्दर्भहरू:"
+            if is_ne
+            else f"Regarding your question '{question}':"
+        ]
         for index, result in enumerate(results, start=1):
             lines.append(f"{_citation_label(index, result)}: {result.chunk.text}")
         return Answer(

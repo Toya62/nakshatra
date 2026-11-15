@@ -188,11 +188,14 @@ class RAGService:
         index_dir: str | Path = DEFAULT_INDEX_DIR,
         top_k: int = 5,
         birth_context: dict | None = None,
+        language: str = "en",
     ) -> tuple[Answer, list[SearchResult]]:
         """Retrieve references and synthesize a cited answer."""
         retriever = self.load(index_dir)
         results = retriever.search(question, top_k=top_k)
-        answer = self._get_synthesizer().synthesize(question, results, birth_context=birth_context)
+        answer = self._get_synthesizer().synthesize(
+            question, results, birth_context=birth_context, language=language
+        )
         return answer, results
 
     def ask_stream(
@@ -201,10 +204,13 @@ class RAGService:
         index_dir: str | Path = DEFAULT_INDEX_DIR,
         top_k: int = 5,
         birth_context: dict | None = None,
+        language: str = "en",
     ) -> tuple[Iterator[str], list[SearchResult], BaseSynthesizer]:
         """Retrieve references and stream synthesized answer tokens."""
         retriever = self.load(index_dir)
         results = retriever.search(question, top_k=top_k)
         synthesizer = self._get_synthesizer()
-        stream = synthesizer.synthesize_stream(question, results, birth_context=birth_context)
+        stream = synthesizer.synthesize_stream(
+            question, results, birth_context=birth_context, language=language
+        )
         return stream, results, synthesizer
