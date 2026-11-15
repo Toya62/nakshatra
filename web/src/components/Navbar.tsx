@@ -3,7 +3,9 @@
 import React from "react";
 import { Activity, Menu, X } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { LanguageToggle } from "@/components/LanguageToggle";
 import { NakshatraLogo } from "@/components/NakshatraLogo";
+import { useLanguage } from "@/context/LanguageContext";
 
 // Re-export TabId from Sidebar so existing imports still work
 export type { TabId } from "@/components/Sidebar";
@@ -21,6 +23,8 @@ export const Navbar: React.FC<Props> = ({
   mobileMenuOpen,
   onToggleMobile,
 }) => {
+  const { t } = useLanguage();
+
   return (
     <header
       className="app-header"
@@ -99,13 +103,14 @@ export const Navbar: React.FC<Props> = ({
               textTransform: "uppercase",
             }}
           >
-            Vedic Astrology Engine
+            {t.common.tagline}
           </p>
         </div>
       </div>
 
-      {/* Right — Theme Toggle + API status */}
-      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+      {/* Right — Language Toggle + Theme Toggle + API status */}
+      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+        <LanguageToggle />
         <ThemeToggle />
         <div
           className={`badge ${
@@ -119,7 +124,9 @@ export const Navbar: React.FC<Props> = ({
           title={`Backend API: ${apiStatus}`}
         >
           <Activity size={11} aria-hidden="true" />
-          <span className="badge-status-text">{apiStatus === "checking" ? "connecting…" : apiStatus}</span>
+          <span className="badge-status-text">
+            {apiStatus === "checking" ? t.common.connecting : apiStatus === "connected" ? t.common.connected : t.common.offline}
+          </span>
         </div>
       </div>
     </header>

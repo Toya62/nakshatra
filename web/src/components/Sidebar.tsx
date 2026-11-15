@@ -8,6 +8,7 @@ import {
   X,
 } from "lucide-react";
 import { NakshatraLogo } from "@/components/NakshatraLogo";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   KundaliIcon,
   GocharIcon,
@@ -206,6 +207,27 @@ export const Sidebar: React.FC<Props> = ({
   mobileOpen,
   onCloseMobile,
 }) => {
+  const { t } = useLanguage();
+
+  const getTabLabel = (id: TabId, fallback: string): string => {
+    switch (id) {
+      case "chart": return t.nav.chart;
+      case "transits": return t.nav.transits;
+      case "dasha": return t.nav.dasha;
+      case "panchanga": return t.nav.panchanga;
+      case "compatibility": return t.nav.compatibility;
+      case "muhurtha": return t.nav.muhurtha;
+      case "remedies": return t.nav.remedies;
+      case "varshaphal": return t.nav.varshaphal;
+      case "kalsarp": return t.nav.kalsarp;
+      case "special-lagnas": return t.nav.special_lagnas;
+      case "chakra": return t.nav.chakra;
+      case "rashi-fal": return t.nav.rashi_fal;
+      case "consult": return t.nav.consult;
+      default: return fallback;
+    }
+  };
+
   const handleTab = (id: TabId) => {
     onTabChange(id);
     onCloseMobile();
@@ -359,13 +381,14 @@ export const Sidebar: React.FC<Props> = ({
         >
           {TABS.map(({ id, label, Icon, accent }) => {
             const active = activeTab === id;
+            const displayLabel = getTabLabel(id, label);
             return (
               <button
                 key={id}
                 role="tab"
                 aria-selected={active}
-                aria-label={slim ? label : undefined}
-                title={slim ? label : undefined}
+                aria-label={slim ? displayLabel : undefined}
+                title={slim ? displayLabel : undefined}
                 onClick={() => handleTab(id)}
                 style={{
                   display: "flex",
@@ -423,7 +446,7 @@ export const Sidebar: React.FC<Props> = ({
                 </div>
                 {!slim && (
                   <span style={{ overflow: "hidden", textOverflow: "ellipsis", letterSpacing: "0.01em" }}>
-                    {label}
+                    {displayLabel}
                   </span>
                 )}
               </button>
@@ -443,12 +466,13 @@ export const Sidebar: React.FC<Props> = ({
           {(() => {
             const { id, label, Icon, accent } = CONSULT;
             const active = activeTab === id;
+            const displayLabel = getTabLabel(id, label);
             return (
               <button
                 role="tab"
                 aria-selected={active}
-                aria-label={slim ? label : undefined}
-                title={slim ? label : undefined}
+                aria-label={slim ? displayLabel : undefined}
+                title={slim ? displayLabel : undefined}
                 onClick={() => handleTab(id)}
                 style={{
                   display: "flex",
@@ -493,7 +517,7 @@ export const Sidebar: React.FC<Props> = ({
                 >
                   <Icon size={20} style={{ color: active ? accent.color : "currentColor" }} />
                 </div>
-                {!slim && <span style={{ letterSpacing: "0.01em" }}>{label}</span>}
+                {!slim && <span style={{ letterSpacing: "0.01em" }}>{displayLabel}</span>}
               </button>
             );
           })()}
