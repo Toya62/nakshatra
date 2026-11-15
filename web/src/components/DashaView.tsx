@@ -5,6 +5,7 @@ import { VimshottariData, BirthDataInput, ChartData } from "@/lib/types";
 import { TimelineView } from "@/components/TimelineView";
 import { EmptyState } from "@/components/EmptyState";
 import { Clock, ChevronDown, ChevronRight, Activity, Calendar } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Props {
   dashas?: VimshottariData;
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToChart }) => {
+  const { t, lang, num } = useLanguage();
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
   const [activeMode, setActiveMode] = useState<"timeline" | "cards">("timeline");
 
@@ -57,7 +59,7 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToC
             aria-pressed={activeMode === "timeline"}
           >
             <Calendar size={14} aria-hidden="true" />
-            Visual 120-Yr Timeline &amp; BS Calendar
+            {lang === "ne" ? "१२० वर्षे जीवन चक्र र वि.सं. क्यालेन्डर" : "Visual 120-Yr Timeline & BS Calendar"}
           </button>
           <button
             onClick={() => setActiveMode("cards")}
@@ -65,7 +67,7 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToC
             aria-pressed={activeMode === "cards"}
           >
             <Activity size={14} aria-hidden="true" />
-            Classical Progress &amp; Tree View
+            {lang === "ne" ? "शास्त्रीय महादशा / अन्तर्दशा तालिका" : "Classical Progress & Tree View"}
           </button>
         </div>
       )}
@@ -84,19 +86,19 @@ export const DashaView: React.FC<Props> = ({ dashas, birth, chart, onNavigateToC
               <div>
                 <h3 style={{ fontSize: "var(--type-heading)", fontWeight: 700, display: "flex", alignItems: "center", gap: "var(--space-2)", color: "var(--text-high)" }}>
                   <Clock size={18} color="var(--gold-vivid)" aria-hidden="true" />
-                  Vimshottari Dasha Engine (120-Year Cycle)
+                  {t.dasha.title}
                 </h3>
                 <p style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", marginTop: "2px" }}>
-                  Sub-second astronomical precision calibrated against natal Moon
+                  {t.dasha.subtitle}
                 </p>
               </div>
 
               <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
                 <span className="badge badge-gold">
-                  Birth: {dashas.birth_nakshatra} ({dashas.birth_nakshatra_lord})
+                  {lang === "ne" ? "जन्म नक्षत्र" : "Birth"}: {dashas.birth_nakshatra} ({dashas.birth_nakshatra_lord})
                 </span>
                 <span className="badge badge-cyan">
-                  Balance: {dashas.balance_lord} ({dashas.balance_years.toFixed(2)} yrs)
+                  {lang === "ne" ? "दशा शेष" : "Balance"}: {dashas.balance_lord} ({num(dashas.balance_years.toFixed(2))} {lang === "ne" ? "वर्ष" : "yrs"})
                 </span>
               </div>
             </div>

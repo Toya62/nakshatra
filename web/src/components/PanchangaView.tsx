@@ -6,6 +6,7 @@ import { fetchPanchanga } from "@/lib/api";
 import { Skeleton } from "@/components/Skeleton";
 import { Moon, Sun, AlertTriangle, Calendar, Clock } from "lucide-react";
 import { DEFAULT_LOCATION } from "@/config/defaults";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Props {
   defaultLat?: number;
@@ -18,6 +19,7 @@ export const PanchangaView: React.FC<Props> = ({
   defaultLon = DEFAULT_LOCATION.lon || 83.4833,
   defaultTz = DEFAULT_LOCATION.tz || "Asia/Kathmandu",
 }) => {
+  const { t, lang, num } = useLanguage();
   const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [time, setTime] = useState("12:00");
   const [lat] = useState(defaultLat);
@@ -52,10 +54,10 @@ export const PanchangaView: React.FC<Props> = ({
         <div>
           <h2 style={{ fontSize: "var(--type-heading)", fontWeight: 700, display: "flex", alignItems: "center", gap: "var(--space-2)", color: "var(--text-high)" }}>
             <Moon size={18} color="var(--gold-vivid)" aria-hidden="true" />
-            Vedic Panchanga (5 Limbs of Time)
+            {t.panchanga.title}
           </h2>
           <p style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", marginTop: "2px" }}>
-            Exact solar day boundaries, sunrise markers, and solilunar phases
+            {t.panchanga.subtitle}
           </p>
         </div>
 
@@ -125,13 +127,13 @@ export const PanchangaView: React.FC<Props> = ({
               <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
                 <Sun size={17} color="var(--amber)" aria-hidden="true" />
                 <span style={{ fontSize: "var(--type-body)" }}>
-                  Sunrise: <strong style={{ color: "var(--gold-bright)" }}>{data.sunrise_time || "N/A"}</strong>
+                  {t.panchanga.sunrise}: <strong style={{ color: "var(--gold-bright)" }}>{data.sunrise_time || "N/A"}</strong>
                 </span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
                 <Moon size={17} color="var(--cyan-vivid)" aria-hidden="true" />
                 <span style={{ fontSize: "var(--type-body)" }}>
-                  Sunset: <strong style={{ color: "var(--cyan-vivid)" }}>{data.sunset_time || "N/A"}</strong>
+                  {t.panchanga.sunset}: <strong style={{ color: "var(--cyan-vivid)" }}>{data.sunset_time || "N/A"}</strong>
                 </span>
               </div>
             </div>
@@ -146,34 +148,34 @@ export const PanchangaView: React.FC<Props> = ({
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 160px), 1fr))", gap: "var(--space-4)" }}>
             {/* 1. VARA */}
             <div className="card" style={{ padding: "var(--space-5)" }}>
-              <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", letterSpacing: "0.06em" }}>1. VARA (DAY)</span>
+              <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", letterSpacing: "0.06em" }}>1. {t.panchanga.vara.toUpperCase()}</span>
               <h3 style={{ fontSize: "1.3rem", fontWeight: 700, color: "var(--gold-bright)", margin: "8px 0 4px" }}>
                 {data.vara.name}
               </h3>
               <p style={{ fontSize: "var(--type-body)", color: "var(--text-mid)" }}>
-                Lord: <strong style={{ color: "var(--text-high)" }}>{data.vara.lord}</strong>
+                {lang === "ne" ? "स्वामी" : "Lord"}: <strong style={{ color: "var(--text-high)" }}>{data.vara.lord}</strong>
               </p>
               {data.vara.is_pre_sunrise && (
                 <span className="badge badge-rose" style={{ marginTop: "var(--space-2)" }}>
-                  Pre-Sunrise (Previous Vara)
+                  {lang === "ne" ? "सूर्योदय अगाडि (अघिल्लो वार)" : "Pre-Sunrise (Previous Vara)"}
                 </span>
               )}
             </div>
 
             {/* 2. TITHI */}
             <div className="card" style={{ padding: "var(--space-5)" }}>
-              <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", letterSpacing: "0.06em" }}>2. TITHI (LUNAR DAY)</span>
+              <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", letterSpacing: "0.06em" }}>2. {t.panchanga.tithi.toUpperCase()}</span>
               <h3 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--cyan-vivid)", margin: "8px 0 4px" }}>
                 {data.tithi.name}
               </h3>
               <p style={{ fontSize: "var(--type-body)", color: "var(--text-mid)" }}>
-                {data.tithi.paksha} Paksha | Lord: <strong style={{ color: "var(--text-high)" }}>{data.tithi.lord}</strong>
+                {data.tithi.paksha} {lang === "ne" ? "पक्ष" : "Paksha"} | {lang === "ne" ? "स्वामी" : "Lord"}: <strong style={{ color: "var(--text-high)" }}>{data.tithi.lord}</strong>
               </p>
               {data.tithi.percentage_left !== undefined && (
                 <div style={{ marginTop: "var(--space-2)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "var(--type-micro)", color: "var(--text-low)", marginBottom: "4px" }}>
-                    <span>Remaining</span>
-                    <span>{data.tithi.percentage_left.toFixed(1)}%</span>
+                    <span>{lang === "ne" ? "बाँकी" : "Remaining"}</span>
+                    <span>{num(data.tithi.percentage_left.toFixed(1))}%</span>
                   </div>
                   <div style={{ height: "4px", background: "var(--border-subtle)", borderRadius: "2px" }}>
                     <div style={{ width: `${data.tithi.percentage_left}%`, height: "100%", background: "var(--cyan-vivid)", borderRadius: "2px" }} />
@@ -184,18 +186,18 @@ export const PanchangaView: React.FC<Props> = ({
 
             {/* 3. NAKSHATRA */}
             <div className="card" style={{ padding: "var(--space-5)" }}>
-              <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", letterSpacing: "0.06em" }}>3. NAKSHATRA (STAR)</span>
+              <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", letterSpacing: "0.06em" }}>3. {t.panchanga.nakshatra.toUpperCase()}</span>
               <h3 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--gold-bright)", margin: "8px 0 4px" }}>
                 {data.nakshatra.name}
               </h3>
               <p style={{ fontSize: "var(--type-body)", color: "var(--text-mid)" }}>
-                Pada {data.nakshatra.pada} | Lord: <strong style={{ color: "var(--text-high)" }}>{data.nakshatra.lord}</strong>
+                {lang === "ne" ? `चरण ${num(data.nakshatra.pada ?? "")}` : `Pada ${data.nakshatra.pada ?? ""}`} | {lang === "ne" ? "स्वामी" : "Lord"}: <strong style={{ color: "var(--text-high)" }}>{data.nakshatra.lord}</strong>
               </p>
               {data.nakshatra.percentage_left !== undefined && (
                 <div style={{ marginTop: "var(--space-2)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "var(--type-micro)", color: "var(--text-low)", marginBottom: "4px" }}>
-                    <span>Remaining</span>
-                    <span>{data.nakshatra.percentage_left.toFixed(1)}%</span>
+                    <span>{lang === "ne" ? "बाँकी" : "Remaining"}</span>
+                    <span>{num(data.nakshatra.percentage_left.toFixed(1))}%</span>
                   </div>
                   <div style={{ height: "4px", background: "var(--border-subtle)", borderRadius: "2px" }}>
                     <div style={{ width: `${data.nakshatra.percentage_left}%`, height: "100%", background: "var(--gold-vivid)", borderRadius: "2px" }} />
@@ -206,18 +208,18 @@ export const PanchangaView: React.FC<Props> = ({
 
             {/* 4. YOGA */}
             <div className="card" style={{ padding: "var(--space-5)" }}>
-              <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", letterSpacing: "0.06em" }}>4. YOGA (ANGULAR)</span>
+              <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", letterSpacing: "0.06em" }}>4. {t.panchanga.yoga.toUpperCase()}</span>
               <h3 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--graha-rahu)", margin: "8px 0 4px" }}>
                 {data.yoga.name}
               </h3>
               <p style={{ fontSize: "var(--type-body)", color: "var(--text-mid)" }}>
-                Lord: <strong style={{ color: "var(--text-high)" }}>{data.yoga.lord}</strong>
+                {lang === "ne" ? "स्वामी" : "Lord"}: <strong style={{ color: "var(--text-high)" }}>{data.yoga.lord}</strong>
               </p>
               {data.yoga.percentage_left !== undefined && (
                 <div style={{ marginTop: "var(--space-2)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "var(--type-micro)", color: "var(--text-low)", marginBottom: "4px" }}>
-                    <span>Remaining</span>
-                    <span>{data.yoga.percentage_left.toFixed(1)}%</span>
+                    <span>{lang === "ne" ? "बाँकी" : "Remaining"}</span>
+                    <span>{num(data.yoga.percentage_left.toFixed(1))}%</span>
                   </div>
                   <div style={{ height: "4px", background: "var(--border-subtle)", borderRadius: "2px" }}>
                     <div style={{ width: `${data.yoga.percentage_left}%`, height: "100%", background: "var(--graha-rahu)", borderRadius: "2px" }} />
@@ -228,25 +230,25 @@ export const PanchangaView: React.FC<Props> = ({
 
             {/* 5. KARANA */}
             <div className="card" style={{ padding: "var(--space-5)" }}>
-              <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", letterSpacing: "0.06em" }}>5. KARANA (HALF-TITHI)</span>
+              <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", letterSpacing: "0.06em" }}>5. {t.panchanga.karana.toUpperCase()}</span>
               <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", margin: "8px 0 4px" }}>
                 <h3 style={{ fontSize: "1.2rem", fontWeight: 700, color: data.karana.is_vishti_bhadra ? "var(--rose)" : "var(--emerald)" }}>
                   {data.karana.name}
                 </h3>
                 {data.karana.is_vishti_bhadra && (
                   <span className="badge badge-rose" style={{ gap: "3px" }}>
-                    <AlertTriangle size={11} aria-hidden="true" /> BHADRA
+                    <AlertTriangle size={11} aria-hidden="true" /> {lang === "ne" ? "भद्रा (विष्टि)" : "BHADRA"}
                   </span>
                 )}
               </div>
               <p style={{ fontSize: "var(--type-body)", color: "var(--text-mid)" }}>
-                Lord: <strong style={{ color: "var(--text-high)" }}>{data.karana.lord}</strong>
+                {lang === "ne" ? "स्वामी" : "Lord"}: <strong style={{ color: "var(--text-high)" }}>{data.karana.lord}</strong>
               </p>
               {data.karana.percentage_left !== undefined && (
                 <div style={{ marginTop: "var(--space-2)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "var(--type-micro)", color: "var(--text-low)", marginBottom: "4px" }}>
-                    <span>Remaining</span>
-                    <span>{data.karana.percentage_left.toFixed(1)}%</span>
+                    <span>{lang === "ne" ? "बाँकी" : "Remaining"}</span>
+                    <span>{num(data.karana.percentage_left.toFixed(1))}%</span>
                   </div>
                   <div style={{ height: "4px", background: "var(--border-subtle)", borderRadius: "2px" }}>
                     <div style={{ width: `${data.karana.percentage_left}%`, height: "100%", background: "var(--emerald)", borderRadius: "2px" }} />

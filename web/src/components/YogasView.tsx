@@ -4,12 +4,14 @@ import React, { useState, useEffect } from "react";
 import { BirthDataInput, YogaResult } from "@/lib/types";
 import { fetchYogas } from "@/lib/api";
 import { Award, ChevronDown, ChevronUp } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Props {
   birth: BirthDataInput;
 }
 
 function YogaCard({ yoga }: { yoga: YogaResult }) {
+  const { lang, num } = useLanguage();
   const [open, setOpen] = useState(false);
 
   return (
@@ -90,7 +92,7 @@ function YogaCard({ yoga }: { yoga: YogaResult }) {
               ))}
               {yoga.houses_involved.map((h, i) => (
                 <span key={`h-${i}`} className="badge badge-emerald" style={{ fontSize: "var(--type-micro)" }}>
-                  H{h}
+                  {lang === "ne" ? `भाव ${num(h)}` : `H${h}`}
                 </span>
               ))}
             </div>
@@ -102,6 +104,7 @@ function YogaCard({ yoga }: { yoga: YogaResult }) {
 }
 
 export const YogasView: React.FC<Props> = ({ birth }) => {
+  const { t, lang, num } = useLanguage();
   const [yogas, setYogas] = useState<YogaResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -122,10 +125,10 @@ export const YogasView: React.FC<Props> = ({ birth }) => {
       <div className="section-header">
         <h4 className="section-title" style={{ fontSize: "var(--type-heading)" }}>
           <Award size={15} color="var(--gold-vivid)" aria-hidden="true" />
-          Classical Yogas
+          {t.nav.yogas}
           {!loading && yogas.length > 0 && (
             <span className="badge badge-gold" style={{ fontSize: "var(--type-micro)", marginLeft: "var(--space-2)" }}>
-              {yogas.length} found
+              {num(yogas.length)} {lang === "ne" ? "योगहरू प्राप्त" : "found"}
             </span>
           )}
         </h4>
