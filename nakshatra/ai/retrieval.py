@@ -32,8 +32,8 @@ IDF_FLOOR = 0.1
 
 
 def tokenize(text: str) -> list[str]:
-    """Tokenize for BM25: lowercase alphanumeric, ordinals stripped."""
-    tokens = re.findall(r"[a-z0-9]+", text.lower())
+    """Tokenize for BM25: lowercase alphanumeric + Devanagari, ordinals stripped."""
+    tokens = re.findall(r"[\u0900-\u097Fa-z0-9]+", text.lower())
     return [re.sub(r"(?<=\d)(st|nd|rd|th)$", "", token) for token in tokens]
 
 
@@ -83,15 +83,27 @@ class ConceptMap:
     CONCEPTS: dict[str, tuple[list[str], list[str]]] = {
         # concept: (trigger keywords, expansion terms)
         "career": (
-            ["career", "careers", "job", "jobs", "profession", "occupation", "work"],
+            [
+                "career", "careers", "job", "jobs", "profession", "occupation", "work",
+                "jagire", "naukari", "kam", "pesha", "jaagir", "kaam", "nokari",
+                "ब्यवसाय", "जागिर", "पेशा", "कर्म"
+            ],
             ["House 10", "Sun", "Saturn", "D10", "Dashamsa", "Karma"],
         ),
         "marriage": (
-            ["marriage", "married", "marry", "spouse", "partner", "wed", "wedding"],
+            [
+                "marriage", "married", "marry", "spouse", "partner", "wed", "wedding",
+                "vivah", "bihe", "bibaha", "keti", "keta", "shrimati", "shriman",
+                "विवाह", "बिहे", "दाम्पत्य", "जोडी"
+            ],
             ["House 7", "Venus", "Jupiter", "D9", "Navamsa"],
         ),
         "wealth": (
-            ["wealth", "wealthy", "money", "rich", "fortune", "financial", "riches"],
+            [
+                "wealth", "wealthy", "money", "rich", "fortune", "financial", "riches",
+                "dhana", "paisa", "sampatti", "aarthik", "kamai",
+                "धन", "पैसा", "सम्पत्ति", "लक्ष्मी", "आर्थिक"
+            ],
             [
                 "House 2",
                 "House 11",
@@ -102,19 +114,35 @@ class ConceptMap:
             ],
         ),
         "health": (
-            ["health", "disease", "illness", "sickness", "healing"],
+            [
+                "health", "disease", "illness", "sickness", "healing",
+                "swasthya", "rog", "bimar", "chot", "aushadhi",
+                "स्वास्थ्य", "रोग", "बिमार", "औषधि"
+            ],
             ["Lagna", "Ascendant", "House 6", "House 8", "Mars", "Sun"],
         ),
         "children": (
-            ["children", "child", "son", "daughter", "offspring"],
+            [
+                "children", "child", "son", "daughter", "offspring",
+                "santana", "chhora", "chhori", "bachha", "bachhe",
+                "सन्तान", "छोरा", "छोरी", "बालबच्चा"
+            ],
             ["House 5", "Jupiter", "Moon", "Putra"],
         ),
         "education": (
-            ["education", "study", "learning", "school", "degree"],
+            [
+                "education", "study", "learning", "school", "degree",
+                "padhai", "shiksha", "vidya",
+                "पढाइ", "शिक्षा", "विद्या"
+            ],
             ["House 4", "House 9", "Mercury", "Jupiter", "Knowledge"],
         ),
         "travel": (
-            ["travel", "journey", "foreign", "abroad", "migration"],
+            [
+                "travel", "journey", "foreign", "abroad", "migration",
+                "bidesh", "yatra", "prabas",
+                "बिदेश", "विदेश", "यात्रा", "परदेश"
+            ],
             ["House 3", "House 9", "House 12", "Rahu", "Foreign"],
         ),
     }
@@ -124,7 +152,13 @@ class ConceptMap:
         lower = query.lower()
         expansions: list[str] = []
         for _concept, (triggers, terms) in self.CONCEPTS.items():
-            if any(re.search(rf"\b{re.escape(trigger)}\b", lower) for trigger in triggers):
+            matched = any(
+                re.search(rf"\b{re.escape(trigger)}\b", lower)
+                if trigger.isascii()
+                else trigger in lower
+                for trigger in triggers
+            )
+            if matched:
                 expansions.extend(terms)
         if not expansions:
             return query

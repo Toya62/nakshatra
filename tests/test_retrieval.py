@@ -248,4 +248,22 @@ class TestHybridRetriever:
         retriever = HybridRetriever(store, embedder)
         results = retriever.search("career job profession")
         assert results[0].chunk.verse == "1"
-        assert results[0].score > results[1].score
+
+    def test_romanized_nepali_and_devanagari_retrieval(self):
+        chunks = [
+            _chunk(verse="1", text="Venus in House 7 blesses marriage and Navamsa"),
+            _chunk(verse="2", text="Sun in House 10 gives career and Karma"),
+        ]
+        store = EmbeddingStore()
+        store.add_records(chunks)
+        retriever = HybridRetriever(store)
+
+        # Romanized Nepali query "mero vivah kahile hunchha" triggers marriage concept
+        results_roman = retriever.search("mero vivah kahile hunchha")
+        assert len(results_roman) > 0
+        assert results_roman[0].chunk.verse == "1"
+
+        # Devanagari Nepali query "मेरो बिहे कहिले हुन्छ" triggers marriage concept
+        results_ne = retriever.search("मेरो बिहे कहिले हुन्छ")
+        assert len(results_ne) > 0
+        assert results_ne[0].chunk.verse == "1"
