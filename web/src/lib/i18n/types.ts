@@ -419,10 +419,14 @@ export interface TranslationSchema {
     cleanRooftopsDesc: string;
     filterAll: string;
     filterHigh: string;
-    filterParashari: string;
-    filterLalKitab: string;
+    filterModerate?: string;
+    filterParashari?: string;
+    filterLalKitab?: string;
     strictPrecautions: string;
     creatureService: string;
+    householdRemedy?: string;
+    symbolicAction?: string;
+    daytimeTag?: string;
   };
   consultation: {
     title: string;

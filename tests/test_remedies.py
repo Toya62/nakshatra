@@ -94,6 +94,20 @@ class TestRemediesEngine:
         assert isinstance(report, RemediesReport)
         assert report.total_afflictions == len(report.afflicted_planets)
 
+    def test_all_108_lal_kitab_combinations(self):
+        """Verify all 108 (9 planets x 12 houses) Lal Kitab remedies are populated."""
+        from nakshatra.remedies import _get_lal_kitab_upaya
+
+        planets = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"]
+        for p in planets:
+            for h in range(1, 13):
+                upaya = _get_lal_kitab_upaya(p, h)
+                assert upaya.household_remedy, f"Missing household remedy for {p} in house {h}"
+                assert upaya.symbolic_action, f"Missing symbolic action for {p} in house {h}"
+                assert len(upaya.forbidden_actions) >= 2, f"Insufficient precautions for {p} in house {h}"
+                assert upaya.creature_service, f"Missing creature service for {p} in house {h}"
+                assert upaya.duration_days == 43
+
 
 class TestRemediesAPIEndpoint:
     """Test POST /remedies endpoint."""
