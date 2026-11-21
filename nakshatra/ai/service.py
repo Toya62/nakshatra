@@ -57,27 +57,28 @@ def _default_embedder() -> BaseEmbedder | None:
 
 
 def _default_synthesizer() -> BaseSynthesizer:
-    """LLM synthesizer priority: explicit AI_PROVIDER -> Gemini -> Router/OpenAI -> Ollama -> Fallback."""
-    ai_provider = (os.environ.get("AI_PROVIDER") or "").lower()
+    """LLM synthesizer priority: explicit 9router/router -> Google GenAI -> OpenAI -> Ollama -> Fallback."""
+    ai_provider = (os.environ.get("AI_PROVIDER") or "").lower().strip()
     google_key = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")
     openai_base_url = os.environ.get("OPENAI_BASE_URL")
 
-    # If explicitly set to google, or if Google API key is available and provider is not forced to openai
-    if (ai_provider == "google" or (google_key and ai_provider != "openai" and not (ai_provider == "router"))) and _module_available("google.genai"):
-        if google_key:
-            return LLMSynthesizer(provider="google", model="gemini-3.8-flash", api_key=google_key)
-
-    if (openai_base_url or ai_provider in ("openai", "router", "9router")) and _module_available("openai"):
-        model = os.environ.get("OPENAI_MODEL", "ag/gemini-3.8-flash")
+    # Priority 1: 9router / custom OpenAI router
+    if (ai_provider in ("9router", "router") or (openai_base_url and ai_provider not in ("google", "openai"))) and _module_available("openai"):
+        model = os.environ.get("OPENAI_MODEL", "nakshatra-combo")
         api_key = os.environ.get("OPENAI_API_KEY")
         return LLMSynthesizer(provider="openai", model=model, api_key=api_key, base_url=openai_base_url)
 
-    if google_key and _module_available("google.genai"):
-        return LLMSynthesizer(provider="google", model="gemini-3.8-flash", api_key=google_key)
+    # Priority 2: Direct Google GenAI (only with real Google AI Studio key, ignore session tokens)
+    is_session_token = bool(google_key and google_key.startswith("AQ."))
+    if (ai_provider == "google" or (google_key and not is_session_token and ai_provider not in ("openai", "router", "9router"))) and _module_available("google.genai"):
+        if google_key and not is_session_token:
+            return LLMSynthesizer(provider="google", model="gemini-3.8-flash", api_key=google_key)
 
-    if os.environ.get("OPENAI_API_KEY") and _module_available("openai"):
+    # Priority 3: Explicit OpenAI or OpenAI-compatible endpoint
+    if (openai_base_url or ai_provider == "openai" or os.environ.get("OPENAI_API_KEY")) and _module_available("openai"):
         model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
-        return LLMSynthesizer(provider="openai", model=model)
+        api_key = os.environ.get("OPENAI_API_KEY")
+        return LLMSynthesizer(provider="openai", model=model, api_key=api_key, base_url=openai_base_url)
 
     if (
         os.environ.get("USE_OLLAMA")
