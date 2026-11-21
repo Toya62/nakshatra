@@ -89,7 +89,14 @@ module = "google"
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = "nepali_datetime"
+module = [
+    "nepali_datetime",
+    "google",
+    "google.genai",
+    "google.genai.*",
+    "rank_bm25",
+    "sentence_transformers",
+]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

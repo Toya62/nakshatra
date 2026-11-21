@@ -583,8 +583,8 @@ class LLMSynthesizer(BaseSynthesizer):
 
         if self._client is None:
             try:
-                from google import genai
-                from google.genai import types
+                from google import genai  # type: ignore[import-not-found,import-untyped]
+                from google.genai import types  # type: ignore[import-not-found,import-untyped]
             except ImportError as e:
                 raise ImportError(
                     "The google-genai package is required for the google "
@@ -687,8 +687,8 @@ class LLMSynthesizer(BaseSynthesizer):
                 candidates.append(m)
 
         if self._client is None:
-            from google import genai
-            from google.genai import types
+            from google import genai  # type: ignore[import-not-found,import-untyped]
+            from google.genai import types  # type: ignore[import-not-found,import-untyped]
 
             api_key = (
                 self._api_key
