@@ -85,10 +85,27 @@ class ConceptMap:
         "career": (
             [
                 "career", "careers", "job", "jobs", "profession", "occupation", "work",
-                "jagire", "naukari", "kam", "pesha", "jaagir", "kaam", "nokari",
-                "ब्यवसाय", "जागिर", "पेशा", "कर्म"
+                "employment", "interview", "interviews", "promotion", "promotions", "business",
+                "service", "hiring", "hire", "naukri", "naukeri", "naukari", "kam", "pesha",
+                "jaagir", "kaam", "nokari", "livelihood",
+                "ब्यवसाय", "जागिर", "पेशा", "कर्म", "रोजगार", "नोकरी"
             ],
-            ["House 10", "Sun", "Saturn", "D10", "Dashamsa", "Karma"],
+            [
+                "House 10", "Karma Bhava", "House 6", "Service", "Employment",
+                "House 11", "House 2", "Sun", "Saturn", "Mercury", "D10", "Dashamsa"
+            ],
+        ),
+        "timing": (
+            [
+                "when", "timing", "date", "range", "dates", "period", "timeline", "years", "year",
+                "month", "months", "future", "schedule", "when will", "exact date",
+                "kahile", "samaya", "kailesamma",
+                "कहिले", "समय", "मिति", "अवधि", "भविष्य"
+            ],
+            [
+                "Dasha", "Mahadasha", "Antardasha", "Pratyantardasha", "Gochara",
+                "Transit", "Bhukti", "Timing of Events"
+            ],
         ),
         "marriage": (
             [
@@ -181,6 +198,18 @@ class ConceptMap:
         return f"{query} {' '.join(dict.fromkeys(expansions))}"
 
 
+def _is_tabular_noise_chunk(text: str) -> bool:
+    """Filter out pure mathematical calculation lookup tables and OCR arithmetic."""
+    lower = text.lower()
+    if "speculum of abbreviated ahargana" in lower or "abbreviated ahargana" in lower:
+        return True
+    if "speculum of ayana bala" in lower or "deg:mn virupa" in lower:
+        return True
+    if "speculum of horas" in lower and text.count("\n\n") > 8:
+        return True
+    return False
+
+
 class HybridRetriever:
     """Hybrid retriever: BM25 + dense rankings fused with RRF.
 
@@ -246,6 +275,12 @@ class HybridRetriever:
                 fused[index] += 1.0 / (k + rank + 1)
 
         ranked = sorted(fused.items(), key=lambda item: (-item[1], item[0]))
-        return [
-            SearchResult(chunk=self._chunks[index], score=score) for index, score in ranked[:top_k]
-        ]
+        results: list[SearchResult] = []
+        for index, score in ranked:
+            chunk = self._chunks[index]
+            if _is_tabular_noise_chunk(chunk.text):
+                continue
+            results.append(SearchResult(chunk=chunk, score=score))
+            if len(results) >= top_k:
+                break
+        return results

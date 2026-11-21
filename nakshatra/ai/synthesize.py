@@ -33,7 +33,13 @@ SYSTEM_PROMPT = (
     "'Based on the provided references...'. Speak naturally as a wise, modern mentor: "
     "'In the sacred tradition of Maharishi Parashara, the 1st house (Tanu Bhava) represents...'.\n"
     "2. Scriptural Evidence: Anchor your astrological principles in the provided classical verses "
-    "using bracketed citations like [1] or [2]. Never invent scriptural citations.\n"
+    "using bracketed citations like [1] or [2]. Never invent scriptural citations. "
+    "CRITICAL: Classical texts contain ancient worked-out arithmetic examples, calendar tables, or sample birth dates "
+    "(e.g., 'Assume birth on June 1, 1984', 'birth on 15th February 1947', Dinardha/Ahargana arithmetic). "
+    "NEVER mistake these ancient illustrative manual calculations or sample dates for the seeker's actual birth details! "
+    "NEVER recite or perform ancient manual calendar math (e.g., sunrise + 5h 35m, multiplying by 360, dividing by 7). "
+    "ONLY extract and cite authentic astrological principles (house significations, yoga definitions, planetary dignities). "
+    "If an excerpt contains pure calendar arithmetic or tables, ignore the arithmetic entirely.\n"
     "3. Calculation Outsource Rule: NEVER perform mental astronomical math or guess planetary coordinates, "
     "dashas, or house numbers. ALL chart data is strictly calculated by the deterministic Swiss Ephemeris engine. "
     "Treat all planetary placements, house rulerships, Ashtakavarga scores, and transits provided in the "
@@ -57,10 +63,18 @@ SYSTEM_PROMPT = (
     "c) Shadow Tendencies to Balance (ego management, patience, relationships), and d) Actionable Classical Remedies & Guidance.\n"
     "8. Professional Boundaries: Astrological counseling does not replace licensed medical, psychiatric, "
     "legal, or financial counsel. When relevant, advise consulting licensed human professionals.\n"
-    "9. Concrete Predictive Synthesis: For timing and predictive questions, anchor judgment in the "
-    "operating Mahadasha and Antardasha lords (their natal house rulerships and placements) synthesized with active "
-    "Gochara transits and Ashtakavarga strength. If birth context is absent, explain classical principles and "
-    "prompt the seeker for exact birth details (date, time, place) for individualized synthesis."
+    "9. Concrete Predictive Synthesis & Date Ranges: For timing, career, job, marriage, or life milestone questions:\n"
+    "   a) If Birth Chart Context is provided: Provide CLEAR, CONCRETE DATE RANGES based directly on the "
+    "Operating Vimshottari Dasha Hierarchy (active Mahadasha, Antardasha, and Pratyantardasha start and end dates) "
+    "and active Gochara transits in the context. Pinpoint the primary auspicious windows (e.g. activation of 10th house "
+    "of profession, 6th house of service/employment, 11th house of gains, or 2nd house of income) and state the exact "
+    "timeframes explicitly (e.g., 'Primary Favorable Window: [Start Date] to [End Date] under ... Antardasha/Pratyantardasha'). "
+    "DO NOT claim birth details are missing or ask for them again when the birth chart context is present in the prompt!\n"
+    "   b) If Birth Chart Context is NOT provided: Explain the classical astrological timing rules clearly and directly "
+    "(how 10th/6th house lords, dasha periods, and Jupiter/Saturn transits trigger events), offer an illustrative "
+    "framework, and warmly invite the seeker to provide their exact birth date, time, and city to receive their personalized date ranges.\n"
+    "10. High-Relevance Conciseness: Avoid irrelevant filler, procedural explanations, or disconnected ancient arithmetic. "
+    "Answer the seeker's query directly, empathetically, and insightfully."
 )
 
 SYSTEM_PROMPT_NE = (
@@ -73,7 +87,7 @@ SYSTEM_PROMPT_NE = (
     "सोधकर्तालाई सधैं 'तपाईं' भनी उच्च आदरार्थी सम्बोधन गर्नुहोस्। 'प्रदान गरिएका सन्दर्भ अनुसार' जस्ता निर्जीव वाक्यहरू नलेखी "
     "एक स्नेही र ज्ञानी गुरुको रूपमा 'महर्षि पराशरको सिद्ध परम्परा अनुसार...' भन्दै सहज संवाद गर्नुहोस्।\n"
     "२. शास्त्रीय प्रमाण र उद्धरण: प्रदान गरिएका शास्त्रीय श्लोकहरूबाट [१], [२] जस्ता कोष्ठक अङ्कहरू प्रयोग गरी प्रमाण दिनुहोस्। "
-    "कहिल्यै मनगढन्ते श्लोक वा उद्धरण नबनाउनुहोस्।\n"
+    "कहिल्यै मनगढन्ते श्लोक वा उद्धरण नबनाउनुहोस्। महत्त्वपूर्ण: ग्रन्थका प्राचीन गणितीय उदाहरणहरू (जस्तै '१९८४ वा १९४७ को नमुना जन्म', अहर्गण वा दिनार्ध/निशार्धका जोडघटाउ) लाई सोधकर्ताको वास्तविक विवरण नसम्झनुहोस्। त्यस्ता पुरानो जोडघटाउ वा अंक तालिका सोधकर्तालाई नसुनाउनुहोस्, केवल प्रामाणिक ज्योतिषीय फलित सिद्धान्त मात्र उद्धृत गर्नुहोस्।\n"
     "३. गणितीय शुद्धता तथा बाह्य गणना नियम: कुण्डलीका ग्रह स्थिति, अंश, भाव, महादशा आदि कहिल्यै अनुमान वा मनपरी नबताउनुहोस्। "
     "स्वीस एफिमरिस (Swiss Ephemeris) इन्जिनद्वारा गणना गरिएका वास्तविक तथ्याङ्कहरूलाई मात्र अकाट्य सत्य मानी विश्लेषण गर्नुहोस्। "
     "कुण्डली सन्दर्भमा नभएका काल्पनिक ग्रह स्थितिहरू कहिल्यै नबनाउनुहोस्।\n"
@@ -87,7 +101,10 @@ SYSTEM_PROMPT_NE = (
     "क) मूल स्वभाव र जीवनशक्ति (प्रकृति, उपस्थिति र मनोवृत्ति), ख) रचनात्मक तथा व्यावसायिक क्षमता (नेतृत्व र कर्मक्षेत्र), "
     "ग) सन्तुलन गर्नुपर्ने छाया पक्षहरू (अहंकार, धैर्य र सम्बन्ध), र घ) व्यावहारिक शास्त्रीय उपाय तथा मार्गदर्शन।\n"
     "८. व्यावसायिक मर्यादा: ज्योतिषीय परामर्श कुनै पनि आधिकारिक चिकित्सा, मनोचिकित्सा, कानुनी वा वित्तीय परामर्शको विकल्प होइन। आवश्यक परेमा सम्बन्धित आधिकारिक मानव विशेषज्ञहरूसँग परामर्श लिन स्पष्ट सल्लाह दिनुहोस्।\n"
-    "९. स्पष्ट कालक्रम तथा फलादेश संश्लेषण: समय निर्धारण र भविष्यवाणी सम्बन्धी प्रश्नहरूका लागि चलिरहेको महादशा र अन्तर्दशाका स्वामीहरू (तिनको जन्मकालीन भाव स्वामित्व र स्थिति), सक्रिय गोचर (Transits) र अष्टकवर्ग बललाई आधार बनाई सटीक फलित गर्नुहोस्। यदि जन्म कुण्डलीको विवरण छैन भने, शास्त्रीय सिद्धान्त स्पष्ट गर्दै व्यक्तिगत विश्लेषणका लागि जन्म मिति, समय र स्थान सोध्नुहोस्।"
+    "९. स्पष्ट कालक्रम तथा फलादेश संश्लेषण (मिति दायरा / Date Range): जागिर, पदोन्नति, विवाह वा समय सम्बन्धी प्रश्नहरूका लागि:\n"
+    "   क) यदि कुण्डली विवरण उपलब्ध छ भने: प्रदान गरिएको विंशोत्तरी दशा (सक्रिय महादशा, अन्तर्दशा, प्रत्यन्तर्दशाका शुरु र अन्त्य मितिहरू) र सक्रिय गोचरका आधारमा स्पष्ट र यकिन समय सीमा (Date Range) दिनुहोस् (जस्तै 'पहिलो अनुकूल अवसर: [मिति] देखि [मिति] सम्म...')। कुण्डली विवरण उपलब्ध भइसकेपछि फेरि जन्म विवरण माग्ने गल्ती नगर्नुहोस्।\n"
+    "   ख) यदि कुण्डली विवरण छैन भने: १०औं भाव (कर्म), ६औं भाव (सेवा/रोजगार) र दशा चक्रको शास्त्रीय सिद्धान्त स्पष्ट पार्दै व्यक्तिगत मिति निकाल्न जन्म मिति, समय र स्थान सोध्नुहोस्।\n"
+    "१०. प्रश्न-केन्द्रित र सान्दर्भिक उत्तर: अप्रासंगिक गणित वा अनावश्यक भूमिका नबाँधी सोधकर्ताको मूल प्रश्नको सिधा, आत्मीय र कल्याणकारी उत्तर दिनुहोस्।"
 )
 
 
@@ -185,6 +202,17 @@ _SIGN_LORDS = {
 def _format_birth_summary(chart: dict[str, Any]) -> str:
     """Format structured natal chart facts, house lords, ashtakavarga, and transits for synthesis."""
     lines: list[str] = []
+
+    # Explicit Seeker Birth Details (Ground Truth)
+    bdata = chart.get("birth_data")
+    if isinstance(bdata, dict) and bdata.get("year"):
+        lines.append(
+            f"### SEEKER BIRTH DETAILS (GROUND TRUTH):\n"
+            f"- Birth Date & Time: {bdata.get('year'):04d}-{bdata.get('month', 1):02d}-{bdata.get('day', 1):02d} "
+            f"{bdata.get('hour', 0):02d}:{bdata.get('minute', 0):02d} ({bdata.get('timezone', 'UTC')})\n"
+            f"- Coordinates: Lat {bdata.get('latitude', 0):.2f}°, Lon {bdata.get('longitude', 0):.2f}°"
+        )
+
     asc = chart.get("ascendant")
     lagna_sign: str | None = None
     if isinstance(asc, dict):
@@ -300,14 +328,71 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
 
     dashas = chart.get("dashas")
     if isinstance(dashas, dict):
-        curr_md = (dashas.get("current_md") or {}).get("lord")
-        curr_ad = (dashas.get("current_ad") or {}).get("lord")
-        curr_pd = (dashas.get("current_pd") or {}).get("lord")
-        if curr_md or curr_ad:
-            lines.append(
-                f"- Operating Vimshottari Period: Mahadasha [{curr_md}] -> "
-                f"Antardasha [{curr_ad}] -> Pratyantardasha [{curr_pd}]"
-            )
+        def _clean_node_name(name: str | None) -> str:
+            if not name:
+                return "Unknown"
+            if name == "North Node":
+                return "Rahu"
+            if name == "South Node":
+                return "Ketu"
+            return name
+
+        curr_md = dashas.get("current_md") or {}
+        curr_ad = dashas.get("current_ad") or {}
+        curr_pd = dashas.get("current_pd") or {}
+
+        md_lord = _clean_node_name(curr_md.get("lord"))
+        ad_lord = _clean_node_name(curr_ad.get("lord"))
+        pd_lord = _clean_node_name(curr_pd.get("lord"))
+
+        md_s = (curr_md.get("start") or "")[:10]
+        md_e = (curr_md.get("end") or "")[:10]
+        ad_s = (curr_ad.get("start") or "")[:10]
+        ad_e = (curr_ad.get("end") or "")[:10]
+        pd_s = (curr_pd.get("start") or "")[:10]
+        pd_e = (curr_pd.get("end") or "")[:10]
+
+        lines.append("- Operating Vimshottari Dasha Hierarchy (Deterministic Timing Ground Truth):")
+        lines.append(f"  • Current Mahadasha: [{md_lord}] from {md_s} to {md_e}")
+        lines.append(f"  • Current Antardasha: [{ad_lord}] from {ad_s} to {ad_e} [ACTIVE NOW]")
+        lines.append(f"  • Current Pratyantardasha: [{pd_lord}] from {pd_s} to {pd_e} [ACTIVE NOW]")
+
+        mahadashas = dashas.get("mahadashas") or []
+        for md in mahadashas:
+            if isinstance(md, dict) and _clean_node_name(md.get("lord")) == md_lord:
+                ad_subs = md.get("subs") or []
+                if ad_subs:
+                    ad_lines = []
+                    for ad in ad_subs:
+                        s_date = (ad.get("start") or "")[:10]
+                        e_date = (ad.get("end") or "")[:10]
+                        lord_name = _clean_node_name(ad.get("lord"))
+                        is_active = (lord_name == ad_lord and s_date == ad_s)
+                        tag = " [ACTIVE NOW]" if is_active else ""
+                        ad_lines.append(f"{md_lord}/{lord_name}: {s_date} to {e_date}{tag}")
+                    lines.append(
+                        f"  • Full Antardasha Timeline ({md_lord} Mahadasha):\n    - "
+                        + "\n    - ".join(ad_lines)
+                    )
+
+                for ad in ad_subs:
+                    if _clean_node_name(ad.get("lord")) == ad_lord and (ad.get("start") or "")[:10] == ad_s:
+                        pd_subs = ad.get("subs") or []
+                        if pd_subs:
+                            pd_lines = []
+                            for pd in pd_subs:
+                                s_date = (pd.get("start") or "")[:10]
+                                e_date = (pd.get("end") or "")[:10]
+                                lord_name = _clean_node_name(pd.get("lord"))
+                                is_active = (lord_name == pd_lord and s_date == pd_s)
+                                tag = " [ACTIVE NOW]" if is_active else ""
+                                pd_lines.append(f"{md_lord}/{ad_lord}/{lord_name}: {s_date} to {e_date}{tag}")
+                            lines.append(
+                                f"  • Active Pratyantardasha Micro-Windows ({md_lord}/{ad_lord}):\n    - "
+                                + "\n    - ".join(pd_lines)
+                            )
+                        break
+                break
 
     # Parashari Graha Drishti (House Aspects Received)
     v_aspects = chart.get("vedic_aspects")
@@ -407,19 +492,23 @@ def build_prompt(
         if summary:
             lines.append("\n" + summary)
         lines.append("")
+        lines.append(
+            "CRITICAL DIRECTIVE: The seeker's birth chart, planetary placements, and exact Dasha date ranges "
+            "are ALREADY PROVIDED above. DO NOT claim that birth details are missing or ask the seeker for their birth data. "
+            "Directly answer their question using the specific placements, house lords, active transits, and exact dasha date ranges."
+        )
     else:
         lines.append(
-            "[Note: No birth chart context provided. Answer using classical principles, and if this is a "
-            "personalized timing/chart question, invite the seeker to provide exact birth date, time, and location.]\n"
+            "[Note: No birth chart context provided for this query. Answer using classical Jyotish principles directly. "
+            "Explain the timing and interpretive framework clearly, and warmly guide the seeker to provide their exact birth date, "
+            "time, and location to calculate personalized date ranges down to specific months and weeks.]\n"
         )
     lines.append(f"Question: {question}")
     lines.append(
-        "Deliver a rich, authoritative, and compassionate astrological consultation. "
-        "Synthesize your comprehensive classical Jyotish knowledge with the provided scriptural excerpts, "
-        "citing them with bracketed numbers like [1] or [2]. "
-        "Never recite archaic curses literally or use robotic disclaimers like 'the references do not mention this'. "
-        "Provide insightful, empowering, Dharma-aligned guidance covering personality, vitality, "
-        "career leadership, relational dynamics, and actionable classical remedies."
+        "Deliver a rich, authoritative, compassionate, and directly relevant astrological consultation. "
+        "Synthesize your classical Jyotish mastery with the provided scriptural excerpts, citing them with bracketed numbers like [1] or [2]. "
+        "Never recite ancient mathematical calculation algorithms, table numbers, or worked-out arithmetic examples from the commentary texts. "
+        "Answer the seeker's query directly with clear, empowering, and Dharma-aligned guidance."
     )
     if (language or "").lower().strip() in ("ne", "nepali", "nep"):
         lines.append(
@@ -559,17 +648,19 @@ class LLMSynthesizer(BaseSynthesizer):
 
     def _complete_openai(self, prompt: str, system_prompt: str = SYSTEM_PROMPT) -> str:
         client = self._openai_client()
-        max_tokens = int(os.environ.get("MAX_OUTPUT_TOKENS", "2048"))
-        response = client.chat.completions.create(
-            model=self.model,
-            messages=[
+        kwargs: dict[str, Any] = {
+            "model": self.model,
+            "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt},
             ],
-            temperature=0.3,
-            max_tokens=max_tokens,
-            timeout=30.0,
-        )
+            "temperature": 0.3,
+            "timeout": 45.0,
+        }
+        max_tokens_env = os.environ.get("MAX_OUTPUT_TOKENS")
+        if max_tokens_env:
+            kwargs["max_tokens"] = int(max_tokens_env)
+        response = client.chat.completions.create(**kwargs)
         return str(response.choices[0].message.content)
 
     def _complete_google(self, prompt: str, system_prompt: str = SYSTEM_PROMPT) -> str:
@@ -661,18 +752,20 @@ class LLMSynthesizer(BaseSynthesizer):
 
     def _stream_openai(self, prompt: str, system_prompt: str = SYSTEM_PROMPT) -> Iterator[str]:
         client = self._openai_client()
-        max_tokens = int(os.environ.get("MAX_OUTPUT_TOKENS", "2048"))
-        response = client.chat.completions.create(
-            model=self.model,
-            messages=[
+        kwargs: dict[str, Any] = {
+            "model": self.model,
+            "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt},
             ],
-            temperature=0.3,
-            max_tokens=max_tokens,
-            stream=True,
-            timeout=30.0,
-        )
+            "temperature": 0.3,
+            "stream": True,
+            "timeout": 45.0,
+        }
+        max_tokens_env = os.environ.get("MAX_OUTPUT_TOKENS")
+        if max_tokens_env:
+            kwargs["max_tokens"] = int(max_tokens_env)
+        response = client.chat.completions.create(**kwargs)
         for chunk in response:
             if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
                 yield str(chunk.choices[0].delta.content)
