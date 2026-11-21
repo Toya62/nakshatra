@@ -44,7 +44,7 @@ const notoSansDevanagari = Noto_Sans_Devanagari({
 });
 
 export const metadata: Metadata = {
-  title: "Nakshatra | Vedic Astrology AI Engine",
+  title: "Nakshatra — The Science of Light",
   description: "Swiss Ephemeris Birth Charts, Shodashavarga, Gochar Transits, Vimshottari Dashas, and Scripture-Grounded AI Consultations",
   icons: {
     icon: "/app-icon.jpg",

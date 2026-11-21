@@ -1,5 +1,5 @@
 """
-Nakshatra - Vedic Astrology AI Engine
+Nakshatra — The Science of Light
 
 High-precision Vedic astrology calculation engine powered by Swiss Ephemeris
 via mayaastrolib and pyswisseph.

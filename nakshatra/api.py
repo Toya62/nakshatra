@@ -1,5 +1,5 @@
 """
-Nakshatra - Vedic Astrology AI Engine
+Nakshatra — The Science of Light
 FastAPI application exposing high-precision Swiss Ephemeris chart calculation,
 120-year Vimshottari Dashas, Shodashavarga (D1-D60), Ashtakavarga (337 SAV),
 Shadbala, Gochar transits, 30-day transit scanner, Classical Parashari Yogas,
@@ -441,7 +441,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(
-    title="Nakshatra - Vedic Astrology AI Engine",
+    title="Nakshatra — The Science of Light",
     description=(
         "JSON API for Vedic birth charts with Vimshottari Dashas, Vargas, "
         "Ashtakavarga, Shadbala, and Gochar Transits. Compliant with AGPL-3.0 and ephemeral GDPR zero-logging policy."
@@ -1525,7 +1525,7 @@ async def root() -> dict:
     """Root endpoint with API info."""
     return {
         "name": "Nakshatra",
-        "description": "Vedic Astrology AI Engine - JSON API for birth charts, panchangas, and yogas",
+        "description": "The Science of Light - JSON API for birth charts, panchangas, and yogas",
         "version": "0.1.0",
         "license": "GNU Affero General Public License v3.0 (AGPL-3.0)",
         "ephemeris": "Swiss Ephemeris via mayaastrolib (pyswisseph)",

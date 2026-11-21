@@ -115,7 +115,7 @@ def main() -> None:
     chart_parser = _build_chart_parser()
     parser = argparse.ArgumentParser(
         prog="nakshatra",
-        description="Nakshatra - Vedic Astrology AI Engine CLI (Swiss Ephemeris)",
+        description="Nakshatra — The Science of Light CLI (Swiss Ephemeris)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         parents=[chart_parser],
         epilog="""

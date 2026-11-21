@@ -1,5 +1,5 @@
 """
-Nakshatra - Vedic Astrology AI Engine
+Nakshatra — The Science of Light
 Core calculation module powered by Swiss Ephemeris (pyswisseph) via mayaastrolib.
 
 Calculations:
