@@ -642,12 +642,13 @@ class LLMSynthesizer(BaseSynthesizer):
             self._client = OpenAI(
                 api_key=api_key,
                 base_url=base_url,
-                timeout=30.0,
+                timeout=120.0,
             )
         return self._client
 
     def _complete_openai(self, prompt: str, system_prompt: str = SYSTEM_PROMPT) -> str:
         client = self._openai_client()
+        max_tokens = int(os.environ.get("MAX_OUTPUT_TOKENS", "4096"))
         kwargs: dict[str, Any] = {
             "model": self.model,
             "messages": [
@@ -655,11 +656,9 @@ class LLMSynthesizer(BaseSynthesizer):
                 {"role": "user", "content": prompt},
             ],
             "temperature": 0.3,
-            "timeout": 45.0,
+            "timeout": 120.0,
+            "max_tokens": max_tokens,
         }
-        max_tokens_env = os.environ.get("MAX_OUTPUT_TOKENS")
-        if max_tokens_env:
-            kwargs["max_tokens"] = int(max_tokens_env)
         response = client.chat.completions.create(**kwargs)
         return str(response.choices[0].message.content)
 
@@ -752,6 +751,7 @@ class LLMSynthesizer(BaseSynthesizer):
 
     def _stream_openai(self, prompt: str, system_prompt: str = SYSTEM_PROMPT) -> Iterator[str]:
         client = self._openai_client()
+        max_tokens = int(os.environ.get("MAX_OUTPUT_TOKENS", "4096"))
         kwargs: dict[str, Any] = {
             "model": self.model,
             "messages": [
@@ -760,11 +760,9 @@ class LLMSynthesizer(BaseSynthesizer):
             ],
             "temperature": 0.3,
             "stream": True,
-            "timeout": 45.0,
+            "timeout": 120.0,
+            "max_tokens": max_tokens,
         }
-        max_tokens_env = os.environ.get("MAX_OUTPUT_TOKENS")
-        if max_tokens_env:
-            kwargs["max_tokens"] = int(max_tokens_env)
         response = client.chat.completions.create(**kwargs)
         for chunk in response:
             if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:

@@ -419,6 +419,7 @@ class RAGAskRequest(BaseModel):
     index_dir: str = Field("index", description="Index directory to query")
     top_k: int = Field(5, ge=1, le=20, description="References to retrieve")
     birth: ChartRequest | None = Field(None, description="Optional natal chart context")
+    birth_context: dict[str, Any] | None = Field(None, description="Optional precalculated chart dictionary")
     language: str = Field("en", description="Consultation response language ('en' or 'ne')")
 
 
@@ -1389,7 +1390,9 @@ async def rag_ask(request: RAGAskRequest) -> RAGAskResponse:
     """
     try:
         birth_context = None
-        if request.birth is not None:
+        if request.birth_context is not None:
+            birth_context = request.birth_context
+        elif request.birth is not None:
             chart = _build_chart(request.birth)
             birth_context = chart.model_dump()
             transits = None
@@ -1435,7 +1438,9 @@ async def rag_ask_stream(request: RAGAskRequest) -> StreamingResponse:
     Stream consultation answer token-by-token via Server-Sent Events (SSE).
     """
     birth_context = None
-    if request.birth is not None:
+    if request.birth_context is not None:
+        birth_context = request.birth_context
+    elif request.birth is not None:
         chart = _build_chart(request.birth)
         birth_context = chart.model_dump()
         transits = None
