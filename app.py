@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import gradio as gr
 
-from nakshatra.api import app as api_app
+from nakshatra.api import app as api_app, _rag_service
 from nakshatra.calendar_bs import ad_to_bs, bs_to_ad
 from nakshatra.compatibility import calculate_compatibility
 from nakshatra.core import Ayanamsa, BirthData, calculate_chart
@@ -109,6 +109,67 @@ def convert_calendar_ui(direction, year, month, day):
             )
     except Exception as e:
         return f"Conversion error: {str(e)}"
+
+
+def consult_rag_ui(
+    question: str,
+    include_chart: bool = False,
+    year=2000,
+    month=1,
+    day=1,
+    hour=12,
+    minute=0,
+    lat=23.1765,
+    lon=75.7885,
+    tz="Asia/Kolkata",
+    language: str = "en",
+):
+    if not question or not str(question).strip():
+        return "Please enter a question to consult the AI Vedic Astrologer."
+    try:
+        birth_context = None
+        if include_chart:
+            b = BirthData(
+                year=int(year),
+                month=int(month),
+                day=int(day),
+                hour=int(hour),
+                minute=int(minute),
+                second=0,
+                latitude=float(lat),
+                longitude=float(lon),
+                timezone=str(tz).strip(),
+            )
+            chart = calculate_chart(b)
+            birth_context = chart.model_dump()
+            try:
+                from nakshatra.transits import calculate_transits
+
+                transits = calculate_transits(chart)
+                birth_context["transits"] = transits.model_dump()
+            except Exception:
+                pass
+
+        ans, references = _rag_service.ask(
+            question=str(question).strip(),
+            top_k=4,
+            birth_context=birth_context,
+            language=language,
+        )
+
+        output_md = f"### 🪐 Jyotish Consultation Response\n\n{ans.answer}\n\n---\n"
+        output_md += f"**Synthesizer Model**: `{ans.model or '9router / nakshatra-combo'}`\n\n"
+        if references:
+            output_md += "#### 📜 Classical Scriptural References Retrieved:\n"
+            for idx, r in enumerate(references, 1):
+                loc = f"Ch. {r.chunk.chapter}" if r.chunk.chapter else ""
+                v = f"v. {r.chunk.verse}" if r.chunk.verse else ""
+                meta = " ".join(filter(None, [loc, v]))
+                meta_str = f" ({meta})" if meta else ""
+                output_md += f"{idx}. **{r.chunk.work}**{meta_str}\n   > \"{r.chunk.text}\"\n\n"
+        return output_md
+    except Exception as e:
+        return f"Consultation error: {str(e)}"
 
 
 with gr.Blocks(title="Nakshatra - Vedic Astrology AI Engine") as demo:
@@ -224,6 +285,60 @@ with gr.Blocks(title="Nakshatra - Vedic Astrology AI Engine") as demo:
             convert_calendar_ui,
             inputs=[cal_dir, cal_y, cal_m, cal_d],
             outputs=[out_cal],
+        )
+
+    with gr.Tab("AI Jyotish Consultation (RAG + 9router)"):
+        gr.Markdown(
+            "### 🔮 AI Jyotish Consultation\n"
+            "Scriptural Jyotish analysis grounded in classical Pramana (BPHS, Phaladeepika, Saravali) "
+            "synthesized with optional birth chart context via **9router**."
+        )
+        with gr.Row():
+            with gr.Column(scale=2):
+                q_text = gr.Textbox(
+                    value="What are the classical results of Jupiter in the 1st house?",
+                    label="Consultation Question",
+                    lines=3,
+                )
+                q_lang = gr.Radio(
+                    choices=[("English", "en"), ("नेपाली (Nepali)", "ne")],
+                    value="en",
+                    label="Consultation Language",
+                )
+                q_include_chart = gr.Checkbox(value=False, label="Include Birth Chart Context in Reading")
+                with gr.Accordion("Birth Details (optional)", open=False):
+                    with gr.Row():
+                        q_y = gr.Number(value=2000, label="Year")
+                        q_m = gr.Number(value=1, label="Month")
+                        q_d = gr.Number(value=1, label="Day")
+                        q_h = gr.Number(value=12, label="Hour")
+                        q_min = gr.Number(value=0, label="Minute")
+                    with gr.Row():
+                        q_lat = gr.Number(value=23.1765, label="Latitude")
+                        q_lon = gr.Number(value=75.7885, label="Longitude")
+                        q_tz = gr.Textbox(value="Asia/Kolkata", label="Timezone")
+
+                btn_consult = gr.Button("Consult Jyotish AI", variant="primary")
+
+            with gr.Column(scale=3):
+                out_consult = gr.Markdown(label="Consultation Guidance")
+
+        btn_consult.click(
+            consult_rag_ui,
+            inputs=[
+                q_text,
+                q_include_chart,
+                q_y,
+                q_m,
+                q_d,
+                q_h,
+                q_min,
+                q_lat,
+                q_lon,
+                q_tz,
+                q_lang,
+            ],
+            outputs=[out_consult],
         )
 
     with gr.Tab("API & Perplexity / Claude Integration"):
