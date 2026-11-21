@@ -6,3 +6,8 @@ karriere-pipeline.duckdns.org {
     encode gzip
     reverse_proxy karriere-dashboard:8000
 }
+
+karriere-dev.duckdns.org {
+    encode gzip
+    reverse_proxy karriere-dashboard-dev:8000
+}
