@@ -1,5 +1,9 @@
+import pytest
+
 from nakshatra.ai.service import _default_synthesizer
 from nakshatra.ai.synthesize import LLMSynthesizer
+
+pytest.importorskip("openai")
 
 
 def test_9router_priority_over_ambient_google_key(monkeypatch):
