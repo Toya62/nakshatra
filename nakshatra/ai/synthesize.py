@@ -522,6 +522,7 @@ def build_prompt(
         "Deliver a rich, authoritative, compassionate, and directly relevant astrological consultation. "
         "Synthesize your classical Jyotish mastery with the provided scriptural excerpts, citing them with bracketed numbers like [1] or [2]. "
         "Never recite ancient mathematical calculation algorithms, table numbers, or worked-out arithmetic examples from the commentary texts. "
+        "Do NOT append a redundant 'References:' or 'Citations:' bibliography list at the end of your response, as the platform interface automatically renders dedicated interactive citation cards below your answer. "
         "Answer the seeker's query directly with clear, empowering, and Dharma-aligned guidance."
     )
     if (language or "").lower().strip() in ("ne", "nepali", "nep"):
@@ -548,6 +549,20 @@ def extract_citations(answer: str, results: list[SearchResult]) -> list[Citation
                 )
             )
     return citations
+
+
+def _strip_trailing_references(text: str) -> str:
+    """Strip redundant trailing References/Citations section from LLM output.
+
+    The frontend UI renders dedicated interactive citation cards from structured
+    metadata, so a raw text bibliography at the bottom of the answer creates
+    duplicate visual display.
+    """
+    pattern = (
+        r"(?i)\n+(?:###?\s*)?(?:references|citations|classical citations|shloka citations|"
+        r"सन्दर्भहरू?|उद्धरणहरू?)\s*:?\s*\n+.*$"
+    )
+    return re.sub(pattern, "", text, flags=re.DOTALL).rstrip()
 
 
 class LLMSynthesizer(BaseSynthesizer):
@@ -593,9 +608,10 @@ class LLMSynthesizer(BaseSynthesizer):
                 text = self._complete(prompt, system_prompt=sys_prompt)
             except TypeError:
                 text = self._complete(prompt)
+            clean_answer = _strip_trailing_references(text)
             return Answer(
                 question=question,
-                answer=text,
+                answer=clean_answer,
                 citations=extract_citations(text, results),
                 model=self.model,
             )

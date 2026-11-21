@@ -190,6 +190,26 @@ class TestLLMSynthesizer:
         assert answer.citations == []
         assert "References:" in build_prompt("Q", [])
 
+    def test_strip_trailing_references(self):
+        from nakshatra.ai.synthesize import _strip_trailing_references
+
+        text = (
+            "You have great career potential with 10th lord Moon [1].\n\n"
+            "References:\n\n"
+            "[1] Phaladeepika Ch. 10 Verse 1\n"
+            "[2] Saravali Ch. 32 Verse 2\n"
+        )
+        cleaned = _strip_trailing_references(text)
+        assert cleaned == "You have great career potential with 10th lord Moon [1]."
+
+        text_ne = (
+            "तपाईंको वैवाहिक जीवन उत्तम रहनेछ [१]।\n\n"
+            "सन्दर्भहरू:\n"
+            "[१] फलदीपिका च. १०\n"
+        )
+        cleaned_ne = _strip_trailing_references(text_ne)
+        assert cleaned_ne == "तपाईंको वैवाहिक जीवन उत्तम रहनेछ [१]।"
+
     def test_google_live_when_key_present(self):
         if not os.environ.get("NAKSHATRA_LIVE"):
             pytest.skip("Live test (set NAKSHATRA_LIVE=1 to run)")
