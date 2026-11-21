@@ -1,4 +1,4 @@
-vedic-nakshatra.duckdns.org {
+nakshatra-light.duckdns.org {
     reverse_proxy frontend:3000
 }
 

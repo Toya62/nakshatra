@@ -37,7 +37,7 @@ class CorpusAttribution(BaseModel):
 
 
 class LicensingStatement(BaseModel):
-    platform_name: str = Field(default="Nakshatra Vedic Astrology Engine")
+    platform_name: str = Field(default="Nakshatra: The Science of Light")
     platform_license: str = Field(default="GNU Affero General Public License v3.0 (AGPL-3.0)")
     ephemeris: EphemerisLicensing
     corpus_works: list[CorpusAttribution]

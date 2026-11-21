@@ -466,7 +466,7 @@ else:
     cors_origins = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
-        "https://vedic-nakshatra.duckdns.org",
+        "https://nakshatra-light.duckdns.org",
         "https://toya62-nakshatra.hf.space",
     ]
     cors_allow_credentials = True

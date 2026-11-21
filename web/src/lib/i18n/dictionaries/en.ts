@@ -3,7 +3,7 @@ import type { TranslationSchema } from "../types.ts";
 export const en: TranslationSchema = {
   common: {
     appName: "NAKSHATRA",
-    tagline: "Vedic Astrology Engine",
+    tagline: "The Science of Light",
     loading: "Loading…",
     error: "Error",
     success: "Success",

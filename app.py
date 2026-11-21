@@ -172,8 +172,8 @@ def consult_rag_ui(
         return f"Consultation error: {str(e)}"
 
 
-with gr.Blocks(title="Nakshatra - Vedic Astrology AI Engine") as demo:
-    gr.Markdown("# 🪐 Nakshatra — Vedic Astrology AI Engine")
+with gr.Blocks(title="Nakshatra — The Science of Light") as demo:
+    gr.Markdown("# 🪐 Nakshatra — The Science of Light")
     gr.Markdown(
         "Deterministic Vedic calculations powered by Swiss Ephemeris (`pyswisseph`). "
         "Provides 36-point Ashtakoota compatibility, Muhurtha election scoring, and real-time Gochara transits."

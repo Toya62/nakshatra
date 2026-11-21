@@ -35,7 +35,7 @@ from nakshatra.yogas import detect_yogas, format_yogas_markdown, format_yogas_ta
 server = MCPServer(
     name="nakshatra",
     instructions=(
-        "Nakshatra Vedic Astrology Engine - Deterministic Swiss Ephemeris tools. "
+        "Nakshatra: The Science of Light - Deterministic Swiss Ephemeris tools. "
         "Always use these tools for any astronomical degrees, planetary positions, "
         "dashas, compatibility scores, and muhurtha timings. Never calculate "
         "planetary coordinates mentally."

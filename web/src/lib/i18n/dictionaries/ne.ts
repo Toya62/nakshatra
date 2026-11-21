@@ -3,7 +3,7 @@ import type { TranslationSchema } from "../types.ts";
 export const ne: TranslationSchema = {
   common: {
     appName: "नक्षत्र",
-    tagline: "वैदिक ज्योतिष इन्जिन",
+    tagline: "प्रकाशको विज्ञान",
     loading: "लोड हुँदैछ…",
     error: "त्रुटि",
     success: "सफल",
