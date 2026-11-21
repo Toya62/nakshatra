@@ -499,7 +499,11 @@ class LLMSynthesizer(BaseSynthesizer):
         except Exception as e:
             fb = FallbackSynthesizer()
             ans = fb.synthesize(question, results, birth_context, language=language)
-            notice_prefix = "Ollama" if self.provider == "ollama" else ("OpenAI" if self.provider == "openai" else "Gemini")
+            notice_prefix = (
+                "9router"
+                if (self._base_url and "20128" in self._base_url)
+                else ("Ollama" if self.provider == "ollama" else ("OpenAI" if self.provider == "openai" else "Gemini"))
+            )
             ans.answer = (
                 f"*[Notice: {notice_prefix} service temporarily unavailable ({e}). "
                 "Retrieved classical scriptural citations:]*\n\n" + ans.answer
@@ -578,6 +582,7 @@ class LLMSynthesizer(BaseSynthesizer):
         if self._client is None:
             try:
                 from google import genai
+                from google.genai import types
             except ImportError as e:
                 raise ImportError(
                     "The google-genai package is required for the google "
@@ -588,7 +593,14 @@ class LLMSynthesizer(BaseSynthesizer):
                 or os.environ.get("GOOGLE_API_KEY")
                 or os.environ.get("GEMINI_API_KEY")
             )
-            self._client = genai.Client(api_key=api_key)
+            # Guard against invalid tokens and enforce strict timeout
+            if api_key and api_key.startswith("AQ."):
+                raise ValueError("GOOGLE_API_KEY is an Antigravity token, not a Google AI Studio key.")
+            http_options = types.HttpOptions(timeout=15000) if hasattr(types, "HttpOptions") else None
+            if http_options:
+                self._client = genai.Client(api_key=api_key, http_options=http_options)
+            else:
+                self._client = genai.Client(api_key=api_key)
 
         last_err: Exception | None = None
         full_contents = f"{system_prompt}\n\n{prompt}"
@@ -625,15 +637,25 @@ class LLMSynthesizer(BaseSynthesizer):
     ) -> Iterator[str]:
         prompt = build_prompt(question, results, birth_context, language=language)
         sys_prompt = get_system_prompt(language)
-        if self.provider == "google":
-            yield from self._stream_google(prompt, system_prompt=sys_prompt)
-        elif self.provider in ("openai", "ollama"):
-            yield from self._stream_openai(prompt, system_prompt=sys_prompt)
-        else:
-            try:
-                yield self._complete(prompt, system_prompt=sys_prompt)
-            except TypeError:
-                yield self._complete(prompt)
+        try:
+            if self.provider == "google":
+                yield from self._stream_google(prompt, system_prompt=sys_prompt)
+            elif self.provider in ("openai", "ollama"):
+                yield from self._stream_openai(prompt, system_prompt=sys_prompt)
+            else:
+                try:
+                    yield self._complete(prompt, system_prompt=sys_prompt)
+                except TypeError:
+                    yield self._complete(prompt)
+        except Exception as e:
+            fb = FallbackSynthesizer()
+            notice_prefix = (
+                "9router"
+                if (self._base_url and "20128" in self._base_url)
+                else ("Ollama" if self.provider == "ollama" else ("OpenAI" if self.provider == "openai" else "Gemini"))
+            )
+            yield f"*[Notice: {notice_prefix} service temporarily unavailable ({e}). Retrieved classical scriptural citations:]*\n\n"
+            yield from fb.synthesize_stream(question, results, birth_context, language=language)
 
     def _stream_openai(self, prompt: str, system_prompt: str = SYSTEM_PROMPT) -> Iterator[str]:
         client = self._openai_client()
@@ -662,13 +684,20 @@ class LLMSynthesizer(BaseSynthesizer):
 
         if self._client is None:
             from google import genai
+            from google.genai import types
 
             api_key = (
                 self._api_key
                 or os.environ.get("GOOGLE_API_KEY")
                 or os.environ.get("GEMINI_API_KEY")
             )
-            self._client = genai.Client(api_key=api_key)
+            if api_key and api_key.startswith("AQ."):
+                raise ValueError("GOOGLE_API_KEY is an Antigravity token, not a Google AI Studio key.")
+            http_options = types.HttpOptions(timeout=15000) if hasattr(types, "HttpOptions") else None
+            if http_options:
+                self._client = genai.Client(api_key=api_key, http_options=http_options)
+            else:
+                self._client = genai.Client(api_key=api_key)
 
         last_err: Exception | None = None
         full_contents = f"{system_prompt}\n\n{prompt}"
