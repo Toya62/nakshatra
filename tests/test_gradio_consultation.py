@@ -4,8 +4,8 @@ from pathlib import Path
 # Add project root to sys.path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-import pytest
 from app import consult_rag_ui
+
 
 def test_consult_rag_ui_empty_question():
     res = consult_rag_ui(

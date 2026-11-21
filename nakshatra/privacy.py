@@ -97,10 +97,10 @@ def setup_privacy_logging() -> None:
     """
     filter_instance = PrivacySanitizerFilter()
     for logger_name in ("", "uvicorn", "uvicorn.access", "uvicorn.error", "fastapi"):
-        l = logging.getLogger(logger_name)
-        if not any(isinstance(f, PrivacySanitizerFilter) for f in l.filters):
-            l.addFilter(filter_instance)
-        for handler in l.handlers:
+        logger = logging.getLogger(logger_name)
+        if not any(isinstance(f, PrivacySanitizerFilter) for f in logger.filters):
+            logger.addFilter(filter_instance)
+        for handler in logger.handlers:
             if not any(isinstance(f, PrivacySanitizerFilter) for f in handler.filters):
                 handler.addFilter(filter_instance)
 

@@ -42,7 +42,7 @@ def test_get_system_prompt_languages():
 
 def test_build_prompt_bilingual():
     results = [SearchResult(chunk=_chunk(), score=0.9)]
-    
+
     en_prompt = build_prompt("Tell me about Sun", results, language="en")
     assert "भाषा निर्देशन" not in en_prompt
     assert "Question: Tell me about Sun" in en_prompt

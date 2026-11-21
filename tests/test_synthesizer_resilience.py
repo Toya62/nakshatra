@@ -1,7 +1,9 @@
 import pytest
+
 from nakshatra.ai.corpus import CorpusChunk
 from nakshatra.ai.retrieval import SearchResult
-from nakshatra.ai.synthesize import FallbackSynthesizer, LLMSynthesizer
+from nakshatra.ai.synthesize import LLMSynthesizer
+
 
 @pytest.fixture
 def sample_results():

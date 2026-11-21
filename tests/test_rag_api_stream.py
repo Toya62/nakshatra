@@ -1,7 +1,9 @@
 import json
-import pytest
+
 from fastapi.testclient import TestClient
-from nakshatra.api import app, _rag_service
+
+from nakshatra.api import app
+
 
 def test_rag_ask_stream_lifecycle():
     client = TestClient(app)

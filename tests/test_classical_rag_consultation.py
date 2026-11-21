@@ -11,8 +11,8 @@ from pathlib import Path
 
 import pytest
 
-from nakshatra.ai.corpus import ingest_corpus, tag_topics
-from nakshatra.ai.retrieval import ConceptMap, HybridRetriever
+from nakshatra.ai.corpus import tag_topics
+from nakshatra.ai.retrieval import ConceptMap
 from nakshatra.ai.service import RAGService
 from nakshatra.ai.synthesize import FallbackSynthesizer, extract_citations
 
