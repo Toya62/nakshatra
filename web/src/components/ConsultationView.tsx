@@ -269,6 +269,26 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
             if (!controller.signal.aborted) {
               setError(errMsg);
             }
+            setMessages((prev) => {
+              const updated = [...prev];
+              const last = updated[updated.length - 1];
+              if (last && last.role === "assistant") {
+                const is9router =
+                  errMsg.includes("9router") ||
+                  errMsg.includes("Connection error") ||
+                  errMsg.includes("20128") ||
+                  errMsg.includes("Connection refused");
+                const errorHelp = is9router
+                  ? `\n\n⚠️ **AI Gateway Offline / Connection Error**\n\nUnable to reach 9router at \`http://localhost:20128/v1\`.\n- Start 9router in terminal: \`9router -n -p 20128\`\n- Ensure active models include \`nakshatra-combo\`.`
+                  : `\n\n⚠️ **Consultation Error**: ${errMsg}`;
+                updated[updated.length - 1] = {
+                  ...last,
+                  text: last.text ? last.text + errorHelp : errorHelp.trim(),
+                  isStreaming: false,
+                };
+              }
+              return updated;
+            });
             setLoading(false);
             abortControllerRef.current = null;
           },
@@ -282,6 +302,18 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
       const err = e as Error;
       if (err.name !== "AbortError" && !controller.signal.aborted) {
         setError(err.message);
+        setMessages((prev) => {
+          const updated = [...prev];
+          const last = updated[updated.length - 1];
+          if (last && last.role === "assistant") {
+            updated[updated.length - 1] = {
+              ...last,
+              text: last.text || `⚠️ **Consultation Error**: ${err.message}`,
+              isStreaming: false,
+            };
+          }
+          return updated;
+        });
       }
     } finally {
       setLoading(false);
@@ -669,6 +701,34 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
                     >
                       <HelpCircle size={12} color="var(--gold-vivid)" aria-hidden="true" />
                       <span>Why? Inspect Astrological Basis</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Inline Retry Consultation button on error */}
+                {!isUser && !m.isStreaming && m.text.includes("⚠️") && (
+                  <div style={{ marginTop: "var(--space-3)", paddingTop: "var(--space-2)", borderTop: "1px solid var(--border-subtle)" }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const lastUserMsg = [...messages].reverse().find((msg) => msg.role === "user");
+                        if (lastUserMsg) {
+                          handleSend(lastUserMsg.text);
+                        }
+                      }}
+                      className="chip active"
+                      style={{
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "var(--space-1)",
+                        fontSize: "var(--type-micro)",
+                        padding: "4px 10px",
+                        color: "var(--gold-bright)",
+                      }}
+                    >
+                      <Sparkles size={12} color="var(--gold-vivid)" aria-hidden="true" />
+                      <span>{lang === "ne" ? "पुनः प्रयास गर्नुहोस्" : "Retry Consultation"}</span>
                     </button>
                   </div>
                 )}
