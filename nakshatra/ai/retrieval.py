@@ -145,6 +145,22 @@ class ConceptMap:
             ],
             ["House 3", "House 9", "House 12", "Rahu", "Foreign"],
         ),
+        "spirituality": (
+            [
+                "spirituality", "spiritual", "moksha", "enlightenment", "soul", "meditation",
+                "dharmic", "adhyatma", "mukti", "liberation", "atman",
+                "अध्यात्म", "मोक्ष", "मुक्ति", "साधना"
+            ],
+            ["House 9", "House 12", "Atmakaraka", "Karakamsa", "Jupiter", "Ketu", "Moksha"],
+        ),
+        "remedies": (
+            [
+                "remedy", "remedies", "upaya", "solution", "totka", "dana", "daan",
+                "japa", "mantra", "puja", "shanti",
+                "उपाय", "शान्ति", "दान", "जप", "मन्त्र"
+            ],
+            ["Upaya", "Remedies", "Dana", "Japa", "Lal Kitab"],
+        ),
     }
 
     def expand(self, query: str) -> str:
