@@ -24,7 +24,9 @@ class NakshatraSettings(BaseSettings):
 
     # Geocoding configuration
     geocoding_use_builtin: bool = Field(default=True, description="Use built-in place database")
-    geocoding_fallback_online: bool = Field(default=True, description="Fallback to online geocoding")
+    geocoding_fallback_online: bool = Field(
+        default=True, description="Fallback to online geocoding"
+    )
     nominatim_user_agent: str = Field(
         default="NakshatraVedicAstrologyEngine/0.1.0",
         description="User-Agent for Nominatim requests",

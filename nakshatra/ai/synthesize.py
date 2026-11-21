@@ -58,22 +58,29 @@ SYSTEM_PROMPT = (
     "behavioral, and relational realities: 'father curse / pitri dosha' represents generational behavioral conditioning, "
     "strained relationship with the father or authority figures, or ego conflicts requiring conscious respect and reconciliation; "
     "'loss of wealth' represents lessons in financial mindfulness. Focus on character, purpose, and conscious evolution.\n"
-    "7. Holistic Predictive Structure: For planetary placement queries, provide a balanced, multi-dimensional analysis: "
+    "7. Dignified Relationship & Spousal Hermeneutics (CRITICAL): NEVER use offensive, derogatory, vulgar, misogynistic, "
+    "or sexually explicit terms (e.g., 'harlot', 'promiscuous', or crude anatomical body parts) even if archaic Victorian translations contain them. "
+    "In authentic classical Jyotish tradition (Maharishi Parashara, Mantreswara, Kalyanavarma), afflictions to the 7th house (Kalatra Bhava) "
+    "or Venus by Mars or Saturn indicate intense temperament differences, emotional friction, communication boundaries, or reproductive/wellness "
+    "sensitivities requiring mutual patience, conscious boundaries, and emotional devotion. Frame all spousal analyses around personal compatibility, "
+    "emotional intelligence, mutual respect, shared values, and character development with the highest dignity.\n"
+    "8. Holistic Predictive Structure: For planetary placement queries, provide a balanced, multi-dimensional analysis: "
     "a) Core Archetype & Vitality (nature, presence, mindset), b) Creative & Career Potential (leadership, execution), "
     "c) Shadow Tendencies to Balance (ego management, patience, relationships), and d) Actionable Classical Remedies & Guidance.\n"
-    "8. Professional Boundaries: Astrological counseling does not replace licensed medical, psychiatric, "
+    "9. Professional Boundaries: Astrological counseling does not replace licensed medical, psychiatric, "
     "legal, or financial counsel. When relevant, advise consulting licensed human professionals.\n"
-    "9. Concrete Predictive Synthesis & Date Ranges: For timing, career, job, marriage, or life milestone questions:\n"
+    "10. Concrete Predictive Synthesis & Date Ranges: For timing, career, job, marriage, or life milestone questions:\n"
     "   a) If Birth Chart Context is provided: Provide CLEAR, CONCRETE DATE RANGES based directly on the "
     "Operating Vimshottari Dasha Hierarchy (active Mahadasha, Antardasha, and Pratyantardasha start and end dates) "
     "and active Gochara transits in the context. Pinpoint the primary auspicious windows (e.g. activation of 10th house "
-    "of profession, 6th house of service/employment, 11th house of gains, or 2nd house of income) and state the exact "
+    "of profession, 6th house of service/employment, 7th house of marriage/partnership, 11th house of gains, or 2nd house of family) and state the exact "
     "timeframes explicitly (e.g., 'Primary Favorable Window: [Start Date] to [End Date] under ... Antardasha/Pratyantardasha'). "
+    "Always write complete, valid 4-digit calendar years in ISO format (YYYY-MM-DD, e.g., '2031-11-09', NEVER truncated years like '203-11-09'). "
     "DO NOT claim birth details are missing or ask for them again when the birth chart context is present in the prompt!\n"
     "   b) If Birth Chart Context is NOT provided: Explain the classical astrological timing rules clearly and directly "
-    "(how 10th/6th house lords, dasha periods, and Jupiter/Saturn transits trigger events), offer an illustrative "
+    "(how 10th/6th/7th house lords, dasha periods, and Jupiter/Saturn transits trigger events), offer an illustrative "
     "framework, and warmly invite the seeker to provide their exact birth date, time, and city to receive their personalized date ranges.\n"
-    "10. High-Relevance Conciseness: Avoid irrelevant filler, procedural explanations, or disconnected ancient arithmetic. "
+    "11. High-Relevance Conciseness: Avoid irrelevant filler, procedural explanations, or disconnected ancient arithmetic. "
     "Answer the seeker's query directly, empathetically, and insightfully."
 )
 
@@ -97,14 +104,15 @@ SYSTEM_PROMPT_NE = (
     "ज्योतिष भनेको कर्म-बोध, आत्म-सुधार र चेतन जीवनको मार्गदर्शक हो। साढे साती, मारक दशा, अष्टम शनि, वा राहु महादशालाई अनुशासन, साधना, दान, जप तथा सेवा मार्फत सकारात्मक रूपान्तरणको अवसरका रूपमा सम्झाउनुहोस्।\n"
     "६. आधुनिक प्रतीकात्मक रूपान्तरण (अत्यन्त महत्त्वपूर्ण): प्राचीन ग्रन्थहरूमा उल्लेख गरिएका कठोर लाक्षणिक शब्दहरू (जस्तै 'पूर्वजन्मको श्राप', 'वंश नाश', 'राजभङ्ग') लाई अक्षरशः नदोहोर्‍याउनुहोस्। "
     "आधुनिक सोधकर्ताहरूलाई त्यस्ता प्राचीन श्रापले त्रसित र विमुख बनाउँछ। तिनलाई सधैं आधुनिक मनोवैज्ञानिक, आचरणगत तथा पारिवारिक यथार्थमा रूपान्तरण गर्नुहोस्: 'पितृ दोष' लाई पारिवारिक संस्कार, पिता वा अभिभावकहरूसँगको भावनात्मक सम्बन्ध सुधार र अहंकार व्यवस्थापनको रूपमा सम्झाउनुहोस्।\n"
-    "७. सन्तुलित भविष्यवाणी संरचना: ग्रह स्थितिको विश्लेषण गर्दा सन्तुलित बहुआयामिक दृष्टिकोण प्रस्तुत गर्नुहोस्: "
+    "७. वैवाहिक तथा जीवनसाथी सम्बन्धी मर्यादापूर्ण फलित (अत्यन्त महत्त्वपूर्ण): प्राचीन अनुवादहरूमा पाइने कुनै पनि अपमानजनक, अशिष्ट, वा अश्लील शब्दहरू (जस्तै 'चरित्रहीन', वा आपत्तिजनक शारीरिक अङ्गका नामहरू) कहिल्यै प्रयोग नगर्नुहोस्। महर्षि पराशर र मन्त्रेश्वरको प्रामाणिक परम्परा अनुसार ७औं भाव (कलत्र भाव) वा शुक्रमा मंगल/शनिको प्रभावले उग्र स्वभाव, विचारको द्वन्द्व, वा धैर्य र संवादको आवश्यकतालाई जनाउँछ। दाम्पत्य जीवनको विश्लेषण सधैं पारस्परिक आदर, समझदारी, भावनात्मक परिपक्वता र संस्कार निर्माणमा केन्द्रित गर्नुहोस्।\n"
+    "८. सन्तुलित भविष्यवाणी संरचना: ग्रह स्थितिको विश्लेषण गर्दा सन्तुलित बहुआयामिक दृष्टिकोण प्रस्तुत गर्नुहोस्: "
     "क) मूल स्वभाव र जीवनशक्ति (प्रकृति, उपस्थिति र मनोवृत्ति), ख) रचनात्मक तथा व्यावसायिक क्षमता (नेतृत्व र कर्मक्षेत्र), "
     "ग) सन्तुलन गर्नुपर्ने छाया पक्षहरू (अहंकार, धैर्य र सम्बन्ध), र घ) व्यावहारिक शास्त्रीय उपाय तथा मार्गदर्शन।\n"
-    "८. व्यावसायिक मर्यादा: ज्योतिषीय परामर्श कुनै पनि आधिकारिक चिकित्सा, मनोचिकित्सा, कानुनी वा वित्तीय परामर्शको विकल्प होइन। आवश्यक परेमा सम्बन्धित आधिकारिक मानव विशेषज्ञहरूसँग परामर्श लिन स्पष्ट सल्लाह दिनुहोस्।\n"
-    "९. स्पष्ट कालक्रम तथा फलादेश संश्लेषण (मिति दायरा / Date Range): जागिर, पदोन्नति, विवाह वा समय सम्बन्धी प्रश्नहरूका लागि:\n"
-    "   क) यदि कुण्डली विवरण उपलब्ध छ भने: प्रदान गरिएको विंशोत्तरी दशा (सक्रिय महादशा, अन्तर्दशा, प्रत्यन्तर्दशाका शुरु र अन्त्य मितिहरू) र सक्रिय गोचरका आधारमा स्पष्ट र यकिन समय सीमा (Date Range) दिनुहोस् (जस्तै 'पहिलो अनुकूल अवसर: [मिति] देखि [मिति] सम्म...')। कुण्डली विवरण उपलब्ध भइसकेपछि फेरि जन्म विवरण माग्ने गल्ती नगर्नुहोस्।\n"
-    "   ख) यदि कुण्डली विवरण छैन भने: १०औं भाव (कर्म), ६औं भाव (सेवा/रोजगार) र दशा चक्रको शास्त्रीय सिद्धान्त स्पष्ट पार्दै व्यक्तिगत मिति निकाल्न जन्म मिति, समय र स्थान सोध्नुहोस्।\n"
-    "१०. प्रश्न-केन्द्रित र सान्दर्भिक उत्तर: अप्रासंगिक गणित वा अनावश्यक भूमिका नबाँधी सोधकर्ताको मूल प्रश्नको सिधा, आत्मीय र कल्याणकारी उत्तर दिनुहोस्।"
+    "९. व्यावसायिक मर्यादा: ज्योतिषीय परामर्श कुनै पनि आधिकारिक चिकित्सा, मनोचिकित्सा, कानुनी वा वित्तीय परामर्शको विकल्प होइन। आवश्यक परेमा सम्बन्धित आधिकारिक मानव विशेषज्ञहरूसँग परामर्श लिन स्पष्ट सल्लाह दिनुहोस्।\n"
+    "१०. स्पष्ट कालक्रम तथा फलादेश संश्लेषण (मिति दायरा / Date Range): जागिर, पदोन्नति, विवाह वा समय सम्बन्धी प्रश्नहरूका लागि:\n"
+    "   क) यदि कुण्डली विवरण उपलब्ध छ भने: प्रदान गरिएको विंशोत्तरी दशा (सक्रिय महादशा, अन्तर्दशा, प्रत्यन्तर्दशाका शुरु र अन्त्य मितिहरू) र सक्रिय गोचरका आधारमा स्पष्ट र यकिन समय सीमा (Date Range) दिनुहोस् (जस्तै 'पहिलो अनुकूल अवसर: [मिति] देखि [मिति] सम्म...')। मिति लेख्दा सधैं पूरा ४ अङ्कको वर्ष (जस्तै २०२६-११-२१ वा २०३१-०५-१०) स्पष्ट लेख्नुहोस्, कहिल्यै अधुरो अङ्क नछोड्नुहोस्। कुण्डली विवरण उपलब्ध भइसकेपछि फेरि जन्म विवरण माग्ने गल्ती नगर्नुहोस्।\n"
+    "   ख) यदि कुण्डली विवरण छैन भने: १०औं भाव (कर्म), ६औं भाव (सेवा/रोजगार), ७औं भाव (दाम्पत्य) र दशा चक्रको शास्त्रीय सिद्धान्त स्पष्ट पार्दै व्यक्तिगत मिति निकाल्न जन्म मिति, समय र स्थान सोध्नुहोस्।\n"
+    "११. प्रश्न-केन्द्रित र सान्दर्भिक उत्तर: अप्रासंगिक गणित वा अनावश्यक भूमिका नबाँधी सोधकर्ताको मूल प्रश्नको सिधा, आत्मीय र कल्याणकारी उत्तर दिनुहोस्।"
 )
 
 
@@ -328,6 +336,7 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
 
     dashas = chart.get("dashas")
     if isinstance(dashas, dict):
+
         def _clean_node_name(name: str | None) -> str:
             if not name:
                 return "Unknown"
@@ -367,7 +376,7 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
                         s_date = (ad.get("start") or "")[:10]
                         e_date = (ad.get("end") or "")[:10]
                         lord_name = _clean_node_name(ad.get("lord"))
-                        is_active = (lord_name == ad_lord and s_date == ad_s)
+                        is_active = lord_name == ad_lord and s_date == ad_s
                         tag = " [ACTIVE NOW]" if is_active else ""
                         ad_lines.append(f"{md_lord}/{lord_name}: {s_date} to {e_date}{tag}")
                     lines.append(
@@ -376,7 +385,10 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
                     )
 
                 for ad in ad_subs:
-                    if _clean_node_name(ad.get("lord")) == ad_lord and (ad.get("start") or "")[:10] == ad_s:
+                    if (
+                        _clean_node_name(ad.get("lord")) == ad_lord
+                        and (ad.get("start") or "")[:10] == ad_s
+                    ):
                         pd_subs = ad.get("subs") or []
                         if pd_subs:
                             pd_lines = []
@@ -384,9 +396,11 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
                                 s_date = (pd.get("start") or "")[:10]
                                 e_date = (pd.get("end") or "")[:10]
                                 lord_name = _clean_node_name(pd.get("lord"))
-                                is_active = (lord_name == pd_lord and s_date == pd_s)
+                                is_active = lord_name == pd_lord and s_date == pd_s
                                 tag = " [ACTIVE NOW]" if is_active else ""
-                                pd_lines.append(f"{md_lord}/{ad_lord}/{lord_name}: {s_date} to {e_date}{tag}")
+                                pd_lines.append(
+                                    f"{md_lord}/{ad_lord}/{lord_name}: {s_date} to {e_date}{tag}"
+                                )
                             lines.append(
                                 f"  • Active Pratyantardasha Micro-Windows ({md_lord}/{ad_lord}):\n    - "
                                 + "\n    - ".join(pd_lines)
@@ -591,7 +605,11 @@ class LLMSynthesizer(BaseSynthesizer):
             notice_prefix = (
                 "9router"
                 if (self._base_url and "20128" in self._base_url)
-                else ("Ollama" if self.provider == "ollama" else ("OpenAI" if self.provider == "openai" else "Gemini"))
+                else (
+                    "Ollama"
+                    if self.provider == "ollama"
+                    else ("OpenAI" if self.provider == "openai" else "Gemini")
+                )
             )
             ans.answer = (
                 f"*[Notice: {notice_prefix} service temporarily unavailable ({e}). "
@@ -687,8 +705,12 @@ class LLMSynthesizer(BaseSynthesizer):
             )
             # Guard against invalid tokens and enforce strict timeout
             if api_key and api_key.startswith("AQ."):
-                raise ValueError("GOOGLE_API_KEY is an Antigravity token, not a Google AI Studio key.")
-            http_options = types.HttpOptions(timeout=15000) if hasattr(types, "HttpOptions") else None
+                raise ValueError(
+                    "GOOGLE_API_KEY is an Antigravity token, not a Google AI Studio key."
+                )
+            http_options = (
+                types.HttpOptions(timeout=15000) if hasattr(types, "HttpOptions") else None
+            )
             if http_options:
                 self._client = genai.Client(api_key=api_key, http_options=http_options)
             else:
@@ -744,7 +766,11 @@ class LLMSynthesizer(BaseSynthesizer):
             notice_prefix = (
                 "9router"
                 if (self._base_url and "20128" in self._base_url)
-                else ("Ollama" if self.provider == "ollama" else ("OpenAI" if self.provider == "openai" else "Gemini"))
+                else (
+                    "Ollama"
+                    if self.provider == "ollama"
+                    else ("OpenAI" if self.provider == "openai" else "Gemini")
+                )
             )
             yield f"*[Notice: {notice_prefix} service temporarily unavailable ({e}). Retrieved classical scriptural citations:]*\n\n"
             yield from fb.synthesize_stream(question, results, birth_context, language=language)
@@ -787,8 +813,12 @@ class LLMSynthesizer(BaseSynthesizer):
                 or os.environ.get("GEMINI_API_KEY")
             )
             if api_key and api_key.startswith("AQ."):
-                raise ValueError("GOOGLE_API_KEY is an Antigravity token, not a Google AI Studio key.")
-            http_options = types.HttpOptions(timeout=15000) if hasattr(types, "HttpOptions") else None
+                raise ValueError(
+                    "GOOGLE_API_KEY is an Antigravity token, not a Google AI Studio key."
+                )
+            http_options = (
+                types.HttpOptions(timeout=15000) if hasattr(types, "HttpOptions") else None
+            )
             if http_options:
                 self._client = genai.Client(api_key=api_key, http_options=http_options)
             else:

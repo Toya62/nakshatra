@@ -1,0 +1,78 @@
+{
+  "reports": [
+    {
+      "work": "BPHS",
+      "files": 2,
+      "chunks": 3623,
+      "verse_chunks": 3620,
+      "paragraph_chunks": 3,
+      "translator": "R. Santhanam",
+      "license": "Sanskrit original public domain; English translation (R. Santhanam, 1984) freely distributed via Internet Archive"
+    },
+    {
+      "work": "Ancient Hindu Astrology",
+      "files": 1,
+      "chunks": 11,
+      "verse_chunks": 10,
+      "paragraph_chunks": 1,
+      "translator": "James T. Braha",
+      "license": "Educational excerpt / Modern synthesis reference"
+    },
+    {
+      "work": "Hindu Science of the Future",
+      "files": 1,
+      "chunks": 15,
+      "verse_chunks": 14,
+      "paragraph_chunks": 1,
+      "translator": "Harihar Majumdar",
+      "license": "Public reference / Classical commentary excerpt"
+    },
+    {
+      "work": "Jaimini Upadesha Sutras",
+      "files": 1,
+      "chunks": 13,
+      "verse_chunks": 13,
+      "paragraph_chunks": 0,
+      "translator": "Classical Translation based on Maharshi Jaimini / B. Suryanarain Rao",
+      "license": "Public domain classical Sanskrit aphorisms (Maharshi Jaimini); classical commentary freely distributed"
+    },
+    {
+      "work": "Lal Kitab",
+      "files": 1,
+      "chunks": 28,
+      "verse_chunks": 28,
+      "paragraph_chunks": 0,
+      "translator": "Pt. Roop Chand Joshi (Classical 1939-1952 Farman / Upaya Tradition)",
+      "license": "Public domain classical treatise; educational compilation of traditional household Upayas and precautions"
+    },
+    {
+      "work": "Phaladeepika",
+      "files": 1,
+      "chunks": 58,
+      "verse_chunks": 58,
+      "paragraph_chunks": 0,
+      "translator": "V. Subrahmanya Sastri (Classical 1937 Translation)",
+      "license": "Public domain classical Sanskrit treatise (Mantreswara); English translation published 1937 public domain"
+    },
+    {
+      "work": "Saravali",
+      "files": 1,
+      "chunks": 26,
+      "verse_chunks": 26,
+      "paragraph_chunks": 0,
+      "translator": "R. Santhanam (Classical English Translation)",
+      "license": "Public domain classical Sanskrit treatise (Kalyana Varma); English translation published 1983 freely distributed"
+    },
+    {
+      "work": "Uttara Kalamrita",
+      "files": 1,
+      "chunks": 9,
+      "verse_chunks": 9,
+      "paragraph_chunks": 0,
+      "translator": "Classical Translation based on Mahakavi Kalidasa",
+      "license": "Public domain classical Sanskrit treatise (Kalidasa); classical commentary freely distributed"
+    }
+  ],
+  "total_chunks": 3783,
+  "total_files": 9
+}

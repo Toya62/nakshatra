@@ -29,6 +29,7 @@ def sample_results():
     )
     return [SearchResult(chunk=chunk1, score=0.95), SearchResult(chunk=chunk2, score=0.88)]
 
+
 def test_synthesizer_stream_offline_graceful_fallback(sample_results):
     # Point to dead port
     synth = LLMSynthesizer(
@@ -42,6 +43,7 @@ def test_synthesizer_stream_offline_graceful_fallback(sample_results):
     assert len(tokens) > 0
     assert "Notice:" in full_output or "Jupiter in the 1st house" in full_output
     assert "Brihat Parashara Hora Shastra" in full_output
+
 
 def test_synthesizer_complete_offline_graceful_fallback(sample_results):
     synth = LLMSynthesizer(

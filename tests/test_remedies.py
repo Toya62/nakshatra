@@ -56,7 +56,17 @@ class TestRemediesEngine:
         report = calculate_remedies(sample_chart)
         for p in report.afflicted_planets:
             assert isinstance(p, PlanetRemedy)
-            assert p.planet in ("Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu")
+            assert p.planet in (
+                "Sun",
+                "Moon",
+                "Mars",
+                "Mercury",
+                "Jupiter",
+                "Venus",
+                "Saturn",
+                "Rahu",
+                "Ketu",
+            )
             assert 1 <= p.house <= 12
             assert len(p.affliction_reasons) > 0
             assert p.severity in AfflictionSeverity

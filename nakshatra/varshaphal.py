@@ -46,6 +46,7 @@ from nakshatra.core import (
 # Solar return (Varshaphal) moment
 # ---------------------------------------------------------------------------
 
+
 def _sidereal_sun_longitude(dt_utc: datetime, ayanamsa: Ayanamsa) -> float:
     """Sidereal Sun longitude at a UTC datetime, matching core.py convention."""
     base = "lahiri" if ayanamsa == Ayanamsa.JHORA_LAHIRI else ayanamsa.value
@@ -129,6 +130,7 @@ def find_solar_return(
 # Helpers for house/sign placement within a chart (Whole Sign)
 # ---------------------------------------------------------------------------
 
+
 def _house_for_longitude(lon: float, asc_sign: str) -> int:
     """Whole-sign house number (1-12) for a longitude given the ascendant sign."""
     asc_idx = ZODIAC_SIGNS.index(asc_sign)
@@ -155,22 +157,70 @@ def _planet_by_name(chart: ChartData, name: str) -> PlanetPosition | None:
 # computed as (lon(p1) + lon(p2) - lon(p3)) mod 360. Planet names are the 7
 # classical grahas plus "Ascendant" handled separately.
 SAHAMS: list[tuple[str, str, str, str, str, str]] = [
-    ("Punya Saham", "Fortune, merit and auspicious results for the year",
-     "Jupiter + Venus − Saturn", "Jupiter", "Venus", "Saturn"),
-    ("Jara Saham", "Mortality, critical health and end-of-cycle matters",
-     "Saturn + Mars − Sun", "Saturn", "Mars", "Sun"),
-    ("Roga Saham", "Disease, illness and physical vulnerability",
-     "Saturn + Mars − Moon", "Saturn", "Mars", "Moon"),
-    ("Bandhana Saham", "Bondage, restriction, legal entanglement",
-     "Saturn + Mars − Mercury", "Saturn", "Mars", "Mercury"),
-    ("Gati Saham", "Travel, movement and change of residence",
-     "Jupiter + Mars − Sun", "Jupiter", "Mars", "Sun"),
-    ("Kshema Saham", "Welfare, safety and protection from harm",
-     "Jupiter + Venus − Mars", "Jupiter", "Venus", "Mars"),
-    ("Dhana Saham", "Wealth accumulation and financial gains",
-     "Venus + Jupiter − Saturn", "Venus", "Jupiter", "Saturn"),
-    ("Karyesh Saham", "Fulfillment of undertakings and goals",
-     "Sun + Jupiter − Saturn", "Sun", "Jupiter", "Saturn"),
+    (
+        "Punya Saham",
+        "Fortune, merit and auspicious results for the year",
+        "Jupiter + Venus − Saturn",
+        "Jupiter",
+        "Venus",
+        "Saturn",
+    ),
+    (
+        "Jara Saham",
+        "Mortality, critical health and end-of-cycle matters",
+        "Saturn + Mars − Sun",
+        "Saturn",
+        "Mars",
+        "Sun",
+    ),
+    (
+        "Roga Saham",
+        "Disease, illness and physical vulnerability",
+        "Saturn + Mars − Moon",
+        "Saturn",
+        "Mars",
+        "Moon",
+    ),
+    (
+        "Bandhana Saham",
+        "Bondage, restriction, legal entanglement",
+        "Saturn + Mars − Mercury",
+        "Saturn",
+        "Mars",
+        "Mercury",
+    ),
+    (
+        "Gati Saham",
+        "Travel, movement and change of residence",
+        "Jupiter + Mars − Sun",
+        "Jupiter",
+        "Mars",
+        "Sun",
+    ),
+    (
+        "Kshema Saham",
+        "Welfare, safety and protection from harm",
+        "Jupiter + Venus − Mars",
+        "Jupiter",
+        "Venus",
+        "Mars",
+    ),
+    (
+        "Dhana Saham",
+        "Wealth accumulation and financial gains",
+        "Venus + Jupiter − Saturn",
+        "Venus",
+        "Jupiter",
+        "Saturn",
+    ),
+    (
+        "Karyesh Saham",
+        "Fulfillment of undertakings and goals",
+        "Sun + Jupiter − Saturn",
+        "Sun",
+        "Jupiter",
+        "Saturn",
+    ),
 ]
 
 
@@ -187,6 +237,7 @@ def _compute_saham(chart: ChartData, p1: str, p2: str, p3: str) -> float | None:
 # ---------------------------------------------------------------------------
 # Varsheshwara (Year Lord) candidates
 # ---------------------------------------------------------------------------
+
 
 def _select_varsheshwara(
     chart: ChartData,
@@ -244,10 +295,19 @@ def _select_varsheshwara(
         )
 
     scored.sort(key=lambda x: x["score"], reverse=True)
-    winner = scored[0] if scored else {
-        "key": "muntha_lord", "planet": muntha_lord, "rationale": "Muntha lord (fallback)",
-        "score": 0.0, "dignity": "neutral", "house": 1, "sign": "",
-    }
+    winner = (
+        scored[0]
+        if scored
+        else {
+            "key": "muntha_lord",
+            "planet": muntha_lord,
+            "rationale": "Muntha lord (fallback)",
+            "score": 0.0,
+            "dignity": "neutral",
+            "house": 1,
+            "sign": "",
+        }
+    )
     return winner
 
 
@@ -295,6 +355,7 @@ def _month_lords(solar_return_local: datetime) -> list[dict[str, Any]]:
 # ---------------------------------------------------------------------------
 # Main report builder
 # ---------------------------------------------------------------------------
+
 
 class SahamInfo(BaseModel):
     name: str
@@ -391,7 +452,11 @@ def calculate_varshaphal(
 
     # 2. Find the solar return moment (Sun returns to natal longitude).
     sr_utc = find_solar_return(birth, natal_sun_lon, target_year, ayanamsa)
-    sr_local = sr_utc.replace(tzinfo=timezone.utc).astimezone(ZoneInfo(birth.timezone)).replace(tzinfo=None)
+    sr_local = (
+        sr_utc.replace(tzinfo=timezone.utc)
+        .astimezone(ZoneInfo(birth.timezone))
+        .replace(tzinfo=None)
+    )
 
     # 3. Cast the Varshaphal chart at the solar return, same place.
     sr_birth = BirthData(
@@ -518,8 +583,7 @@ def calculate_varshaphal(
             for p in varsh.planets
         ],
         "houses": [
-            {"house": h.house, "sign": h.sign, "degree": h.degree_in_sign}
-            for h in varsh.houses
+            {"house": h.house, "sign": h.sign, "degree": h.degree_in_sign} for h in varsh.houses
         ],
     }
 

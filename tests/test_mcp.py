@@ -184,7 +184,12 @@ async def test_mcp_consult_scripture_rag(monkeypatch):
     monkeypatch.setattr(
         "nakshatra.ai.service.RAGService.ask",
         lambda self, q, **kw: (
-            Answer(question=q, answer="Classical Jupiter in 1st house synthesis", model="mock", citations=[]),
+            Answer(
+                question=q,
+                answer="Classical Jupiter in 1st house synthesis",
+                model="mock",
+                citations=[],
+            ),
             [],
         ),
     )
@@ -198,5 +203,3 @@ async def test_mcp_consult_scripture_rag(monkeypatch):
     text = res.content[0].text
     # Either returns consultation synthesis or graceful index notice
     assert len(text) > 0
-
-

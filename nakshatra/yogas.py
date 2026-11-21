@@ -417,8 +417,12 @@ def _detect_neechabhanga(chart: ChartData) -> list[YogaResult]:
         if dispositor:
             vedic_asps = getattr(chart, "vedic_aspects", [])
             for asp in vedic_asps:
-                asp_p = getattr(asp, "planet", None) or (asp.get("planet") if isinstance(asp, dict) else None)
-                asp_th = getattr(asp, "target_house", None) or (asp.get("target_house") if isinstance(asp, dict) else None)
+                asp_p = getattr(asp, "planet", None) or (
+                    asp.get("planet") if isinstance(asp, dict) else None
+                )
+                asp_th = getattr(asp, "target_house", None) or (
+                    asp.get("target_house") if isinstance(asp, dict) else None
+                )
                 if asp_p == dispositor.name and asp_th == p.house:
                     cancellation_rules.append(
                         f"Dispositor {dispositor.name} casts Graha Drishti on debilitated {p.name} in House {p.house}"
@@ -844,9 +848,7 @@ def _detect_parivartana(chart: ChartData) -> list[YogaResult]:
                     f"Mutual sign exchange involving the 3rd house of courage: "
                     f"{p1_name} (in House {h1}) and {p2_name} (in House {h2})."
                 )
-                effects = (
-                    "Endows courageous determination, entrepreneurial valor, self-made success through relentless effort."
-                )
+                effects = "Endows courageous determination, entrepreneurial valor, self-made success through relentless effort."
             else:
                 yoga_name = f"Maha Parivartana Yoga ({p1_name} & {p2_name})"
                 strength = "Strong"
@@ -854,9 +856,7 @@ def _detect_parivartana(chart: ChartData) -> list[YogaResult]:
                     f"Auspicious mutual sign exchange between benefic houses: "
                     f"{p1_name} (in House {h1}) and {p2_name} (in House {h2})."
                 )
-                effects = (
-                    "Highly auspicious classical Raja-Dhana yoga. Bestows enduring leadership, prestige, wealth, and sovereign authority."
-                )
+                effects = "Highly auspicious classical Raja-Dhana yoga. Bestows enduring leadership, prestige, wealth, and sovereign authority."
 
             results.append(
                 YogaResult(

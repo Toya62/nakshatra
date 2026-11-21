@@ -32,7 +32,14 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             self.rpm = requests_per_minute
 
         self._records: dict[str, list[float]] = defaultdict(list)
-        self._exempt_paths = {"/health", "/docs", "/redoc", "/openapi.json", "/legal/licensing", "/privacy"}
+        self._exempt_paths = {
+            "/health",
+            "/docs",
+            "/redoc",
+            "/openapi.json",
+            "/legal/licensing",
+            "/privacy",
+        }
 
     def _get_client_ip(self, request: Request) -> str:
         # Check forwarded headers first (behind Caddy / reverse proxy)

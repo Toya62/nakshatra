@@ -439,7 +439,13 @@ class TestPredictEndpoint:
         assert len(body["data"]) == 1
         career = body["data"]["career"]
         assert career["domain"] == "career"
-        assert career["promise_tier"] in ("Exceptional", "Favorable", "Mixed", "Challenging", "Obstructed")
+        assert career["promise_tier"] in (
+            "Exceptional",
+            "Favorable",
+            "Mixed",
+            "Challenging",
+            "Obstructed",
+        )
 
 
 class TestConfigEndpoint:

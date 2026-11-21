@@ -41,17 +41,47 @@ VEDIC_PLANETS = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"]
 # Rahu house → (Kalsarp type name, description)
 KALSARP_TYPES: dict[int, tuple[str, str]] = {
     1: ("Anant", "Rahu in Lagna, Ketu in 7th — afflicts self, health, spouse and partnerships."),
-    2: ("Kulik", "Rahu in 2nd, Ketu in 8th — afflicts wealth, family, speech and sudden gains/losses."),
-    3: ("Vasuki", "Rahu in 3rd, Ketu in 9th — afflicts courage, siblings, effort, destiny and long journeys."),
-    4: ("Shankhpal", "Rahu in 4th, Ketu in 10th — afflicts home, mother, comforts, career and public status."),
-    5: ("Padma", "Rahu in 5th, Ketu in 11th — afflicts progeny, intellect, romance, gains and elder siblings."),
-    6: ("Mahapadma", "Rahu in 6th, Ketu in 12th — afflicts health, enemies, debts, isolation and expenditure."),
-    7: ("Takshak", "Rahu in 7th, Ketu in 1st — afflicts marriage, partnerships, self and physical vitality."),
-    8: ("Karkotak", "Rahu in 8th, Ketu in 2nd — afflicts longevity, sudden events, wealth and family."),
-    9: ("Shankhachur", "Rahu in 9th, Ketu in 3rd — afflicts dharma, luck, gurus, courage and short travel."),
+    2: (
+        "Kulik",
+        "Rahu in 2nd, Ketu in 8th — afflicts wealth, family, speech and sudden gains/losses.",
+    ),
+    3: (
+        "Vasuki",
+        "Rahu in 3rd, Ketu in 9th — afflicts courage, siblings, effort, destiny and long journeys.",
+    ),
+    4: (
+        "Shankhpal",
+        "Rahu in 4th, Ketu in 10th — afflicts home, mother, comforts, career and public status.",
+    ),
+    5: (
+        "Padma",
+        "Rahu in 5th, Ketu in 11th — afflicts progeny, intellect, romance, gains and elder siblings.",
+    ),
+    6: (
+        "Mahapadma",
+        "Rahu in 6th, Ketu in 12th — afflicts health, enemies, debts, isolation and expenditure.",
+    ),
+    7: (
+        "Takshak",
+        "Rahu in 7th, Ketu in 1st — afflicts marriage, partnerships, self and physical vitality.",
+    ),
+    8: (
+        "Karkotak",
+        "Rahu in 8th, Ketu in 2nd — afflicts longevity, sudden events, wealth and family.",
+    ),
+    9: (
+        "Shankhachur",
+        "Rahu in 9th, Ketu in 3rd — afflicts dharma, luck, gurus, courage and short travel.",
+    ),
     10: ("Ghatak", "Rahu in 10th, Ketu in 4th — afflicts career, authority, home and inner peace."),
-    11: ("Vishdhar", "Rahu in 11th, Ketu in 5th — afflicts gains, friendships, progeny and creative intelligence."),
-    12: ("Sheshnag", "Rahu in 12th, Ketu in 6th — afflicts expenditure, foreign matters, health and service."),
+    11: (
+        "Vishdhar",
+        "Rahu in 11th, Ketu in 5th — afflicts gains, friendships, progeny and creative intelligence.",
+    ),
+    12: (
+        "Sheshnag",
+        "Rahu in 12th, Ketu in 6th — afflicts expenditure, foreign matters, health and service.",
+    ),
 }
 
 # Arc direction: Rahu → Ketu in zodiacal order.

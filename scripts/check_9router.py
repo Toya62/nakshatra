@@ -4,15 +4,16 @@ Nakshatra - 9router Health & Readiness Probe.
 Verifies connection to 9router on port 20128, checks model catalog, and tests nakshatra-combo.
 """
 
+import json
 import os
 import sys
-import json
-import urllib.request
 import urllib.error
+import urllib.request
 
 DEFAULT_BASE_URL = os.environ.get("OPENAI_BASE_URL", "http://localhost:20128/v1").rstrip("/")
 API_KEY = os.environ.get("OPENAI_API_KEY", "sk-296733e9c4d8e17e-zk5kkr-bc6339f4")
 TARGET_MODEL = os.environ.get("OPENAI_MODEL", "nakshatra-combo")
+
 
 def main() -> int:
     print(f"🔍 Probing 9router at {DEFAULT_BASE_URL}...")
@@ -42,6 +43,7 @@ def main() -> int:
     print(f"🤖 Testing chat completion with model '{TARGET_MODEL}'...")
     try:
         from openai import OpenAI
+
         client = OpenAI(base_url=DEFAULT_BASE_URL, api_key=API_KEY)
         resp = client.chat.completions.create(
             model=TARGET_MODEL,
@@ -57,6 +59,7 @@ def main() -> int:
         print(f"⚠️  Chat completion probe failed: {e}")
         print("Please check 9router credentials in ~/.9router/db/data.sqlite")
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

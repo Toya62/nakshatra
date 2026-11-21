@@ -84,42 +84,134 @@ class ConceptMap:
         # concept: (trigger keywords, expansion terms)
         "career": (
             [
-                "career", "careers", "job", "jobs", "profession", "occupation", "work",
-                "employment", "interview", "interviews", "promotion", "promotions", "business",
-                "service", "hiring", "hire", "naukri", "naukeri", "naukari", "kam", "pesha",
-                "jaagir", "kaam", "nokari", "livelihood",
-                "ब्यवसाय", "जागिर", "पेशा", "कर्म", "रोजगार", "नोकरी"
+                "career",
+                "careers",
+                "job",
+                "jobs",
+                "profession",
+                "occupation",
+                "work",
+                "employment",
+                "interview",
+                "interviews",
+                "promotion",
+                "promotions",
+                "business",
+                "service",
+                "hiring",
+                "hire",
+                "naukri",
+                "naukeri",
+                "naukari",
+                "kam",
+                "pesha",
+                "jaagir",
+                "kaam",
+                "nokari",
+                "livelihood",
+                "ब्यवसाय",
+                "जागिर",
+                "पेशा",
+                "कर्म",
+                "रोजगार",
+                "नोकरी",
             ],
             [
-                "House 10", "Karma Bhava", "House 6", "Service", "Employment",
-                "House 11", "House 2", "Sun", "Saturn", "Mercury", "D10", "Dashamsa"
+                "House 10",
+                "Karma Bhava",
+                "House 6",
+                "Service",
+                "Employment",
+                "House 11",
+                "House 2",
+                "Sun",
+                "Saturn",
+                "Mercury",
+                "D10",
+                "Dashamsa",
             ],
         ),
         "timing": (
             [
-                "when", "timing", "date", "range", "dates", "period", "timeline", "years", "year",
-                "month", "months", "future", "schedule", "when will", "exact date",
-                "kahile", "samaya", "kailesamma",
-                "कहिले", "समय", "मिति", "अवधि", "भविष्य"
+                "when",
+                "timing",
+                "date",
+                "range",
+                "dates",
+                "period",
+                "timeline",
+                "years",
+                "year",
+                "month",
+                "months",
+                "future",
+                "schedule",
+                "when will",
+                "exact date",
+                "kahile",
+                "samaya",
+                "kailesamma",
+                "कहिले",
+                "समय",
+                "मिति",
+                "अवधि",
+                "भविष्य",
             ],
             [
-                "Dasha", "Mahadasha", "Antardasha", "Pratyantardasha", "Gochara",
-                "Transit", "Bhukti", "Timing of Events"
+                "Dasha",
+                "Mahadasha",
+                "Antardasha",
+                "Pratyantardasha",
+                "Gochara",
+                "Transit",
+                "Bhukti",
+                "Timing of Events",
             ],
         ),
         "marriage": (
             [
-                "marriage", "married", "marry", "spouse", "partner", "wed", "wedding",
-                "vivah", "bihe", "bibaha", "keti", "keta", "shrimati", "shriman",
-                "विवाह", "बिहे", "दाम्पत्य", "जोडी"
+                "marriage",
+                "married",
+                "marry",
+                "spouse",
+                "partner",
+                "wed",
+                "wedding",
+                "vivah",
+                "bihe",
+                "bibaha",
+                "keti",
+                "keta",
+                "shrimati",
+                "shriman",
+                "विवाह",
+                "बिहे",
+                "दाम्पत्य",
+                "जोडी",
+                "जीवनसाथी",
+                "श्रीमती",
             ],
-            ["House 7", "Venus", "Jupiter", "D9", "Navamsa"],
+            ["House 7", "Venus", "Jupiter", "D9", "Navamsa", "Kalatra Bhava", "Kalatra", "Saptama"],
         ),
         "wealth": (
             [
-                "wealth", "wealthy", "money", "rich", "fortune", "financial", "riches",
-                "dhana", "paisa", "sampatti", "aarthik", "kamai",
-                "धन", "पैसा", "सम्पत्ति", "लक्ष्मी", "आर्थिक"
+                "wealth",
+                "wealthy",
+                "money",
+                "rich",
+                "fortune",
+                "financial",
+                "riches",
+                "dhana",
+                "paisa",
+                "sampatti",
+                "aarthik",
+                "kamai",
+                "धन",
+                "पैसा",
+                "सम्पत्ति",
+                "लक्ष्मी",
+                "आर्थिक",
             ],
             [
                 "House 2",
@@ -132,49 +224,113 @@ class ConceptMap:
         ),
         "health": (
             [
-                "health", "disease", "illness", "sickness", "healing",
-                "swasthya", "rog", "bimar", "chot", "aushadhi",
-                "स्वास्थ्य", "रोग", "बिमार", "औषधि"
+                "health",
+                "disease",
+                "illness",
+                "sickness",
+                "healing",
+                "swasthya",
+                "rog",
+                "bimar",
+                "chot",
+                "aushadhi",
+                "स्वास्थ्य",
+                "रोग",
+                "बिमार",
+                "औषधि",
             ],
             ["Lagna", "Ascendant", "House 6", "House 8", "Mars", "Sun"],
         ),
         "children": (
             [
-                "children", "child", "son", "daughter", "offspring",
-                "santana", "chhora", "chhori", "bachha", "bachhe",
-                "सन्तान", "छोरा", "छोरी", "बालबच्चा"
+                "children",
+                "child",
+                "son",
+                "daughter",
+                "offspring",
+                "santana",
+                "chhora",
+                "chhori",
+                "bachha",
+                "bachhe",
+                "सन्तान",
+                "छोरा",
+                "छोरी",
+                "बालबच्चा",
             ],
             ["House 5", "Jupiter", "Moon", "Putra"],
         ),
         "education": (
             [
-                "education", "study", "learning", "school", "degree",
-                "padhai", "shiksha", "vidya",
-                "पढाइ", "शिक्षा", "विद्या"
+                "education",
+                "study",
+                "learning",
+                "school",
+                "degree",
+                "padhai",
+                "shiksha",
+                "vidya",
+                "पढाइ",
+                "शिक्षा",
+                "विद्या",
             ],
             ["House 4", "House 9", "Mercury", "Jupiter", "Knowledge"],
         ),
         "travel": (
             [
-                "travel", "journey", "foreign", "abroad", "migration",
-                "bidesh", "yatra", "prabas",
-                "बिदेश", "विदेश", "यात्रा", "परदेश"
+                "travel",
+                "journey",
+                "foreign",
+                "abroad",
+                "migration",
+                "bidesh",
+                "yatra",
+                "prabas",
+                "बिदेश",
+                "विदेश",
+                "यात्रा",
+                "परदेश",
             ],
             ["House 3", "House 9", "House 12", "Rahu", "Foreign"],
         ),
         "spirituality": (
             [
-                "spirituality", "spiritual", "moksha", "enlightenment", "soul", "meditation",
-                "dharmic", "adhyatma", "mukti", "liberation", "atman",
-                "अध्यात्म", "मोक्ष", "मुक्ति", "साधना"
+                "spirituality",
+                "spiritual",
+                "moksha",
+                "enlightenment",
+                "soul",
+                "meditation",
+                "dharmic",
+                "adhyatma",
+                "mukti",
+                "liberation",
+                "atman",
+                "अध्यात्म",
+                "मोक्ष",
+                "मुक्ति",
+                "साधना",
             ],
             ["House 9", "House 12", "Atmakaraka", "Karakamsa", "Jupiter", "Ketu", "Moksha"],
         ),
         "remedies": (
             [
-                "remedy", "remedies", "upaya", "solution", "totka", "dana", "daan",
-                "japa", "mantra", "puja", "shanti",
-                "उपाय", "शान्ति", "दान", "जप", "मन्त्र"
+                "remedy",
+                "remedies",
+                "upaya",
+                "solution",
+                "totka",
+                "dana",
+                "daan",
+                "japa",
+                "mantra",
+                "puja",
+                "shanti",
+                "उपाय",
+                "शान्ति",
+                "दान",
+                "जप",
+                "मन्त्र",
             ],
             ["Upaya", "Remedies", "Dana", "Japa", "Lal Kitab"],
         ),
@@ -198,16 +354,34 @@ class ConceptMap:
         return f"{query} {' '.join(dict.fromkeys(expansions))}"
 
 
-def _is_tabular_noise_chunk(text: str) -> bool:
-    """Filter out pure mathematical calculation lookup tables and OCR arithmetic."""
+def _is_unsuitable_chunk(text: str) -> bool:
+    """Filter out pure mathematical calculation lookup tables, OCR arithmetic, and crude archaic terms."""
     lower = text.lower()
+    # 1. Pure lookup tables & calendar arithmetic
     if "speculum of abbreviated ahargana" in lower or "abbreviated ahargana" in lower:
         return True
     if "speculum of ayana bala" in lower or "deg:mn virupa" in lower:
         return True
     if "speculum of horas" in lower and text.count("\n\n") > 8:
         return True
+    # 2. Crude, vulgar, or archaic anatomical curse words from uncurated scans
+    unsuitable_terms = (
+        "harlot",
+        "harlots",
+        "vagina",
+        "private parts",
+        "prostitute",
+        "prostitutes",
+        "adulteress",
+        'kiss" the private parts',
+    )
+    if any(term in lower for term in unsuitable_terms):
+        return True
     return False
+
+
+# Backwards compatibility alias
+_is_tabular_noise_chunk = _is_unsuitable_chunk
 
 
 class HybridRetriever:
@@ -278,7 +452,7 @@ class HybridRetriever:
         results: list[SearchResult] = []
         for index, score in ranked:
             chunk = self._chunks[index]
-            if _is_tabular_noise_chunk(chunk.text):
+            if _is_unsuitable_chunk(chunk.text):
                 continue
             results.append(SearchResult(chunk=chunk, score=score))
             if len(results) >= top_k:

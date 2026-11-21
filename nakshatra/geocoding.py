@@ -59,7 +59,6 @@ class TimezoneOffsetInfo(BaseModel):
     )
 
 
-
 def search_places(query: str, limit: int = 8) -> list[PlaceResult]:
     """
     Search places matching query text.

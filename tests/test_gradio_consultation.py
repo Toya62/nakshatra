@@ -26,6 +26,7 @@ def test_consult_rag_ui_empty_question():
     )
     assert "Please enter a question" in res
 
+
 def test_consult_rag_ui_without_chart():
     res = consult_rag_ui(
         question="What are classical results of Jupiter in 1st house?",

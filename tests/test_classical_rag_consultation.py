@@ -86,7 +86,9 @@ class TestClassicalRetrievalPrecision:
 
     def test_retrieve_uttara_kalamrita_retrograde(self, rag_service):
         retriever = rag_service.load()
-        results = retriever.search("Retrograde debilitated planet rules in Uttara Kalamrita", top_k=5)
+        results = retriever.search(
+            "Retrograde debilitated planet rules in Uttara Kalamrita", top_k=5
+        )
         works = [r.chunk.work for r in results]
         assert "Uttara Kalamrita" in works
 
@@ -112,17 +114,32 @@ class TestAnswerCompletenessAndAccuracy:
             "of profound spiritual maturity rather than ruin."
         )
         chunk1 = CorpusChunk(
-            work="Phaladeepika", chapter="26", verse="2", text="Ashtama Shani...",
-            source_file="phal.txt", char_start=0, char_end=20, tier="verse",
+            work="Phaladeepika",
+            chapter="26",
+            verse="2",
+            text="Ashtama Shani...",
+            source_file="phal.txt",
+            char_start=0,
+            char_end=20,
+            tier="verse",
         )
         chunk2 = CorpusChunk(
-            work="Lal Kitab", chapter="8", verse="3", text="Upayas for Saturn...",
-            source_file="lk.txt", char_start=0, char_end=20, tier="verse",
+            work="Lal Kitab",
+            chapter="8",
+            verse="3",
+            text="Upayas for Saturn...",
+            source_file="lk.txt",
+            char_start=0,
+            char_end=20,
+            tier="verse",
         )
-        citations = extract_citations(raw_llm_text, [
-            SearchResult(chunk=chunk1, score=0.9),
-            SearchResult(chunk=chunk2, score=0.8),
-        ])
+        citations = extract_citations(
+            raw_llm_text,
+            [
+                SearchResult(chunk=chunk1, score=0.9),
+                SearchResult(chunk=chunk2, score=0.8),
+            ],
+        )
         assert len(citations) == 2
         assert citations[0].work == "Phaladeepika"
         assert citations[1].work == "Lal Kitab"

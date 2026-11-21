@@ -751,7 +751,9 @@ def scan_transit_window(
     ]
     if chandrashtama_periods:
         c_strs = [f"{p.start_date} to {p.end_date}" for p in chandrashtama_periods]
-        summary_parts.append(f"Chandrashtama (Moon in {chandrashtama_sign_name}): {'; '.join(c_strs)}.")
+        summary_parts.append(
+            f"Chandrashtama (Moon in {chandrashtama_sign_name}): {'; '.join(c_strs)}."
+        )
 
     return TransitWindowReport(
         start_date=start_dt.strftime("%Y-%m-%d"),

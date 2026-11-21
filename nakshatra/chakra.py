@@ -32,14 +32,14 @@ _WEEKDAY_LORDS = ["Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Sun"
 
 # Nine taras in order from Janma (birth nakshatra).
 TARAS = [
-    "Janma",      # 1 - birth, caution to body
-    "Sampat",     # 2 - wealth, gain
-    "Vipat",      # 3 - danger, loss
-    "Kshema",     # 4 - welfare, protection
-    "Pratyari",   # 5 - opposition, conflict
-    "Sadhaka",    # 6 - accomplishment, fulfilment
-    "Vadha",      # 7 - death-like, severe obstruction
-    "Mitra",      # 8 - friend, support
+    "Janma",  # 1 - birth, caution to body
+    "Sampat",  # 2 - wealth, gain
+    "Vipat",  # 3 - danger, loss
+    "Kshema",  # 4 - welfare, protection
+    "Pratyari",  # 5 - opposition, conflict
+    "Sadhaka",  # 6 - accomplishment, fulfilment
+    "Vadha",  # 7 - death-like, severe obstruction
+    "Mitra",  # 8 - friend, support
     "Ati-Mitra",  # 9 - supreme friend, great support
 ]
 
@@ -165,7 +165,11 @@ def calculate_chakra(chart: ChartData, ghati_count: int = 1) -> ChakraReport:
     """Compute Navatara, Compound Relationship and Ghatchakra for a chart."""
     moon = _planet_by_name(chart, "Moon")
     janma_nakshatra = moon.nakshatra if moon and moon.nakshatra else NAKSHATRAS[0][0]
-    janma_idx = NAKSHATRAS.index((janma_nakshatra, _nakshatra_lord(janma_nakshatra))) if janma_nakshatra in [n[0] for n in NAKSHATRAS] else 0
+    janma_idx = (
+        NAKSHATRAS.index((janma_nakshatra, _nakshatra_lord(janma_nakshatra)))
+        if janma_nakshatra in [n[0] for n in NAKSHATRAS]
+        else 0
+    )
 
     # -------- Navatara Chakra --------
     navatara: list[NavataraEntry] = []
@@ -191,7 +195,7 @@ def calculate_chakra(chart: ChartData, ghati_count: int = 1) -> ChakraReport:
     # -------- Compound Relationship --------
     compound: list[CompoundPair] = []
     for i, a in enumerate(VEDIC_PLANETS):
-        for b in VEDIC_PLANETS[i + 1:]:
+        for b in VEDIC_PLANETS[i + 1 :]:
             natural = _natural_relation(a, b)
             temporary = _temporary_relation(a, b, chart)
             compound.append(
@@ -267,7 +271,9 @@ def attach_ghati_count(chart: ChartData) -> int:
         chart.birth_data.year,
         chart.birth_data.month,
         chart.birth_data.day,
-        6, 0, 0,
+        6,
+        0,
+        0,
         tzinfo=timezone.utc,
     )
     ghatis = max(0, (birth_dt - sunrise_local).total_seconds() // (24 * 60))

@@ -285,9 +285,7 @@ def _varga_dignity(
     return (f"{v_sign} ({dignity})", is_vargottama)
 
 
-def evaluate_career(
-    chart: ChartData, transits: TransitReport | None = None
-) -> DomainPrediction:
+def evaluate_career(chart: ChartData, transits: TransitReport | None = None) -> DomainPrediction:
     """
     Step-by-step classical evaluation of Career, Profession, and Social Status (10th Bhava).
     Scriptural basis: BPHS Ch. 24, Phaladeepika Ch. 15, Saravali Ch. 34.
@@ -362,10 +360,14 @@ def evaluate_career(
             )
         elif "exalted" in d9_status or "own_sign" in d9_status:
             score += 1
-            varga_parts.append(f"10th lord {lord10_name} gains strength in D9 Navamsha: {d9_status}.")
+            varga_parts.append(
+                f"10th lord {lord10_name} gains strength in D9 Navamsha: {d9_status}."
+            )
         elif "debilitated" in d9_status:
             score -= 2
-            varga_parts.append(f"10th lord {lord10_name} loses strength in D9 Navamsha: {d9_status}.")
+            varga_parts.append(
+                f"10th lord {lord10_name} loses strength in D9 Navamsha: {d9_status}."
+            )
 
     d10 = chart.get_varga("D10")
     if d10 and d10.get("planets"):
@@ -373,7 +375,9 @@ def evaluate_career(
         if p_d10:
             h_d10 = p_d10.get("house")
             s_d10 = p_d10.get("sign")
-            varga_parts.append(f"In D10 Dashamsha, 10th lord {lord10_name} occupies House {h_d10} in {s_d10}.")
+            varga_parts.append(
+                f"In D10 Dashamsha, 10th lord {lord10_name} occupies House {h_d10} in {s_d10}."
+            )
             if h_d10 in (1, 10, 11):
                 score += 1
 
@@ -386,7 +390,9 @@ def evaluate_career(
         dasha_parts.append(
             f"Current Vimshottari period: {md_lord} Mahadasha / {ad_lord} Antardasha."
         )
-        dasha_parts.append(f"Dasha relationship: {rel['pair']} {rel['name']} ({rel['nature']}) - {rel['description']}")
+        dasha_parts.append(
+            f"Dasha relationship: {rel['pair']} {rel['name']} ({rel['nature']}) - {rel['description']}"
+        )
         if md_lord == lord10_name or ad_lord == lord10_name:
             score += 2
             dasha_parts.append("Direct 10th lord activation in current dasha phase!")
@@ -408,18 +414,26 @@ def evaluate_career(
             )
         if 11 in t_report.double_transit_houses:
             score += 1
-            transit_parts.append("Double transit in 11th Bhava supports career rewards and recognition.")
+            transit_parts.append(
+                "Double transit in 11th Bhava supports career rewards and recognition."
+            )
         ss = t_report.sade_sati
         if ss.is_kantaka_shani:
             score -= 1
-            transit_parts.append("Saturn Kantaka Shani (4th/10th from Moon) tests professional endurance and structure.")
+            transit_parts.append(
+                "Saturn Kantaka Shani (4th/10th from Moon) tests professional endurance and structure."
+            )
         elif ss.is_active:
-            transit_parts.append(f"Saturn Sade Sati ({ss.phase}) prompts patient professional reorientation.")
+            transit_parts.append(
+                f"Saturn Sade Sati ({ss.phase}) prompts patient professional reorientation."
+            )
 
     # 5. Active Yogas
     act_yogas = filter_active_yogas(chart, md_lord, ad_lord)
     career_yogas = [
-        y.name for y in act_yogas if y.category.value in ("Raja Yoga", "Pancha Mahapurusha", "Gaja Kesari")
+        y.name
+        for y in act_yogas
+        if y.category.value in ("Raja Yoga", "Pancha Mahapurusha", "Gaja Kesari")
     ]
     if career_yogas:
         score += min(len(career_yogas), 2)
@@ -427,13 +441,10 @@ def evaluate_career(
     tier = _score_to_tier(score)
     primary_lords = [lord10_name] if lord10_name else []
 
-    key_verdict = (
-        f"Career promise is evaluated as {tier.value.upper()}. "
-        + (
-            f"Activated by {md_lord}-{ad_lord} dasha with strong professional momentum."
-            if score >= 2
-            else "Professional growth requires steady effort, disciplined skill acquisition, and ethical focus."
-        )
+    key_verdict = f"Career promise is evaluated as {tier.value.upper()}. " + (
+        f"Activated by {md_lord}-{ad_lord} dasha with strong professional momentum."
+        if score >= 2
+        else "Professional growth requires steady effort, disciplined skill acquisition, and ethical focus."
     )
 
     return DomainPrediction(
@@ -507,10 +518,14 @@ def evaluate_relationship(
         v_dignity = p_venus.dignity or calculate_dignity("Venus", p_venus.sign)
         if v_dignity == "exalted":
             score += 2
-            promise_parts.append("Venus (Kalatra Karaka) is exalted, conferring deep devotion and aesthetic harmony.")
+            promise_parts.append(
+                "Venus (Kalatra Karaka) is exalted, conferring deep devotion and aesthetic harmony."
+            )
         elif v_dignity == "debilitated":
             score -= 2
-            promise_parts.append("Venus is debilitated in Virgo, advising against over-critical tendencies in romance.")
+            promise_parts.append(
+                "Venus is debilitated in Virgo, advising against over-critical tendencies in romance."
+            )
 
     # Kuja Dosha (Manglik check from Lagna)
     p_mars = get_planet_by_name(chart, "Mars")
@@ -533,10 +548,14 @@ def evaluate_relationship(
     if sav7 is not None:
         if sav7 >= 28:
             score += 1
-            promise_parts.append(f"7th Bhava holds {sav7} SAV bindus, supporting marital stability.")
+            promise_parts.append(
+                f"7th Bhava holds {sav7} SAV bindus, supporting marital stability."
+            )
         elif sav7 < 25:
             score -= 1
-            promise_parts.append(f"7th Bhava holds {sav7} SAV bindus, requiring conscious effort toward harmony.")
+            promise_parts.append(
+                f"7th Bhava holds {sav7} SAV bindus, requiring conscious effort toward harmony."
+            )
 
     # 2. Varga Confirmation (D9 Navamsha is paramount for marriage)
     varga_parts: list[str] = []
@@ -545,7 +564,9 @@ def evaluate_relationship(
         d9_status, is_vg = _varga_dignity(lord7_name, d9_data, p_lord7.sign)
         if is_vg:
             score += 2
-            varga_parts.append(f"7th lord {lord7_name} is Vargottama in Navamsha (D9), protecting marital bond.")
+            varga_parts.append(
+                f"7th lord {lord7_name} is Vargottama in Navamsha (D9), protecting marital bond."
+            )
         elif "exalted" in d9_status or "own_sign" in d9_status:
             score += 1
             varga_parts.append(f"7th lord {lord7_name} is well-placed in D9: {d9_status}.")
@@ -559,7 +580,9 @@ def evaluate_relationship(
     ad_lord = chart.dashas.current_ad.lord if chart.dashas and chart.dashas.current_ad else None
     if md_lord and ad_lord:
         rel = dasha_lord_relationship(md_lord, ad_lord, chart)
-        dasha_parts.append(f"Active Dasha: {md_lord}/{ad_lord} in {rel['pair']} {rel['name']} ({rel['nature']}).")
+        dasha_parts.append(
+            f"Active Dasha: {md_lord}/{ad_lord} in {rel['pair']} {rel['name']} ({rel['nature']})."
+        )
         if md_lord in (lord7_name, "Venus") or ad_lord in (lord7_name, "Venus"):
             score += 2
             dasha_parts.append("Direct 7th lord / Kalatra Karaka activation in current period.")
@@ -579,7 +602,9 @@ def evaluate_relationship(
         for tp in t_report.planets:
             if tp.name == "Jupiter" and (tp.house_from_lagna == 7 or tp.house_from_moon == 7):
                 score += 2
-                transit_parts.append("Transit Jupiter blesses the 7th Bhava with harmony and understanding.")
+                transit_parts.append(
+                    "Transit Jupiter blesses the 7th Bhava with harmony and understanding."
+                )
 
     tier = _score_to_tier(score)
     primary_lords = [lord7_name] if lord7_name else []
@@ -611,9 +636,7 @@ def evaluate_relationship(
     )
 
 
-def evaluate_wealth(
-    chart: ChartData, transits: TransitReport | None = None
-) -> DomainPrediction:
+def evaluate_wealth(chart: ChartData, transits: TransitReport | None = None) -> DomainPrediction:
     """
     Classical evaluation of Wealth, Liquid Gains, and Savings (2nd & 11th Bhavas).
     Scriptural basis: BPHS Ch. 41 (Dhana Yogas), Saravali Ch. 35, Phaladeepika Ch. 16.
@@ -634,10 +657,14 @@ def evaluate_wealth(
         dignity2 = p_lord2.dignity or calculate_dignity(lord2_name, p_lord2.sign)
         if dignity2 in ("exalted", "own_sign"):
             score += 2
-            promise_parts.append(f"2nd lord {lord2_name} is dignified in {p_lord2.sign}, ensuring strong accumulation power.")
+            promise_parts.append(
+                f"2nd lord {lord2_name} is dignified in {p_lord2.sign}, ensuring strong accumulation power."
+            )
         elif dignity2 == "debilitated":
             score -= 2
-            promise_parts.append(f"2nd lord {lord2_name} is debilitated, calling for prudent budgeting.")
+            promise_parts.append(
+                f"2nd lord {lord2_name} is debilitated, calling for prudent budgeting."
+            )
         else:
             promise_parts.append(f"2nd lord {lord2_name} resides in House {p_lord2.house}.")
 
@@ -645,10 +672,14 @@ def evaluate_wealth(
         dignity11 = p_lord11.dignity or calculate_dignity(lord11_name, p_lord11.sign)
         if dignity11 in ("exalted", "own_sign"):
             score += 2
-            promise_parts.append(f"11th lord {lord11_name} is dignified, promising steady cashflow and gains.")
+            promise_parts.append(
+                f"11th lord {lord11_name} is dignified, promising steady cashflow and gains."
+            )
         elif dignity11 == "debilitated":
             score -= 2
-            promise_parts.append(f"11th lord {lord11_name} is debilitated, advising patience with income streams.")
+            promise_parts.append(
+                f"11th lord {lord11_name} is debilitated, advising patience with income streams."
+            )
 
     # Mutual connection between 2nd & 11th lords (Classical Dhana Yoga)
     if p_lord2 and p_lord11:
@@ -772,13 +803,17 @@ def evaluate_spiritual_dharma(
             )
         elif p_ketu.house in (4, 5):
             score += 1
-            promise_parts.append(f"Ketu in House {p_ketu.house} deepens inner philosophical inquiry.")
+            promise_parts.append(
+                f"Ketu in House {p_ketu.house} deepens inner philosophical inquiry."
+            )
 
     if p_jupiter:
         j_dignity = p_jupiter.dignity or calculate_dignity("Jupiter", p_jupiter.sign)
         if j_dignity in ("exalted", "own_sign"):
             score += 2
-            promise_parts.append("Jupiter is potent, granting reverence for traditional wisdom and righteous living.")
+            promise_parts.append(
+                "Jupiter is potent, granting reverence for traditional wisdom and righteous living."
+            )
 
     # 2. Varga Confirmation
     varga_parts: list[str] = []
@@ -798,7 +833,9 @@ def evaluate_spiritual_dharma(
         dasha_parts.append(f"Operating Dasha: {md_lord}/{ad_lord} ({rel['pair']} {rel['name']}).")
         if md_lord in ("Jupiter", "Ketu", lord9_name) or ad_lord in ("Jupiter", "Ketu", lord9_name):
             score += 2
-            dasha_parts.append("Spiritual karaka or 9th lord active: ideal period for sadhana and higher study.")
+            dasha_parts.append(
+                "Spiritual karaka or 9th lord active: ideal period for sadhana and higher study."
+            )
         if rel["pair"] == "5/9":
             score += 1
             dasha_parts.append("Trinal harmony awakens spiritual receptivity.")
@@ -809,7 +846,9 @@ def evaluate_spiritual_dharma(
     if t_report:
         if 9 in t_report.double_transit_houses or 12 in t_report.double_transit_houses:
             score += 2
-            transit_parts.append("Double transit activates Dharma / Moksha Bhavas, awakening deeper purpose.")
+            transit_parts.append(
+                "Double transit activates Dharma / Moksha Bhavas, awakening deeper purpose."
+            )
 
     tier = _score_to_tier(score)
     primary_lords = [lord for lord in (lord9_name, lord12_name) if lord]
@@ -841,9 +880,7 @@ def evaluate_spiritual_dharma(
     )
 
 
-def evaluate_health(
-    chart: ChartData, transits: TransitReport | None = None
-) -> DomainPrediction:
+def evaluate_health(chart: ChartData, transits: TransitReport | None = None) -> DomainPrediction:
     """
     Classical evaluation of Vitality, Constitution, and Health Diligence (1st, 6th & 8th Bhavas).
     Scriptural basis: BPHS Ch. 14 & 22, Phaladeepika Ch. 14, Saravali Ch. 32.
@@ -864,10 +901,14 @@ def evaluate_health(
         dignity1 = p_lord1.dignity or calculate_dignity(lord1_name, p_lord1.sign)
         if dignity1 in ("exalted", "own_sign"):
             score += 3
-            promise_parts.append(f"Lagnesha (1st lord) {lord1_name} is dignified in {p_lord1.sign}, conferring robust vitality and strong immune defense.")
+            promise_parts.append(
+                f"Lagnesha (1st lord) {lord1_name} is dignified in {p_lord1.sign}, conferring robust vitality and strong immune defense."
+            )
         elif dignity1 == "debilitated":
             score -= 2
-            promise_parts.append(f"Lagnesha {lord1_name} is debilitated, requiring mindful preventive healthcare.")
+            promise_parts.append(
+                f"Lagnesha {lord1_name} is debilitated, requiring mindful preventive healthcare."
+            )
         else:
             score += 1
             promise_parts.append(f"Lagnesha {lord1_name} resides in House {p_lord1.house}.")
@@ -876,24 +917,34 @@ def evaluate_health(
         s_dignity = p_sun.dignity or calculate_dignity("Sun", p_sun.sign)
         if s_dignity in ("exalted", "own_sign"):
             score += 2
-            promise_parts.append("Sun (vitality karaka) is strong, protecting cellular immunity and heart strength.")
+            promise_parts.append(
+                "Sun (vitality karaka) is strong, protecting cellular immunity and heart strength."
+            )
         elif s_dignity == "debilitated":
             score -= 1
-            promise_parts.append("Sun is debilitated, recommending adequate rest, vitamin D, and vitality preservation.")
+            promise_parts.append(
+                "Sun is debilitated, recommending adequate rest, vitamin D, and vitality preservation."
+            )
 
     if p_moon:
         m_dignity = p_moon.dignity or calculate_dignity("Moon", p_moon.sign)
         if m_dignity == "debilitated":
             score -= 1
-            promise_parts.append("Moon is debilitated in Scorpio, highlighting sensitivity to emotional stress.")
+            promise_parts.append(
+                "Moon is debilitated in Scorpio, highlighting sensitivity to emotional stress."
+            )
 
     if sav1 is not None:
         if sav1 >= 28:
             score += 1
-            promise_parts.append(f"Ascendant holds {sav1} SAV bindus, supporting physical recovery.")
+            promise_parts.append(
+                f"Ascendant holds {sav1} SAV bindus, supporting physical recovery."
+            )
         elif sav1 < 25:
             score -= 1
-            promise_parts.append(f"Ascendant holds {sav1} SAV bindus, advising against bodily exhaustion.")
+            promise_parts.append(
+                f"Ascendant holds {sav1} SAV bindus, advising against bodily exhaustion."
+            )
 
     # 2. Varga Confirmation
     varga_parts: list[str] = []
@@ -902,7 +953,9 @@ def evaluate_health(
         d9_status, is_vg = _varga_dignity(lord1_name, d9_data, p_lord1.sign)
         if is_vg:
             score += 1
-            varga_parts.append(f"Lagnesha {lord1_name} is Vargottama in D9, reinforcing physical constitution.")
+            varga_parts.append(
+                f"Lagnesha {lord1_name} is Vargottama in D9, reinforcing physical constitution."
+            )
 
     # 3. Dasha Timing
     dasha_parts: list[str] = []
@@ -913,10 +966,14 @@ def evaluate_health(
         dasha_parts.append(f"Active Dasha: {md_lord}/{ad_lord} ({rel['pair']} {rel['name']}).")
         if rel["pair"] == "6/8":
             score -= 2
-            dasha_parts.append("6/8 Shadashtaka dasha angle indicates need for dietary discipline and stress management.")
+            dasha_parts.append(
+                "6/8 Shadashtaka dasha angle indicates need for dietary discipline and stress management."
+            )
         if md_lord == lord6_name or ad_lord == lord6_name:
             score -= 1
-            dasha_parts.append("6th lord dasha phase: prioritize preventive wellness and daily routine.")
+            dasha_parts.append(
+                "6th lord dasha phase: prioritize preventive wellness and daily routine."
+            )
 
     # 4. Transits
     transit_parts: list[str] = []
@@ -925,7 +982,9 @@ def evaluate_health(
         ss = t_report.sade_sati
         if ss.is_ashtama_shani:
             score -= 2
-            transit_parts.append("Ashtama Shani (Saturn in 8th from Moon) prompts caution against physical strain.")
+            transit_parts.append(
+                "Ashtama Shani (Saturn in 8th from Moon) prompts caution against physical strain."
+            )
         elif ss.is_active:
             transit_parts.append(f"Sade Sati ({ss.phase}) advises pacing mental energy.")
 

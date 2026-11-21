@@ -44,7 +44,6 @@ class LicensingStatement(BaseModel):
     compliance_guidelines: list[str]
 
 
-
 def get_licensing_statement() -> dict[str, Any]:
     """Return full transparent licensing & corpus rights declaration."""
     statement = LicensingStatement(

@@ -205,7 +205,9 @@ class TransitWindowRequest(BaseModel):
     place_name: str | None = Field(None, description="Place name")
     ayanamsa: Ayanamsa = Field(Ayanamsa.JHORA_LAHIRI)
     house_system: HouseSystem = Field(HouseSystem.WHOLE_SIGN)
-    start_date: datetime | None = Field(None, description="Start datetime of window (defaults to now)")
+    start_date: datetime | None = Field(
+        None, description="Start datetime of window (defaults to now)"
+    )
     days: int = Field(30, ge=1, le=180, description="Number of days to scan (default: 30)")
 
 
@@ -419,7 +421,9 @@ class RAGAskRequest(BaseModel):
     index_dir: str = Field("index", description="Index directory to query")
     top_k: int = Field(5, ge=1, le=20, description="References to retrieve")
     birth: ChartRequest | None = Field(None, description="Optional natal chart context")
-    birth_context: dict[str, Any] | None = Field(None, description="Optional precalculated chart dictionary")
+    birth_context: dict[str, Any] | None = Field(
+        None, description="Optional precalculated chart dictionary"
+    )
     language: str = Field("en", description="Consultation response language ('en' or 'ne')")
 
 
@@ -475,7 +479,9 @@ else:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$" if cors_allow_credentials else None,
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$"
+    if cors_allow_credentials
+    else None,
     allow_credentials=cors_allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -1352,7 +1358,9 @@ async def rag_ingest(
 
     if admin_key:
         if x_admin_key != admin_key:
-            raise HTTPException(status_code=401, detail="Unauthorized: Invalid or missing X-Admin-Key")
+            raise HTTPException(
+                status_code=401, detail="Unauthorized: Invalid or missing X-Admin-Key"
+            )
     elif is_prod:
         raise HTTPException(
             status_code=403,

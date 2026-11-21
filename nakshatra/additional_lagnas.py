@@ -42,11 +42,20 @@ DUAL_SIGNS = {"Gemini", "Virgo", "Sagittarius", "Pisces"}
 
 NAVAMSA_STARTS: dict[str, int] = {
     # Movable: 1st navamsa = the sign itself (+0)
-    "Aries": 0, "Cancer": 0, "Libra": 0, "Capricorn": 0,
+    "Aries": 0,
+    "Cancer": 0,
+    "Libra": 0,
+    "Capricorn": 0,
     # Fixed: 1st navamsa = 9th sign from it (+8)
-    "Taurus": 8, "Leo": 8, "Scorpio": 8, "Aquarius": 8,
+    "Taurus": 8,
+    "Leo": 8,
+    "Scorpio": 8,
+    "Aquarius": 8,
     # Dual: 1st navamsa = 5th sign from it (+4)
-    "Gemini": 4, "Virgo": 4, "Sagittarius": 4, "Pisces": 4,
+    "Gemini": 4,
+    "Virgo": 4,
+    "Sagittarius": 4,
+    "Pisces": 4,
 }
 
 # Classical one-line rationale for each special lagna.
@@ -265,7 +274,9 @@ def calculate_special_lagnas(chart: ChartData) -> SpecialLagnasReport:
         chart.birth_data.year,
         chart.birth_data.month,
         chart.birth_data.day,
-        6, 0, 0,
+        6,
+        0,
+        0,
         tzinfo=timezone.utc,
     )
     ghatis = max(0, (birth_dt - sunrise_local).total_seconds() // (24 * 60))
@@ -359,8 +370,12 @@ def format_special_lagnas_markdown(report: SpecialLagnasReport) -> str:
     lines = ["# Special Lagnas (Vishesha Lagna)", ""]
     for item in report.lagnas:
         lines.append(f"## {item.name}")
-        lines.append(f"- **Sign:** {item.sign}  •  **House:** {item.house}  •  **Lord:** {item.lord}")
-        lines.append(f"- **Longitude:** {item.longitude}°  •  **Degree in Sign:** {item.degree_in_sign}°")
+        lines.append(
+            f"- **Sign:** {item.sign}  •  **House:** {item.house}  •  **Lord:** {item.lord}"
+        )
+        lines.append(
+            f"- **Longitude:** {item.longitude}°  •  **Degree in Sign:** {item.degree_in_sign}°"
+        )
         lines.append(f"- **Classical basis:** {item.rationale}")
         lines.append("")
     if report.notes:

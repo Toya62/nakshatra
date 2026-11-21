@@ -19,6 +19,7 @@ def test_9router_priority_over_ambient_google_key(monkeypatch):
     assert synth.model == "nakshatra-combo"
     assert synth._base_url == "http://localhost:20128/v1"
 
+
 def test_router_lowercase_priority(monkeypatch):
     monkeypatch.setenv("AI_PROVIDER", "router")
     monkeypatch.setenv("OPENAI_BASE_URL", "http://localhost:20128/v1")
