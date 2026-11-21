@@ -30,6 +30,7 @@ dev = [
     "httpx>=0.26.0",
     "ruff>=0.1.0",
     "mypy>=1.8.0",
+    "gradio>=4.0.0",
 ]
 ai = [
     "sentence-transformers>=2.2.0",
