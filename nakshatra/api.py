@@ -1506,6 +1506,8 @@ async def rag_ask_stream(request: RAGAskRequest) -> StreamingResponse:
         except Exception as e:
             err_payload = json.dumps({"type": "error", "error": str(e)})
             yield f"data: {err_payload}\n\n"
+            done_payload = json.dumps({"type": "done", "citations": [], "model": "fallback"})
+            yield f"data: {done_payload}\n\n"
 
     return StreamingResponse(
         event_generator(),
