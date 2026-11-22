@@ -424,6 +424,10 @@ export const ne: TranslationSchema = {
     mastersSynthesis: "आचार्यको गोचर फलादेश",
     grahaResults: "ग्रहगत गोचर परिणाम तालिका",
     calculationError: "राशि फल गणना त्रुटि",
+    statusFavourable: "शुभ",
+    statusMixed: "मिश्रित",
+    statusChallenging: "चुनौतीपूर्ण",
+    statusDifficult: "कठिन",
   },
   muhurtha: {
     title: "शुभ मुहूर्त निर्णय",

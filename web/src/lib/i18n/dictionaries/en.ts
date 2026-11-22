@@ -424,6 +424,10 @@ export const en: TranslationSchema = {
     mastersSynthesis: "Master's Period Synthesis",
     grahaResults: "Graha-wise Transit Analysis",
     calculationError: "Rashi Fal Calculation Error",
+    statusFavourable: "Favourable",
+    statusMixed: "Mixed",
+    statusChallenging: "Challenging",
+    statusDifficult: "Difficult",
   },
   muhurtha: {
     title: "Shuba Muhurtha Timing",

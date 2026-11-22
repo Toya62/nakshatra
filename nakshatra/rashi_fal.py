@@ -79,6 +79,10 @@ class GrahaResult(BaseModel):
     retrograde: bool
     favourable: bool
     verdict: str
+    # Machine-readable verdict class: "excellent" | "good" | "mixed" |
+    # "challenging" | "difficult". The UI badges on this, not on the
+    # free-text verdict sentence.
+    verdict_key: str
 
 
 class RashiFalReport(BaseModel):
@@ -104,17 +108,31 @@ def _house_from_moon(transit_lon: float, moon_sign: str) -> int:
     return ((transit_idx - moon_idx) % 12) + 1
 
 
-def _classify_verdict(planet: str, house: int) -> tuple[bool, str]:
+def _classify_verdict(planet: str, house: int) -> tuple[bool, str, str]:
+    """Classify a transit house into (favourable, verdict_key, verdict)."""
     favourable_houses = TRANSIT_FAVORABLE.get(planet, [])
     favourable = house in favourable_houses
     if favourable:
-        return True, GOCHAR_VERDICT["good"]
+        return True, "good", GOCHAR_VERDICT["good"]
     # Dusthana houses from Moon are tougher.
     if house in {6, 8, 12}:
-        return False, GOCHAR_VERDICT["difficult"]
+        return False, "difficult", GOCHAR_VERDICT["difficult"]
     if house in {1, 4, 7, 10}:
-        return False, GOCHAR_VERDICT["challenging"]
-    return False, GOCHAR_VERDICT["mixed"]
+        return False, "challenging", GOCHAR_VERDICT["challenging"]
+    return False, "mixed", GOCHAR_VERDICT["mixed"]
+
+
+# Overall-score weight per verdict class. A "mixed" transit is neutral by
+# definition ("both gains and effort required") — the old code scored it -1,
+# the same as a dusthana transit, which dragged every ordinary day to the
+# -5 floor and made "Difficult" the modal verdict.
+_SCORE_WEIGHTS: dict[str, int] = {
+    "excellent": 1,
+    "good": 1,
+    "mixed": 0,
+    "challenging": -1,
+    "difficult": -1,
+}
 
 
 def _sade_sati(moon_sign: str, saturn_sign: str) -> tuple[bool, str | None]:
@@ -206,13 +224,21 @@ def calculate_rashi_fal(
     # 3. Graha results from Chandra Lagna.
     graha_results: list[GrahaResult] = []
     score = 0
+    # chart.planets holds Sun..Saturn only; Rahu/Ketu live on their own
+    # fields — the old lookup silently dropped them, so only 7 of the 9
+    # grahas were ever scored or shown.
+    transit_positions = list(transit_chart.planets)
+    if transit_chart.rahu is not None:
+        transit_positions.append(transit_chart.rahu)
+    if transit_chart.ketu is not None:
+        transit_positions.append(transit_chart.ketu)
     for p_name in VEDIC_PLANETS:
-        p = next((x for x in transit_chart.planets if x.name == p_name), None)
+        p = next((x for x in transit_positions if x.name == p_name), None)
         if p is None:
             continue
         house = _house_from_moon(p.longitude, moon_sign)
-        favourable, verdict = _classify_verdict(p_name, house)
-        score += 1 if favourable else -1
+        favourable, verdict_key, verdict = _classify_verdict(p_name, house)
+        score += _SCORE_WEIGHTS[verdict_key]
         graha_results.append(
             GrahaResult(
                 planet=p_name,
@@ -222,6 +248,7 @@ def calculate_rashi_fal(
                 retrograde=p.retrograde,
                 favourable=favourable,
                 verdict=verdict,
+                verdict_key=verdict_key,
             )
         )
 

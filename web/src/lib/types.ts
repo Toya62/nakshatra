@@ -649,6 +649,7 @@ export interface GrahaResult {
   retrograde: boolean;
   favourable: boolean;
   verdict: string;
+  verdict_key: string;
 }
 
 export interface RashiFalReport {

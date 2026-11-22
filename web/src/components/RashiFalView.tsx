@@ -35,7 +35,15 @@ export const RashiFalView: React.FC<Props> = ({ birth }: Props) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState("daily");
-  const [referenceDate, setReferenceDate] = useState("");
+  // The picker must show the date actually being read. It used to start
+  // empty ("mm/dd/yyyy") while the header already showed the backend's
+  // reference date, so initialise it to local today and keep it in sync
+  // with the date the report was cast for.
+  const todayStr = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+  const [referenceDate, setReferenceDate] = useState(todayStr);
 
   useEffect(() => {
     if (!birth) {
@@ -65,7 +73,14 @@ export const RashiFalView: React.FC<Props> = ({ birth }: Props) => {
 
     fetchRashiFal(payload)
       .then((data) => {
-        if (!cancelled) setReport(data);
+        if (!cancelled) {
+          setReport(data);
+          // Keep the picker on the date the report was actually cast for.
+          // Same value is a no-op, so this cannot loop the effect.
+          if (data.reference_date && data.reference_date !== referenceDate) {
+            setReferenceDate(data.reference_date);
+          }
+        }
       })
       .catch((err: unknown) => {
         if (!cancelled) setError((err as Error).message);
@@ -242,7 +257,21 @@ export const RashiFalView: React.FC<Props> = ({ birth }: Props) => {
             </thead>
             <tbody>
               {report.graha_results.map((g: GrahaResult, idx: number) => {
-                const s = g.favourable ? VERDICT_STYLE.good : VERDICT_STYLE.challenging;
+                // Badge on the verdict class, not a binary favourable flag:
+                // "Mixed" is not "Testing", and "Difficult" is worse than
+                // "Challenging". Fall back to the old binary mapping for
+                // payloads from before verdict_key existed.
+                const s =
+                  VERDICT_STYLE[g.verdict_key] ??
+                  (g.favourable ? VERDICT_STYLE.good : VERDICT_STYLE.challenging);
+                const statusLabel =
+                  g.verdict_key === "excellent" || g.verdict_key === "good"
+                    ? t.rashiFal.statusFavourable
+                    : g.verdict_key === "mixed"
+                      ? t.rashiFal.statusMixed
+                      : g.verdict_key === "difficult"
+                        ? t.rashiFal.statusDifficult
+                        : t.rashiFal.statusChallenging;
                 return (
                   <tr key={idx} style={{ borderBottom: "1px solid var(--border-subtle)" }}>
                     <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-high)", fontWeight: 600 }}>
@@ -270,7 +299,7 @@ export const RashiFalView: React.FC<Props> = ({ birth }: Props) => {
                           textTransform: "uppercase",
                         }}
                       >
-                        {g.favourable ? (lang === "ne" ? "शुभ" : "Favourable") : (lang === "ne" ? "चुनौतीपूर्ण" : "Testing")}
+                        {statusLabel}
                       </span>
                     </td>
                     <td style={{ padding: "var(--space-1) var(--space-2)", color: "var(--text-mid)" }}>{g.verdict}</td>

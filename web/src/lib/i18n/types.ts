@@ -356,6 +356,10 @@ export interface TranslationSchema {
     mastersSynthesis: string;
     grahaResults: string;
     calculationError: string;
+    statusFavourable: string;
+    statusMixed: string;
+    statusChallenging: string;
+    statusDifficult: string;
   };
   muhurtha: {
     title: string;
