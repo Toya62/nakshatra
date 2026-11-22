@@ -1,12 +1,15 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { ChartData } from "@/lib/types";
+import { getVargaPositions, VARGA_SHORT_NAMES } from "@/lib/varga";
 import { Download, Table } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 
 interface Props {
   chart: ChartData;
+  /** Selected divisional chart, e.g. "D1" or "D9". The table follows it. */
+  varga?: string;
 }
 
 // Classical benefic / malefic classification
@@ -20,54 +23,27 @@ function planetColor(name: string, isAsc: boolean): string {
   return "var(--text-high)";
 }
 
-export const PlanetsTable: React.FC<Props> = ({ chart }) => {
+export const PlanetsTable: React.FC<Props> = ({ chart, varga = "D1" }) => {
   const { t, lang, num } = useLanguage();
-  const bodies = [
-    {
-      name: "Ascendant (Lagna)",
-      sign: chart.ascendant.sign,
-      degree: chart.ascendant.degree_in_sign,
-      nakshatra: chart.ascendant.nakshatra,
-      pada: chart.ascendant.pada,
-      lord: chart.ascendant.nakshatra_lord,
-      house: 1,
-      retrograde: false,
-      isAsc: true,
-    },
-    ...chart.planets.map((p) => ({
-      name: p.name,
-      sign: p.sign,
-      degree: p.degree_in_sign,
-      nakshatra: p.nakshatra,
-      pada: p.pada,
-      lord: p.nakshatra_lord,
-      house: p.house,
-      retrograde: p.retrograde,
-      isAsc: false,
-    })),
-    {
-      name: "Rahu",
-      sign: chart.rahu.sign,
-      degree: chart.rahu.degree_in_sign,
-      nakshatra: chart.rahu.nakshatra,
-      pada: chart.rahu.pada,
-      lord: chart.rahu.nakshatra_lord,
-      house: chart.rahu.house,
-      retrograde: true,
-      isAsc: false,
-    },
-    {
-      name: "Ketu",
-      sign: chart.ketu.sign,
-      degree: chart.ketu.degree_in_sign,
-      nakshatra: chart.ketu.nakshatra,
-      pada: chart.ketu.pada,
-      lord: chart.ketu.nakshatra_lord,
-      house: chart.ketu.house,
-      retrograde: true,
-      isAsc: false,
-    },
-  ];
+  const vKey = varga.toUpperCase();
+
+  // Rows follow the selected divisional: sign/house from the backend varga
+  // map, degree/nakshatra/pada derived in lib/varga. D1 is unchanged.
+  const bodies = useMemo(
+    () =>
+      getVargaPositions(chart, vKey).map((b) => ({
+        name: b.name,
+        sign: b.sign,
+        degree: b.degreeInSign,
+        nakshatra: b.nakshatra,
+        pada: b.pada,
+        lord: b.nakshatraLord,
+        house: b.house,
+        retrograde: b.retrograde,
+        isAsc: b.isAsc,
+      })),
+    [chart, vKey],
+  );
 
   const handleDownloadJSON = () => {
     const blob = new Blob([JSON.stringify(chart, null, 2)], { type: "application/json" });
@@ -92,6 +68,13 @@ export const PlanetsTable: React.FC<Props> = ({ chart }) => {
           >
             {lang === "ne" ? "निरयण" : "Nirayana"}
           </span>
+          <span
+            className="badge badge-cyan"
+            style={{ fontSize: "var(--type-micro)", marginLeft: "var(--space-1)" }}
+            title={vKey === "D1" ? undefined : "Divisional positions follow the selector above"}
+          >
+            {vKey} · {VARGA_SHORT_NAMES[vKey] || vKey}
+          </span>
         </h4>
         <button
           onClick={handleDownloadJSON}
@@ -104,12 +87,12 @@ export const PlanetsTable: React.FC<Props> = ({ chart }) => {
         </button>
       </div>
 
-      {/* Table */}
+      {/* Table — no fixed min-width: the 8 columns fit the data rail without
+          a horizontal scrollbar. Nakshatra wraps; padding is compact. */}
       <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
         <table
           style={{
             width: "100%",
-            minWidth: "500px",
             borderCollapse: "collapse",
             fontSize: "var(--type-label)",
             textAlign: "left",
@@ -130,7 +113,7 @@ export const PlanetsTable: React.FC<Props> = ({ chart }) => {
                 ? ["ग्रह", "राशि", "अंश", "भाव", "नक्षत्र", "पाद", "स्वामी", "गति"]
                 : ["Graha", "Rasi", "Degree", "Bhava", "Nakshatra", "Pada", "Lord", "Motion"]
               ).map((h) => (
-                <th key={h} style={{ padding: "8px 8px 10px", fontWeight: 600 }}>
+                <th key={h} style={{ padding: "8px 6px 10px", fontWeight: 600 }}>
                   {h}
                 </th>
               ))}
@@ -155,7 +138,7 @@ export const PlanetsTable: React.FC<Props> = ({ chart }) => {
                   {/* Graha */}
                   <td
                     style={{
-                      padding: "9px 8px",
+                      padding: "7px 6px",
                       fontWeight: 600,
                       color: planetColor(b.name, b.isAsc),
                       whiteSpace: "nowrap",
@@ -165,12 +148,12 @@ export const PlanetsTable: React.FC<Props> = ({ chart }) => {
                   </td>
 
                   {/* Sign */}
-                  <td style={{ padding: "9px 8px" }}>
+                  <td style={{ padding: "7px 6px" }}>
                     <span
                       className="chip"
                       style={{
                         fontSize: "var(--type-micro)",
-                        padding: "2px 8px",
+                        padding: "2px 7px",
                         background: "var(--bg-subtle)",
                         borderColor: "var(--border-subtle)",
                         color: "var(--text-high)",
@@ -184,7 +167,7 @@ export const PlanetsTable: React.FC<Props> = ({ chart }) => {
                   {/* Degree */}
                   <td
                     className="data-mono"
-                    style={{ padding: "9px 8px", color: "var(--text-mid)" }}
+                    style={{ padding: "7px 6px", color: "var(--text-mid)", whiteSpace: "nowrap" }}
                   >
                     {num(b.degree.toFixed(2))}°
                   </td>
@@ -192,36 +175,37 @@ export const PlanetsTable: React.FC<Props> = ({ chart }) => {
                   {/* House */}
                   <td
                     style={{
-                      padding: "9px 8px",
+                      padding: "7px 6px",
                       fontWeight: 600,
                       color: "var(--text-high)",
                       fontFamily: "var(--font-mono)",
                       fontSize: "var(--type-data)",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     {lang === "ne" ? `भाव ${num(b.house)}` : `H${b.house}`}
                   </td>
 
-                  {/* Nakshatra */}
-                  <td style={{ padding: "9px 8px", color: "var(--text-high)", whiteSpace: "nowrap" }}>
+                  {/* Nakshatra — wraps instead of forcing the table wider */}
+                  <td style={{ padding: "7px 6px", color: "var(--text-high)", lineHeight: 1.3 }}>
                     {b.nakshatra}
                   </td>
 
                   {/* Pada */}
                   <td
                     className="data-mono"
-                    style={{ padding: "9px 8px", color: "var(--text-mid)" }}
+                    style={{ padding: "7px 6px", color: "var(--text-mid)" }}
                   >
                     {num(b.pada)}
                   </td>
 
                   {/* Lord */}
-                  <td style={{ padding: "9px 8px", color: "var(--text-mid)" }}>
+                  <td style={{ padding: "7px 6px", color: "var(--text-mid)", whiteSpace: "nowrap" }}>
                     {lang === "ne" ? (t.planets.names[b.lord as keyof typeof t.planets.names] || b.lord) : b.lord}
                   </td>
 
                   {/* Motion */}
-                  <td style={{ padding: "9px 8px" }}>
+                  <td style={{ padding: "7px 6px", whiteSpace: "nowrap" }}>
                     {b.retrograde ? (
                       <span className="badge badge-rose">{lang === "ne" ? "℞ वक्री" : "℞ Retro"}</span>
                     ) : (

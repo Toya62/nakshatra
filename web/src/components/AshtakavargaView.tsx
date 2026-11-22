@@ -65,22 +65,25 @@ export const AshtakavargaView: React.FC<Props> = ({ ashtakavarga }) => {
   const grandTotal = ashtakavarga.grand_total || savList.reduce((acc, v) => acc + v, 0);
 
   const getStrengthBadge = (score: number) => {
+    // Long labels ("Moderate Strength (25–29)") must wrap inside the
+    // narrow grid cells instead of clipping at the card edge.
+    const wrap = { whiteSpace: "normal" as const, textAlign: "center" as const, lineHeight: 1.35 };
     if (score >= 30) {
       return (
-        <span className="badge badge-emerald" style={{ fontSize: "var(--type-micro)" }}>
+        <span className="badge badge-emerald" style={{ fontSize: "var(--type-micro)", ...wrap }}>
           {t.ashtakavarga.strengthHigh}
         </span>
       );
     }
     if (score >= 25) {
       return (
-        <span className="badge badge-gold" style={{ fontSize: "var(--type-micro)" }}>
+        <span className="badge badge-gold" style={{ fontSize: "var(--type-micro)", ...wrap }}>
           {t.ashtakavarga.strengthMedium}
         </span>
       );
     }
     return (
-      <span className="badge badge-rose" style={{ fontSize: "var(--type-micro)" }}>
+      <span className="badge badge-rose" style={{ fontSize: "var(--type-micro)", ...wrap }}>
         {t.ashtakavarga.strengthLow}
       </span>
     );
@@ -139,6 +142,14 @@ export const AshtakavargaView: React.FC<Props> = ({ ashtakavarga }) => {
           </button>
           <span className="badge badge-gold" style={{ fontSize: "var(--type-micro)", marginLeft: "var(--space-1)" }}>
             {t.ashtakavarga.total}: {num(grandTotal)}
+          </span>
+          {/* Ashtakavarga is defined on the birth (D1) chart only. */}
+          <span
+            className="badge badge-cyan"
+            style={{ fontSize: "var(--type-micro)", marginLeft: "var(--space-1)" }}
+            title="Ashtakavarga is calculated on the birth (D1 Rasi) chart"
+          >
+            D1 · Rasi
           </span>
         </div>
       </div>

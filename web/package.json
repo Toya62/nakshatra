@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:i18n": "node --experimental-strip-types src/lib/i18n/formatters.test.ts && node --experimental-strip-types src/lib/i18n/parity.test.ts"
+    "test:i18n": "node --experimental-strip-types src/lib/i18n/formatters.test.ts && node --experimental-strip-types src/lib/i18n/parity.test.ts",
+    "test:lib": "node --experimental-strip-types src/lib/varga.test.ts"
   },
   "dependencies": {
     "lucide-react": "^1.55.0",

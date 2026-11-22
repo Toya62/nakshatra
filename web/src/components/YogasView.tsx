@@ -47,9 +47,7 @@ function YogaCard({ yoga }: { yoga: YogaResult }) {
               fontWeight: 700,
               fontSize: "var(--type-body)",
               color: "var(--gold-bright)",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
+              lineHeight: 1.35,
             }}
           >
             {yoga.name}
@@ -134,6 +132,15 @@ export const YogasView: React.FC<Props> = ({ birth }) => {
         </h4>
         <span className="badge badge-cyan" style={{ fontSize: "var(--type-micro)" }}>
           {t.yogas.parasharaEngine}
+        </span>
+        {/* Yogas are defined on the birth (D1) chart, so they do not change
+            with the divisional selector — say so instead of implying D9. */}
+        <span
+          className="badge badge-gold"
+          style={{ fontSize: "var(--type-micro)" }}
+          title="Yogas are calculated on the birth (D1 Rasi) chart"
+        >
+          D1 · Rasi
         </span>
       </div>
 

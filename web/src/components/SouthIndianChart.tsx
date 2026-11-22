@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, forwardRef } from "react";
 import { ChartData } from "@/lib/types";
+import { getVargaAscendant, getVargaMoon } from "@/lib/varga";
 import { useLanguage } from "@/context/LanguageContext";
 
 interface Props {
@@ -245,6 +246,10 @@ export const SouthIndianChart = forwardRef<SVGSVGElement, Props>(({ chart, varga
 
   const activeHouseData = hoveredHouse ? BHAVA_METADATA[hoveredHouse] : null;
   const activeSignInfo = hoveredHouse ? ZODIAC_METADATA[((ascSignNum - 1 + (hoveredHouse - 1)) % 12) + 1] : null;
+
+  // Center hub + footer strip follow the selected divisional, like the wheel.
+  const vargaAsc = useMemo(() => getVargaAscendant(chart, varga), [chart, varga]);
+  const vargaMoon = useMemo(() => getVargaMoon(chart, varga), [chart, varga]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: `${size}px` }}>
@@ -505,14 +510,14 @@ export const SouthIndianChart = forwardRef<SVGSVGElement, Props>(({ chart, varga
             <text fill="rgba(148, 163, 184, 0.8)" fontSize="10" fontFamily="var(--font-sans)">
               {lang === "ne" ? "लग्न" : "Lagna"}:{" "}
               <tspan fill="#fde047" fontWeight={700} fontFamily="var(--font-mono)">
-                {chart.ascendant.sign} {num(chart.ascendant.degree_in_sign.toFixed(1))}°
+                {vargaAsc.sign} {num(vargaAsc.degreeInSign.toFixed(1))}°
               </tspan>
             </text>
 
             <text y={24} fill="rgba(148, 163, 184, 0.8)" fontSize="10" fontFamily="var(--font-sans)">
               {lang === "ne" ? "नक्षत्र" : "Nakshatra"}:{" "}
               <tspan fill="#f8fafc" fontWeight={600}>
-                {chart.ascendant.nakshatra} (P{num(chart.ascendant.pada)})
+                {vargaAsc.nakshatra} (P{num(vargaAsc.pada)})
               </tspan>
             </text>
 
@@ -576,17 +581,12 @@ export const SouthIndianChart = forwardRef<SVGSVGElement, Props>(({ chart, varga
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", gap: "var(--space-2)", flexWrap: "wrap" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap" }}>
               <span style={{ color: "var(--text-low)", fontSize: "0.82rem" }}>
-                {lang === "ne" ? "लग्न" : "Lagna"}: <strong style={{ color: "var(--gold-bright)", fontFamily: "var(--font-mono)" }}>{chart.ascendant.sign} {num(chart.ascendant.degree_in_sign.toFixed(1))}°</strong>
+                {lang === "ne" ? "लग्न" : "Lagna"}: <strong style={{ color: "var(--gold-bright)", fontFamily: "var(--font-mono)" }}>{vargaAsc.sign} {num(vargaAsc.degreeInSign.toFixed(1))}°</strong>
               </span>
               <span style={{ color: "var(--border-subtle)" }}>|</span>
-              {(() => {
-                const moon = chart.planets.find(p => p.name === "Moon");
-                return (
-                  <span style={{ color: "var(--text-low)", fontSize: "0.82rem" }}>
-                    {lang === "ne" ? "चन्द्र" : "Moon"}: <strong style={{ color: "var(--text-high)", fontFamily: "var(--font-mono)" }}>{moon ? `${moon.sign} ${num(moon.degree_in_sign.toFixed(1))}°` : "Moon"}</strong>
-                  </span>
-                );
-              })()}
+              <span style={{ color: "var(--text-low)", fontSize: "0.82rem" }}>
+                {lang === "ne" ? "चन्द्र" : "Moon"}: <strong style={{ color: "var(--text-high)", fontFamily: "var(--font-mono)" }}>{vargaMoon ? `${vargaMoon.sign} ${num(vargaMoon.degreeInSign.toFixed(1))}°` : "Moon"}</strong>
+              </span>
             </div>
             <span style={{ color: "var(--text-mid)", fontSize: "0.76rem" }}>
               {lang === "ne" ? "भाव विवरण हेर्न राशि कोठामा छुनुहोस्" : "Tap sign cell to inspect house significations"}

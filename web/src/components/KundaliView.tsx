@@ -160,22 +160,19 @@ export const KundaliView: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* Varga Selector Strip with Scroll cues */}
+      {/* Varga Selector Strip — wraps to a second row so all 16 divisionals
+          stay visible; the previous horizontal scroll hid D30/D40/D45/D60
+          behind an invisible scrollbar. */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
+          flexWrap: "wrap",
           gap: "var(--space-1)",
-          overflowX: "auto",
           maxWidth: "100%",
           width: "100%",
           padding: "4px 2px",
-          WebkitOverflowScrolling: "touch",
-          scrollbarWidth: "none",
-          maskImage: "linear-gradient(to right, black calc(100% - 24px), transparent 100%)",
-          WebkitMaskImage: "linear-gradient(to right, black calc(100% - 24px), transparent 100%)",
         }}
-        tabIndex={0}
         aria-label="Divisional chart selector"
       >
         <Layers size={13} color="var(--text-low)" aria-hidden="true" style={{ flexShrink: 0, marginRight: "4px" }} />
