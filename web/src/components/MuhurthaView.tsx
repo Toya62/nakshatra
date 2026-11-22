@@ -60,12 +60,26 @@ export const MuhurthaView: React.FC<Props> = ({
 
   useEffect(() => {
     const now = new Date();
+    // The report is computed for the place's timezone, so "now" must be
+    // expressed in that timezone's wall-clock fields. Sending the browser's
+    // local wall-clock (e.g. Berlin 18:22) labelled as the place's timezone
+    // (Asia/Kathmandu) shifted the whole report by the timezone offset.
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: defaultTz,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    }).formatToParts(now);
+    const get = (type: string) => Number(parts.find((p) => p.type === type)?.value);
     const clientInput: BirthDataInput = {
-      year: now.getFullYear(),
-      month: now.getMonth() + 1,
-      day: now.getDate(),
-      hour: now.getHours(),
-      minute: now.getMinutes(),
+      year: get("year"),
+      month: get("month"),
+      day: get("day"),
+      hour: get("hour"),
+      minute: get("minute"),
       second: 0,
       latitude: defaultLat,
       longitude: defaultLon,
