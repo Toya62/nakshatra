@@ -38,11 +38,11 @@
     },
     {
       "work": "Lal Kitab",
-      "files": 1,
-      "chunks": 114,
-      "verse_chunks": 114,
-      "paragraph_chunks": 0,
-      "translator": "Pt. Roop Chand Joshi (Classical 1939-1952 Farman / Upaya Tradition)",
+      "files": 2,
+      "chunks": 3576,
+      "verse_chunks": 3574,
+      "paragraph_chunks": 2,
+      "translator": "Pt. Beni Madhav Goswami & Pt. Laxmi Kant Vashisth / Pt. Roop Chand Joshi (1952 Edition)",
       "license": "Public domain classical treatise; educational compilation of traditional household Upayas and precautions"
     },
     {
@@ -73,6 +73,6 @@
       "license": "Public domain classical Sanskrit treatise (Kalidasa); classical commentary freely distributed"
     }
   ],
-  "total_chunks": 3869,
-  "total_files": 9
+  "total_chunks": 7331,
+  "total_files": 10
 }
