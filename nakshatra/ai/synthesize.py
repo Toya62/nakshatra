@@ -544,7 +544,10 @@ def build_prompt(
         "- **Window 2: Peak Favorable Window (YYYY-MM-DD to YYYY-MM-DD)**\n"
         "- **Window 3: Caution & Delay Factor (YYYY-MM-DD to YYYY-MM-DD)**\n\n"
         "### 4. Classical Lal Kitab Prescription\n"
-        "Prescribe the exact 43-day daytime Lal Kitab upaya, creature/household service, and strict Savdhani (precautionary taboos) from the context.\n\n"
+        "- **43-Day Daytime Upaya**: [Continuous daytime action from the context]\n"
+        "- **Creature / Household Seva**: [Specific animal feeding or household alignment]\n"
+        "- **Inviolable Savdhani (Strict Precaution)**: [Mandatory taboo: what to NEVER do or keep at home]\n\n"
+        "Do NOT repeat sentences across sections; every section must contain unique, concrete substance.\n"
         "Never recite ancient mathematical calculation algorithms, table numbers, or worked-out arithmetic examples from the commentary texts. "
         "Do NOT append a redundant 'References:' or 'Citations:' bibliography list at the end of your response, as the platform interface automatically renders dedicated interactive citation cards below your answer."
     )
@@ -557,7 +560,11 @@ def build_prompt(
             "### १. प्रत्यक्ष फलादेश र मुख्य निर्णय\n"
             "### २. ज्योतिषीय आधार र गणितीय प्रमाण\n"
             "### ३. यकिन समय-तालिका (३ वटा स्पष्ट मिति दायरा YYYY-MM-DD)\n"
-            "### ४. प्रामाणिक लाल किताब उपाय तथा सावधानी (४३ दिने दिउँसो गरिने उपाय र कडा निषेध)\n"
+            "### ४. प्रामाणिक लाल किताब उपाय तथा सावधानी\n"
+            "- **४३ दिने मुख्य उपाय**: [कुण्डली सन्दर्भबाट लगातार ४३ दिन दिउँसो गरिने ठोस उपाय]\n"
+            "- **जीव सेवा / पारिवारिक नियम**: [गाई, कुकुर, वा चराचुरुङ्गीलाई आहार]\n"
+            "- **कडा सावधानी (निषेध)**: [लाल किताब अनुसार कहिल्यै गर्न नहुने काम वा निषेध]\n\n"
+            "कुनै पनि खण्डमा एउटै वाक्य नदोहोर्‍याउनुहोस्; प्रत्येक खण्डमा फरक र ठोस विषयवस्तु दिनुहोस्।\n"
             "अन्त्यमा सन्दर्भ सूची नदोहोर्‍याउनुहोस्।"
         )
     return "\n".join(lines)
