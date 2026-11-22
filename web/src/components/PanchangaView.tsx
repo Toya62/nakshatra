@@ -27,6 +27,7 @@ export const PanchangaView: React.FC<Props> = ({
   const [tz] = useState(defaultTz);
 
   const [data, setData] = useState<PanchangaData | null>(null);
+  const [tomorrow, setTomorrow] = useState<PanchangaData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,6 +41,18 @@ export const PanchangaView: React.FC<Props> = ({
       setError((e as Error).message);
     } finally {
       setLoading(false);
+    }
+    // Best-effort preview of the next day, so the page does not end
+    // abruptly after today's five limbs. A failure here never blocks today.
+    try {
+      const [y, m, d] = date.split("-").map(Number);
+      const next = new Date(y, m - 1, d + 1);
+      const pad = (n: number) => String(n).padStart(2, "0");
+      const nextDate = `${next.getFullYear()}-${pad(next.getMonth() + 1)}-${pad(next.getDate())}`;
+      const res = await fetchPanchanga(nextDate, time, lat, lon, tz);
+      setTomorrow(res);
+    } catch {
+      setTomorrow(null);
     }
   };
 
@@ -258,6 +271,37 @@ export const PanchangaView: React.FC<Props> = ({
             </div>
           </div>
         </>
+      )}
+
+      {/* Tomorrow preview — real next-day limbs, so the page carries
+          forward instead of ending after today's five cards. */}
+      {tomorrow && !loading && (
+        <div className="card" style={{ padding: "var(--space-4) var(--space-5)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "var(--space-2)", marginBottom: "var(--space-3)" }}>
+            <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase" }}>
+              {t.panchanga.tomorrowPreview}
+            </h4>
+            <span style={{ fontSize: "var(--type-label)", color: "var(--text-low)", fontFamily: "var(--font-mono)" }}>{tomorrow.date}</span>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "var(--space-3)" }}>
+            <div>
+              <div style={{ fontSize: "var(--type-label)", color: "var(--text-low)", textTransform: "uppercase" }}>{t.panchanga.tithi}</div>
+              <div style={{ fontSize: "var(--type-body)", fontWeight: 600, color: "var(--text-high)" }}>{tomorrow.tithi.name}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: "var(--type-label)", color: "var(--text-low)", textTransform: "uppercase" }}>{t.panchanga.nakshatra}</div>
+              <div style={{ fontSize: "var(--type-body)", fontWeight: 600, color: "var(--text-high)" }}>{tomorrow.nakshatra.name}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: "var(--type-label)", color: "var(--text-low)", textTransform: "uppercase" }}>{t.panchanga.yoga}</div>
+              <div style={{ fontSize: "var(--type-body)", fontWeight: 600, color: "var(--text-high)" }}>{tomorrow.yoga.name}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: "var(--type-label)", color: "var(--text-low)", textTransform: "uppercase" }}>{t.panchanga.karana}</div>
+              <div style={{ fontSize: "var(--type-body)", fontWeight: 600, color: "var(--text-high)" }}>{tomorrow.karana.name}</div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -220,6 +220,7 @@ export const en: TranslationSchema = {
       shukla: "Shukla Paksha (Waxing)",
       krishna: "Krishna Paksha (Waning)",
     },
+    tomorrowPreview: "Tomorrow's Panchanga",
   },
   dasha: {
     title: "Vimshottari Dasha",
@@ -473,6 +474,9 @@ export const en: TranslationSchema = {
       bhakoot: "Bhakoot (Health, Family & Prosperity - 7 Pts)",
       nadi: "Nadi (Genetic & Physiological Longevity - 8 Pts)",
     },
+    emptyTitle: "What the match will show",
+    emptyDesc:
+      "Enter both birth details and calculate. No score is shown until both charts are cast — the eight kootas below are the checks the report runs, each with its point weight, followed by the Manglik Dosha analysis and the union recommendation.",
   },
   remedies: {
     title: "Lal Kitab Remedial Measures",
