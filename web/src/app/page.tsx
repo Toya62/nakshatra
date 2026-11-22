@@ -23,27 +23,15 @@ import { AshtakavargaView } from "@/components/AshtakavargaView";
 import { BirthDataInput, ChartData, getBirthKey } from "@/lib/types";
 import { fetchChart, checkApiHealth } from "@/lib/api";
 import { Sparkles, Layers } from "lucide-react";
-import { DEFAULT_LOCATION, DEFAULT_AYANAMSA, DEFAULT_HOUSE_SYSTEM } from "@/config/defaults";
+import { DEFAULT_AYANAMSA, DEFAULT_HOUSE_SYSTEM } from "@/config/defaults";
+import { getRandomBirthData, NEUTRAL_SSR_BIRTH_DATA, isPersonalDob } from "@/lib/randomBirth";
 
 const VARGAS = [
   "D1", "D2", "D3", "D4", "D7", "D9", "D10",
   "D12", "D16", "D20", "D24", "D27", "D30", "D40", "D45", "D60"
 ];
 
-const DEFAULT_BIRTH_DATA: BirthDataInput = {
-  year: 1997,
-  month: 5,
-  day: 22,
-  hour: 4,
-  minute: 53,
-  second: 0,
-  latitude: DEFAULT_LOCATION.lat || 27.8667,
-  longitude: DEFAULT_LOCATION.lon || 83.4833,
-  timezone: DEFAULT_LOCATION.tz || "Asia/Kathmandu",
-  place_name: DEFAULT_LOCATION.place || "Palpa, Nepal",
-  ayanamsa: DEFAULT_AYANAMSA,
-  house_system: DEFAULT_HOUSE_SYSTEM,
-};
+const DEFAULT_BIRTH_DATA: BirthDataInput = NEUTRAL_SSR_BIRTH_DATA;
 
 const VALID_TABS: TabId[] = [
   "chart",
@@ -174,30 +162,43 @@ export default function Home() {
       if (savedVarga && VARGAS.includes(savedVarga)) setSelectedVarga(savedVarga);
     } catch {}
 
-    // 3. Restore birth data and cached chart
-    let activeBirth = DEFAULT_BIRTH_DATA;
+    // 3. Restore birth data and cached chart (default to randomized profile)
+    let activeBirth = getRandomBirthData();
+    let hasValidSavedBirth = false;
     try {
       const savedBirth = localStorage.getItem("nakshatra_birth_data");
       if (savedBirth) {
         const parsedBirth = JSON.parse(savedBirth);
-        if (parsedBirth && parsedBirth.year) {
+        if (parsedBirth && parsedBirth.year && !isPersonalDob(parsedBirth)) {
           activeBirth = parsedBirth;
+          hasValidSavedBirth = true;
           setBirthData(parsedBirth);
+        } else {
+          // Purge hardcoded personal DOB if present from earlier runs
+          localStorage.removeItem("nakshatra_birth_data");
+          localStorage.removeItem("nakshatra_chart_data");
+          setBirthData(activeBirth);
         }
+      } else {
+        setBirthData(activeBirth);
       }
-    } catch {}
+    } catch {
+      setBirthData(activeBirth);
+    }
 
     let hasCachedChart = false;
-    try {
-      const savedChart = localStorage.getItem("nakshatra_chart_data");
-      if (savedChart) {
-        const parsedChart = JSON.parse(savedChart);
-        if (parsedChart && parsedChart.planets && parsedChart.houses) {
-          setChartData(parsedChart);
-          hasCachedChart = true;
+    if (hasValidSavedBirth) {
+      try {
+        const savedChart = localStorage.getItem("nakshatra_chart_data");
+        if (savedChart) {
+          const parsedChart = JSON.parse(savedChart);
+          if (parsedChart && parsedChart.planets && parsedChart.houses && !isPersonalDob(parsedChart.birth_data)) {
+            setChartData(parsedChart);
+            hasCachedChart = true;
+          }
         }
-      }
-    } catch {}
+      } catch {}
+    }
 
     // Only hit ephemeris calculation API if not already cached
     if (!hasCachedChart) {

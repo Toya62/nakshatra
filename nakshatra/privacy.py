@@ -23,7 +23,7 @@ LAT_LON_PATTERN = re.compile(r"(latitude|longitude|lat|lon)=[-+]?\d*\.?\d+", re.
 PERSON_NAME_PATTERN = re.compile(r"(place_name|bride_name|groom_name)=[^&]+", re.IGNORECASE)
 SEARCH_QUERY_PATTERN = re.compile(r"(\b(?:q|query)=)[^&\s]+", re.IGNORECASE)
 
-# JSON patterns: "latitude": 27.8667, "place_name": "Palpa", "q": "Kathmandu"
+# JSON patterns: "latitude": 27.7172, "place_name": "Kathmandu", "q": "Kathmandu"
 JSON_COORD_PATTERN = re.compile(
     r'("(?:latitude|longitude|lat|lon)"\s*:\s*)[-+]?\d*\.?\d+',
     re.IGNORECASE,

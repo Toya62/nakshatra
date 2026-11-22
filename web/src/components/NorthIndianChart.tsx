@@ -62,7 +62,7 @@ interface GrahaStyle {
 }
 
 const GRAHA_STYLES: Record<string, GrahaStyle> = {
-  Asc: { abbr: "ASC", glyph: "👑", name: "Ascendant", color: "var(--graha-asc, #fde047)", bg: "rgba(253, 224, 71, 0.18)", border: "rgba(253, 224, 71, 0.55)" },
+  Asc: { abbr: "ASC", glyph: "⟐", name: "Ascendant", color: "var(--graha-asc, #fde047)", bg: "rgba(253, 224, 71, 0.18)", border: "rgba(253, 224, 71, 0.55)" },
   Su:  { abbr: "Su",  glyph: "☉",  name: "Sun",       color: "var(--graha-sun, #f59e0b)", bg: "rgba(245, 158, 11, 0.16)", border: "rgba(245, 158, 11, 0.45)" },
   Mo:  { abbr: "Mo",  glyph: "☽",  name: "Moon",      color: "var(--graha-moon, #e2e8f0)", bg: "rgba(148, 163, 184, 0.16)", border: "rgba(148, 163, 184, 0.45)" },
   Ma:  { abbr: "Ma",  glyph: "♂",  name: "Mars",      color: "var(--graha-mars, #f87171)", bg: "rgba(248, 113, 113, 0.16)", border: "rgba(248, 113, 113, 0.45)" },

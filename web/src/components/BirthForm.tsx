@@ -3,10 +3,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { BirthDataInput, BikramSambatDate, PlaceResult, TimezoneOffsetInfo } from "@/lib/types";
 import { searchPlaces, fetchTimezoneOffset } from "@/lib/api";
-import { MapPin, Calendar, Clock, Settings, Sparkles, Check, Globe, Compass, Sliders } from "lucide-react";
+import { MapPin, Calendar, Clock, Settings, Sparkles, Check, Globe, Compass, Sliders, Shuffle } from "lucide-react";
 import { DEFAULT_LOCATION } from "@/config/defaults";
 import { getCalendarSystem, setCalendarSystem, convertAdToBs, convertBsToAd, CalendarSystem } from "@/lib/calendar";
 import { useLanguage } from "@/context/LanguageContext";
+import { getRandomBirthData } from "@/lib/randomBirth";
 
 export const NEPALI_MONTHS = [
   { index: 1, name_en: "Baishakh", name_ne: "वैशाख" },
@@ -30,13 +31,14 @@ interface Props {
 }
 
 const PRESETS = [
-  { name: "Palpa, Nepal", lat: 27.8667, lon: 83.4833, tz: "Asia/Kathmandu" },
   { name: "Kathmandu, Nepal", lat: 27.7172, lon: 85.3240, tz: "Asia/Kathmandu" },
-  { name: "Yangon, Myanmar", lat: 16.8661, lon: 96.1951, tz: "Asia/Yangon" },
+  { name: "Ujjain, India", lat: 23.1765, lon: 75.7885, tz: "Asia/Kolkata" },
   { name: "Varanasi, India", lat: 25.3176, lon: 82.9739, tz: "Asia/Kolkata" },
   { name: "New Delhi, India", lat: 28.6139, lon: 77.2090, tz: "Asia/Kolkata" },
+  { name: "Yangon, Myanmar", lat: 16.8661, lon: 96.1951, tz: "Asia/Yangon" },
   { name: "London, UK", lat: 51.5074, lon: -0.1278, tz: "Europe/London" },
   { name: "New York, USA", lat: 40.7128, lon: -74.0060, tz: "America/New_York" },
+  { name: "Tokyo, Japan", lat: 35.6762, lon: 139.6503, tz: "Asia/Tokyo" },
 ];
 
 const COMMON_TIMEZONES = [
@@ -63,26 +65,26 @@ const COMMON_TIMEZONES = [
 export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) => {
   const { t } = useLanguage();
   // Store values as editable strings so users can clear inputs without getting trapped on "0"
-  const [year, setYear] = useState(String(initialData?.year ?? 1997));
-  const [month, setMonth] = useState(String(initialData?.month ?? 5));
-  const [day, setDay] = useState(String(initialData?.day ?? 22));
-  const [hour, setHour] = useState(String(initialData?.hour ?? 4));
-  const [minute, setMinute] = useState(String(initialData?.minute ?? 53));
+  const [year, setYear] = useState(String(initialData?.year ?? 2000));
+  const [month, setMonth] = useState(String(initialData?.month ?? 1));
+  const [day, setDay] = useState(String(initialData?.day ?? 1));
+  const [hour, setHour] = useState(String(initialData?.hour ?? 12));
+  const [minute, setMinute] = useState(String(initialData?.minute ?? 0));
   const [second, setSecond] = useState(String(initialData?.second ?? 0));
 
-  const [lat, setLat] = useState(String(initialData?.latitude ?? (DEFAULT_LOCATION.lat || 27.8667)));
-  const [lon, setLon] = useState(String(initialData?.longitude ?? (DEFAULT_LOCATION.lon || 83.4833)));
+  const [lat, setLat] = useState(String(initialData?.latitude ?? (DEFAULT_LOCATION.lat || 27.7172)));
+  const [lon, setLon] = useState(String(initialData?.longitude ?? (DEFAULT_LOCATION.lon || 85.3240)));
   const [tz, setTz] = useState(initialData?.timezone || DEFAULT_LOCATION.tz || "Asia/Kathmandu");
-  const [place, setPlace] = useState(initialData?.place_name || DEFAULT_LOCATION.place || "");
+  const [place, setPlace] = useState(initialData?.place_name || DEFAULT_LOCATION.place || "Kathmandu, Nepal");
 
   const [ayanamsa, setAyanamsa] = useState(initialData?.ayanamsa || "jhora_lahiri");
   const [houseSystem, setHouseSystem] = useState(initialData?.house_system || "WholeSign");
 
   // Calendar System state (Gregorian AD or Bikram Sambat BS)
   const [calendarSystem, setCalendarSystemState] = useState<CalendarSystem>("gregorian");
-  const [bsYear, setBsYear] = useState("2054");
-  const [bsMonth, setBsMonth] = useState("2");
-  const [bsDay, setBsDay] = useState("9");
+  const [bsYear, setBsYear] = useState("2056");
+  const [bsMonth, setBsMonth] = useState("9");
+  const [bsDay, setBsDay] = useState("17");
   const [bsDateInfo, setBsDateInfo] = useState<BikramSambatDate | null>(null);
 
   // Sync calendar system on mount and on custom event
@@ -238,12 +240,29 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
   };
   const handleYearBlur = () => {
     if (!year) {
-      setYear("1997");
+      setYear("2000");
       return;
     }
     const y = parseInt(year, 10);
-    if (y < 1000) setYear("1997");
+    if (y < 1000) setYear("2000");
     else if (y > 2100) setYear("2100");
+  };
+
+  const handleRandomize = () => {
+    const rand = getRandomBirthData();
+    setYear(String(rand.year));
+    setMonth(String(rand.month));
+    setDay(String(rand.day));
+    setHour(String(rand.hour));
+    setMinute(String(rand.minute));
+    setSecond(String(rand.second ?? 0));
+    setLat(String(rand.latitude));
+    setLon(String(rand.longitude));
+    setTz(rand.timezone);
+    setPlace(rand.place_name || "");
+    setQuery(rand.place_name || "");
+    if (rand.ayanamsa) setAyanamsa(rand.ayanamsa);
+    if (rand.house_system) setHouseSystem(rand.house_system);
   };
 
   const handleMonthChange = (val: string) => {
@@ -398,7 +417,7 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
       }
     }
 
-    const y = parseInt(currentY, 10) || 1997;
+    const y = parseInt(currentY, 10) || 2000;
     const m = Math.min(12, Math.max(1, parseInt(currentM, 10) || 1));
     const d = Math.min(31, Math.max(1, parseInt(currentD, 10) || 1));
     const h = Math.min(23, Math.max(0, parseInt(hour, 10) || 0));
@@ -427,12 +446,29 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
     <form onSubmit={handleSubmit} className="card" style={{ padding: "var(--space-6)", position: "relative" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-4)", flexWrap: "wrap", gap: "var(--space-3)" }}>
         <h3 style={{ fontSize: "var(--type-heading)", fontWeight: 700, display: "flex", alignItems: "center", gap: "var(--space-2)", color: "var(--text-high)" }}>
-          <Sparkles size={16} color="var(--gold-vivid)" aria-hidden="true" />
+          <Compass size={16} color="var(--gold-vivid)" aria-hidden="true" />
           {t.birthForm.title}
         </h3>
 
-        {/* Preset quick buttons */}
-        <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
+        {/* Preset quick buttons & Randomizer */}
+        <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap", alignItems: "center" }}>
+          <button
+            type="button"
+            onClick={handleRandomize}
+            className="chip"
+            style={{
+              borderColor: "var(--gold-border)",
+              color: "var(--gold-bright)",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "var(--space-1)",
+              fontWeight: 600,
+            }}
+            title="Generate random birth data"
+          >
+            <Shuffle size={12} aria-hidden="true" />
+            Random
+          </button>
           {PRESETS.map((p) => (
             <button
               key={p.name}
@@ -867,7 +903,7 @@ export const BirthForm: React.FC<Props> = ({ initialData, onSubmit, loading }) =
         </div>
 
         <button type="submit" disabled={loading} className="btn-primary" aria-label="Calculate birth chart">
-          <Sparkles size={16} aria-hidden="true" />
+          <Compass size={16} aria-hidden="true" />
           {loading ? t.common.calculating : t.birthForm.calculateBtn}
         </button>
       </div>

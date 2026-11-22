@@ -121,7 +121,7 @@ def main() -> None:
         epilog="""
 Examples:
   nakshatra --dob 1990-05-15 --time 14:30 --lat 40.7128 --lon -74.0060 --tz America/New_York
-  nakshatra --dob 1997-05-22 --time 04:53 --lat 27.8667 --lon 83.4833 --tz Asia/Kathmandu
+  nakshatra --dob 1985-10-24 --time 09:15 --lat 27.7172 --lon 85.3240 --tz Asia/Kathmandu
   nakshatra --dob 1990-05-15 --time 14:30:00 --lat 12.9716 --lon 77.5946 --tz Asia/Kolkata
   nakshatra ingest-corpus --dir corpus --out index
         """,

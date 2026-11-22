@@ -16,6 +16,7 @@ import { BirthDataInput, CompatibilityReport } from "@/lib/types";
 import { fetchCompatibility } from "@/lib/api";
 import { DEFAULT_LOCATION } from "@/config/defaults";
 import { useLanguage } from "@/context/LanguageContext";
+import { getRandomBirthData } from "@/lib/randomBirth";
 
 interface Props {
   defaultBride?: BirthDataInput;
@@ -24,38 +25,12 @@ interface Props {
 
 export const CompatibilityView: React.FC<Props> = ({ defaultBride, defaultGroom }) => {
   const { t, lang, num } = useLanguage();
-  const [brideData, setBrideData] = useState<BirthDataInput>(
-    defaultBride || {
-      year: 1997,
-      month: 5,
-      day: 22,
-      hour: 4,
-      minute: 53,
-      second: 0,
-      latitude: DEFAULT_LOCATION.lat || 27.8667,
-      longitude: DEFAULT_LOCATION.lon || 83.4833,
-      timezone: DEFAULT_LOCATION.tz || "Asia/Kathmandu",
-      place_name: "Palpa, Nepal",
-      ayanamsa: "jhora_lahiri",
-      house_system: "WholeSign",
-    }
+  const [brideData, setBrideData] = useState<BirthDataInput>(() =>
+    defaultBride || getRandomBirthData()
   );
 
-  const [groomData, setGroomData] = useState<BirthDataInput>(
-    defaultGroom || {
-      year: 1995,
-      month: 11,
-      day: 28,
-      hour: 8,
-      minute: 30,
-      second: 0,
-      latitude: 28.6139,
-      longitude: 77.209,
-      timezone: "Asia/Kolkata",
-      place_name: "Delhi, India",
-      ayanamsa: "jhora_lahiri",
-      house_system: "WholeSign",
-    }
+  const [groomData, setGroomData] = useState<BirthDataInput>(() =>
+    defaultGroom || getRandomBirthData(brideData.place_name)
   );
 
   const [brideName, setBrideName] = useState("Bride");
@@ -308,7 +283,7 @@ Recommendation: ${report.recommendation}
             gap: "10px",
           }}
         >
-          <Sparkles size={18} />
+          <Heart size={18} aria-hidden="true" />
           {loading ? (lang === "ne" ? "गणना गरिँदैछ..." : "Calculating Match...") : (lang === "ne" ? "अष्टकूट गुण मिलान गणना गर्नुहोस्" : "Calculate Ashtakoota Match")}
         </button>
       </form>

@@ -110,7 +110,7 @@ export const AshtakavargaView: React.FC<Props> = ({ ashtakavarga }) => {
               color: "var(--text-high)",
             }}
           >
-            <Sparkles size={18} color="var(--gold-vivid)" aria-hidden="true" />
+            <Grid3X3 size={18} color="var(--gold-vivid)" aria-hidden="true" />
             {t.ashtakavarga.title}
           </h3>
           <p style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)", marginTop: "2px" }}>
