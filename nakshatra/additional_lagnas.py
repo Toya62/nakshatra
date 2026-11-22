@@ -21,10 +21,9 @@ astrologer's note rather than a bare table.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
 from pydantic import BaseModel, Field
 
+from nakshatra.chakra import ghati_context
 from nakshatra.core import (
     SIGN_LORDS,
     ZODIAC_SIGNS,
@@ -259,30 +258,16 @@ def calculate_special_lagnas(chart: ChartData) -> SpecialLagnasReport:
         )
 
     # -------- Ghati Lagna (power/authority from ghatis at sunrise) --------
-    birth_dt = datetime(
-        chart.birth_data.year,
-        chart.birth_data.month,
-        chart.birth_data.day,
-        chart.birth_data.hour,
-        chart.birth_data.minute,
-        chart.birth_data.second,
-        tzinfo=timezone.utc,
-    )
-    # Approximate sunrise at 06:00 local (standard Jyotish fallback when precise
-    # solar-altitude sunrise is not computed); 1 ghati = 24 minutes.
-    sunrise_local = datetime(
-        chart.birth_data.year,
-        chart.birth_data.month,
-        chart.birth_data.day,
-        6,
-        0,
-        0,
-        tzinfo=timezone.utc,
-    )
-    ghatis = max(0, (birth_dt - sunrise_local).total_seconds() // (24 * 60))
-    ghati_count = int(ghatis % 12) or 12  # 1-12
-    ghati_idx = (_sign_index(asc_sign) + ghati_count - 1) % 12
-    ghati_sign = ZODIAC_SIGNS[ghati_idx]
+    # Shared ghati count with the Ghatchakra: whole 24-min ghatis since the
+    # TRUE local sunrise (not a fixed 06:00, and not the local time
+    # mislabelled as UTC, as the old code did). The longitude follows the
+    # file's own Indu Lagna convention — the ascendant's longitude carried
+    # forward by (ghati_count - 1) signs — so the degree in sign is the
+    # birth Lagna's degree, not a hardcoded 0.00 placeholder.
+    ghati_count, _weekday_idx = ghati_context(chart)
+    ghati_lon = _lon(chart.ascendant.longitude + (ghati_count - 1) * 30.0)
+    ghati_sign = get_sign(ghati_lon)
+    ghati_idx = _sign_index(ghati_sign)
     ghati_house = ((ghati_idx - _sign_index(asc_sign)) % 12) + 1
     ghati_lord = SIGN_LORDS[ghati_sign]
     lagnas.append(
@@ -290,14 +275,14 @@ def calculate_special_lagnas(chart: ChartData) -> SpecialLagnasReport:
             name="Ghati Lagna",
             sign=ghati_sign,
             house=ghati_house,
-            degree_in_sign=0.0,
-            longitude=round(ghati_idx * 30.0, 4),
+            degree_in_sign=round(get_degree_in_sign(ghati_lon), 4),
+            longitude=round(ghati_lon, 4),
             lord=ghati_lord,
             rationale=LAGNA_RATIONALE["Ghati Lagna"],
         )
     )
     notes.append(
-        f"Ghati Lagna: {ghatis:.0f} ghatis (24-min units) from sunrise → {ghati_sign} "
+        f"Ghati Lagna: {ghati_count} ghatis (24-min units) from sunrise → {ghati_sign} "
         f"(House {ghati_house}). {LAGNA_RATIONALE['Ghati Lagna']}"
     )
 

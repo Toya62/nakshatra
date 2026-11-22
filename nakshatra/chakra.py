@@ -315,7 +315,7 @@ def _sunrise_hour_local(
         return None
 
 
-def _ghati_context(chart: ChartData) -> tuple[int, int]:
+def ghati_context(chart: ChartData) -> tuple[int, int]:
     """(ghati_count, weekday_idx) for the birth.
 
     Ghatis are 24-minute units elapsed since local sunrise at the birthplace
@@ -355,10 +355,10 @@ def _ghati_context(chart: ChartData) -> tuple[int, int]:
 # Attach ghati_count to chart so the analyzer can expose it; computed lazily
 # here from the chart birth data (true local sunrise, 24 min per ghati).
 def attach_ghati_count(chart: ChartData) -> int:
-    return _ghati_context(chart)[0]
+    return ghati_context(chart)[0]
 
 
 def calculate_chakra_with_ghati(chart: ChartData) -> ChakraReport:
     """Convenience: compute chakra with ghati count derived from birth data."""
-    ghati_count, weekday_idx = _ghati_context(chart)
+    ghati_count, weekday_idx = ghati_context(chart)
     return calculate_chakra(chart, ghati_count=ghati_count, weekday_idx=weekday_idx)
