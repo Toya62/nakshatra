@@ -20,7 +20,6 @@ from nakshatra.ai.synthesize import (
     build_prompt,
     classify_intent,
     extract_citations,
-    get_system_prompt,
 )
 
 
