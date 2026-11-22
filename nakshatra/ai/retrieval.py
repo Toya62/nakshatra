@@ -463,7 +463,7 @@ class HybridRetriever:
             lagna_sign = asc.get("sign") if isinstance(asc, dict) else (asc if isinstance(asc, str) else None)
             moon_sign = birth_context.get("moon_sign")
             raw_yogas = birth_context.get("yogas") or []
-            yogas = [y.get("name") for y in raw_yogas if isinstance(y, dict) and y.get("name")]
+            yogas = [str(y["name"]) for y in raw_yogas if isinstance(y, dict) and y.get("name")]
             extra_terms: list[str] = []
             if lagna_sign:
                 extra_terms.append(f"{lagna_sign} Lagna")

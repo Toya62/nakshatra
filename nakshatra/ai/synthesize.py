@@ -459,7 +459,8 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
             for p in all_bodies:
                 retro = " (Retrograde)" if p.get("retrograde") else ""
                 deg_val = p.get("degree_in_sign", 0)
-                dignity_str = f" [{p.get('dignity').capitalize()}]" if p.get("dignity") else ""
+                dignity_val = p.get("dignity")
+                dignity_str = f" [{str(dignity_val).capitalize()}]" if dignity_val else ""
                 lines.append(
                     f"  • {p.get('name')}: House {p.get('house')} in {p.get('sign')} "
                     f"({deg_val:.2f}° {p.get('nakshatra')} Pada {p.get('pada')}){retro}{dignity_str}"
