@@ -503,8 +503,80 @@ _SIGN_LORDS = {
 }
 
 
-def _format_birth_summary(chart: dict[str, Any]) -> str:
-    """Format structured natal chart facts, house lords, ashtakavarga, and transits for synthesis."""
+def _clean_node_name(name: str | None) -> str:
+    """Display name for a dasha lord ('North Node' -> 'Rahu')."""
+    if not name:
+        return "Unknown"
+    if name == "North Node":
+        return "Rahu"
+    if name == "South Node":
+        return "Ketu"
+    return name
+
+
+def _format_muhurtha_lines(muh: dict[str, Any], reference: str) -> list[str]:
+    """Render a MuhurthaReport dict as bounded summary lines.
+
+    Never invents times: a missing sunrise (polar day/night) is reported as
+    such, and a missing/incomplete report yields an explicit unavailable
+    line instead of fabricated hora/choghadiya windows.
+    """
+    lines = [f"- Muhurtha (Timing, reference moment: {reference}):"]
+    sunrise = muh.get("sunrise_time")
+    sunset = muh.get("sunset_time")
+    if sunrise is None and sunset is None:
+        lines.append(
+            "  • No sunrise/sunset on this day at this place (polar day/night); "
+            "muhurtha windows are unavailable — do not invent times."
+        )
+        return lines
+    if sunrise:
+        lines.append(f"  • Sunrise {sunrise} | Sunset {sunset or '—'}")
+    hora = muh.get("current_hora") or {}
+    if isinstance(hora, dict) and hora.get("ruling_planet"):
+        lines.append(
+            f"  • Current Hora: {hora.get('ruling_planet')} Hora "
+            f"({hora.get('start_time')} - {hora.get('end_time')}) [{hora.get('nature')}]"
+        )
+    chog = muh.get("current_choghadiya") or {}
+    if isinstance(chog, dict) and chog.get("name"):
+        lines.append(
+            f"  • Current Choghadiya: {chog.get('name')} ({chog.get('ruler')}, "
+            f"{chog.get('start_time')} - {chog.get('end_time')}) "
+            f"[{chog.get('nature')} | Score: {chog.get('score')}]"
+        )
+    rahu_kalam = muh.get("rahu_kalam") or {}
+    if isinstance(rahu_kalam, dict) and rahu_kalam.get("start_time"):
+        active = " [ACTIVE NOW — avoid new beginnings]" if rahu_kalam.get("is_active") else ""
+        lines.append(
+            f"  • Rahu Kalam [AVOID]: {rahu_kalam.get('start_time')} - "
+            f"{rahu_kalam.get('end_time')}{active}"
+        )
+    abhijit = muh.get("abhijit_muhurtha") or {}
+    if isinstance(abhijit, dict) and abhijit.get("start_time"):
+        active = " [ACTIVE NOW]" if abhijit.get("is_active") else ""
+        lines.append(
+            f"  • Abhijit Muhurtha: {abhijit.get('start_time')} - "
+            f"{abhijit.get('end_time')}{active}"
+        )
+    score = muh.get("muhurtha_score")
+    verdict = muh.get("verdict")
+    if score is not None or verdict:
+        lines.append(
+            f"  • Muhurtha Score: {score}/100 — {verdict or ''}".rstrip(" —")
+        )
+    return lines
+
+
+def _format_birth_summary(
+    chart: dict[str, Any], include_muhurtha: bool = False
+) -> str:
+    """Format structured natal chart facts, house lords, ashtakavarga, and transits for synthesis.
+
+    ``include_muhurtha`` is True only for timing questions (Event Prediction
+    intent, decided by :func:`build_prompt`): the muhurtha lines describe the
+    query moment at the birth place, and are omitted otherwise.
+    """
     lines: list[str] = []
 
     # Explicit Seeker Birth Details (Ground Truth)
@@ -622,6 +694,110 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
                     f"Saturn (Ayushkaraka/Longevity): House {sat_body.get('house')} in {sat_body.get('sign')}"
                 )
 
+    # Divisional charts: Navamsha (D9, spouse/dharma/fortune) and Dashamsha
+    # (D10, career) status as one bounded line each — signs only, never the
+    # 16-varga dump. Vargottama = planet in the same sign in D1 and D9.
+    vargas = chart.get("vargas")
+    if isinstance(vargas, dict):
+        d1_signs: dict[str, str] = {}
+        if isinstance(planets, list):
+            for p in planets:
+                if isinstance(p, dict) and p.get("name") and p.get("sign"):
+                    d1_signs[str(p["name"])] = str(p["sign"])
+        rahu_d = chart.get("rahu")
+        ketu_d = chart.get("ketu")
+        if isinstance(rahu_d, dict) and rahu_d.get("sign"):
+            d1_signs["North Node"] = str(rahu_d["sign"])
+        if isinstance(ketu_d, dict) and ketu_d.get("sign"):
+            d1_signs["South Node"] = str(ketu_d["sign"])
+
+        def _varga_line(v_key: str, label: str) -> str | None:
+            v_data = vargas.get(v_key)
+            if not isinstance(v_data, dict) or not v_data:
+                return None
+            order = [
+                "Sun",
+                "Moon",
+                "Mars",
+                "Mercury",
+                "Jupiter",
+                "Venus",
+                "Saturn",
+                "North Node",
+                "South Node",
+            ]
+            parts: list[str] = []
+            for name in order:
+                sign = v_data.get(name)
+                if not sign:
+                    continue
+                disp = (
+                    "Rahu"
+                    if name == "North Node"
+                    else "Ketu"
+                    if name == "South Node"
+                    else name
+                )
+                parts.append(f"{disp} {sign}")
+            if not parts:
+                return None
+            asc_sign = v_data.get("Ascendant")
+            line = f"- {label}: "
+            if asc_sign:
+                line += f"Lagna {asc_sign}; "
+            line += ", ".join(parts)
+            if v_key == "D9":
+                vargottama = [
+                    ("Rahu" if n == "North Node" else "Ketu" if n == "South Node" else n)
+                    for n in order
+                    if d1_signs.get(n) and d1_signs.get(n) == v_data.get(n)
+                ]
+                if vargottama:
+                    line += f" [Vargottama (same sign in D1 and D9): {', '.join(vargottama)}]"
+            return line
+
+        d9_line = _varga_line("D9", "Navamsha (D9)")
+        if d9_line:
+            lines.append(d9_line)
+        d10_line = _varga_line("D10", "Dashamsha (D10)")
+        if d10_line:
+            # Prefer the precomputed D10 chart (houses) when present.
+            d10_chart = chart.get("d10_chart")
+            if isinstance(d10_chart, dict):
+                d10_asc = (d10_chart.get("ascendant") or {}).get("sign")
+                d10_planets = d10_chart.get("planets") or {}
+                if d10_asc and isinstance(d10_planets, dict) and d10_planets:
+                    d10_parts = []
+                    for name in [
+                        "Sun",
+                        "Moon",
+                        "Mars",
+                        "Mercury",
+                        "Jupiter",
+                        "Venus",
+                        "Saturn",
+                        "North Node",
+                        "South Node",
+                    ]:
+                        entry = d10_planets.get(name)
+                        if isinstance(entry, dict) and entry.get("sign"):
+                            disp = (
+                                "Rahu"
+                                if name == "North Node"
+                                else "Ketu"
+                                if name == "South Node"
+                                else name
+                            )
+                            d10_parts.append(
+                                f"{disp} {entry['sign']} (H{entry.get('house')})"
+                            )
+                    if d10_parts:
+                        d10_line = (
+                            f"- Dashamsha (D10): Lagna {d10_asc}; "
+                            + ", ".join(d10_parts)
+                        )
+            lines.append(d10_line)
+
     # Real Ashtakavarga Points: Grouped cleanly by house strength rather than a raw dump of 12 signs
     av = chart.get("ashtakavarga")
     if isinstance(av, dict):
@@ -727,16 +903,6 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
 
     dashas = chart.get("dashas")
     if isinstance(dashas, dict):
-
-        def _clean_node_name(name: str | None) -> str:
-            if not name:
-                return "Unknown"
-            if name == "North Node":
-                return "Rahu"
-            if name == "South Node":
-                return "Ketu"
-            return name
-
         curr_md = dashas.get("current_md") or {}
         curr_ad = dashas.get("current_ad") or {}
         curr_pd = dashas.get("current_pd") or {}
@@ -756,6 +922,34 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
         lines.append(f"  • Current Mahadasha: [{md_lord}] from {md_s} to {md_e}")
         lines.append(f"  • Current Antardasha: [{ad_lord}] from {ad_s} to {ad_e} [ACTIVE NOW]")
         lines.append(f"  • Current Pratyantardasha: [{pd_lord}] from {pd_s} to {pd_e} [ACTIVE NOW]")
+
+        # Full Mahadasha ranges, past + future (bounded summary lines, not the
+        # full dasha tree): the LLM must ground any "when" answer in these
+        # ranges, not only in the current MD/AD/PD above.
+        all_mds = dashas.get("mahadashas") or []
+        if all_mds:
+            birth_date_str = ""
+            if isinstance(bdata, dict) and bdata.get("year"):
+                birth_date_str = (
+                    f"{bdata.get('year'):04d}-{bdata.get('month', 1):02d}-"
+                    f"{bdata.get('day', 1):02d}"
+                )
+            md_lines = []
+            for md in all_mds:
+                if not isinstance(md, dict):
+                    continue
+                lord = _clean_node_name(md.get("lord"))
+                s_date = (md.get("start") or "")[:10]
+                e_date = (md.get("end") or "")[:10]
+                tag = " [CURRENT]" if lord == md_lord else ""
+                if birth_date_str and s_date <= birth_date_str <= e_date:
+                    tag += " [IN EFFECT AT BIRTH]"
+                md_lines.append(f"{lord}: {s_date} to {e_date}{tag}")
+            if md_lines:
+                lines.append(
+                    "  • Full Mahadasha Timeline (Vimshottari, past + future):\n    - "
+                    + "\n    - ".join(md_lines)
+                )
 
         mahadashas = dashas.get("mahadashas") or []
         for md in mahadashas:
@@ -826,6 +1020,65 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
         if yoga_names:
             lines.append(f"- Active Yogas: {', '.join(yoga_names[:5])}")
 
+    # Compatibility: Kuja Dosha is single-chart, so it is always rendered when
+    # the chart context carries it (api.py attaches it from ChartData).
+    # Ashtakoota needs TWO charts, and /rag/ask has only one: render the
+    # score only when partner data is actually present in the context,
+    # otherwise say so honestly — never invent a score.
+    kuja = chart.get("kuja_dosha")
+    compat = chart.get("compatibility")
+    if not isinstance(kuja, dict) and isinstance(compat, dict):
+        kuja = compat.get("kuja_dosha")
+    ashtakoota = chart.get("ashtakoota")
+    if not isinstance(ashtakoota, dict) and isinstance(compat, dict):
+        ashtakoota = compat.get("ashtakoota")
+    lines.append("- Compatibility & Kuja Dosha (Marriage Matching Ground Truth):")
+    if isinstance(kuja, dict) and kuja:
+        status = "Manglik" if kuja.get("is_manglik") else "Non-Manglik"
+        severity = kuja.get("severity") or "None"
+        score = kuja.get("score")
+        score_str = f", score {score}" if score is not None else ""
+        afflicted: list[str] = []
+        for ref, key in (
+            ("Lagna", "afflicted_houses_lagna"),
+            ("Moon", "afflicted_houses_moon"),
+            ("Venus", "afflicted_houses_venus"),
+        ):
+            houses = kuja.get(key) or []
+            if houses:
+                afflicted.append(f"Mars in {', '.join(str(h) for h in houses)} from {ref}")
+        afflicted_str = (
+            f"; afflicted: {'; '.join(afflicted)}" if afflicted else "; Mars in no Manglik house"
+        )
+        cancellations = kuja.get("cancellations") or []
+        cancel_str = (
+            f"; cancellations: {'; '.join(str(c) for c in cancellations)}"
+            + (" (dosha cancelled)" if kuja.get("is_cancelled") else "")
+            if cancellations
+            else ""
+        )
+        lines.append(
+            f"  • Kuja Dosha: {status} — severity {severity}{score_str}"
+            f"{afflicted_str}{cancel_str}"
+        )
+    else:
+        lines.append(
+            "  • Kuja Dosha: not evaluated in the chart context provided; "
+            "do not assume Manglik status."
+        )
+    if isinstance(ashtakoota, dict) and ashtakoota.get("total_score") is not None:
+        total = ashtakoota.get("total_score")
+        pct = ashtakoota.get("percentage")
+        verdict = ashtakoota.get("verdict") or ""
+        pct_str = f" ({pct}%)" if pct is not None else ""
+        verdict_str = f" — {verdict}" if verdict else ""
+        lines.append(f"  • Ashtakoota: {total}/36{pct_str}{verdict_str}")
+    else:
+        lines.append(
+            "  • Ashtakoota: no partner chart provided — no compatibility "
+            "score calculated; do not invent one."
+        )
+
     predictions = chart.get("predictions")
     if isinstance(predictions, dict):
         lines.append("- Classical Hierarchical Predictions (Deterministic Engine Ground Truth):")
@@ -867,6 +1120,53 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
                         f"    - Creature / Household Seva: {creature or h_rem}\n"
                         f"    - Inviolable Savdhani (Strict Precaution): {'; '.join(forb[:2]) if forb else 'Maintain clean ethical conduct'}"
                     )
+
+    # Muhurtha — timing questions only (see build_prompt). The reference
+    # moment is the query moment at the birth place, stated in the line so
+    # the model never mistakes it for a birth-time muhurtha. If the
+    # calculation fails, say so; never invent hora/choghadiya times.
+    if include_muhurtha:
+        muh = chart.get("muhurtha")
+        if isinstance(muh, dict) and muh:
+            reference = str(
+                muh.get("timestamp") or ""
+            )
+            if muh.get("timezone"):
+                reference += f" ({muh.get('timezone')})"
+            if muh.get("latitude") is not None and muh.get("longitude") is not None:
+                reference += (
+                    f", at birth place "
+                    f"({muh.get('latitude'):.2f}, {muh.get('longitude'):.2f})"
+                )
+            lines.extend(_format_muhurtha_lines(muh, reference or "query moment"))
+        elif isinstance(bdata, dict) and bdata.get("year"):
+            tz_name = str(bdata.get("timezone") or "UTC")
+            lat = float(bdata.get("latitude") or 0)
+            lon = float(bdata.get("longitude") or 0)
+            try:
+                from datetime import datetime as _dt
+                from zoneinfo import ZoneInfo as _ZoneInfo
+
+                from nakshatra.muhurtha import calculate_muhurtha
+
+                now_local = _dt.now(_ZoneInfo(tz_name))
+                report = calculate_muhurtha(now_local, lat, lon, tz_name)
+                reference = (
+                    f"{report.timestamp} ({report.timezone}), "
+                    f"at birth place ({lat:.2f}, {lon:.2f})"
+                )
+                lines.extend(_format_muhurtha_lines(report.model_dump(), reference))
+            except Exception as exc:  # noqa: BLE001 - report, never invent
+                lines.append(
+                    "- Muhurtha (Timing): could not be calculated for the "
+                    f"query moment at the birth place ({exc}); do not invent "
+                    "hora, choghadiya, or Rahu Kalam times."
+                )
+        else:
+            lines.append(
+                "- Muhurtha (Timing): no birth place/time in the chart context, "
+                "so no muhurtha could be calculated; do not invent times."
+            )
 
     return "\n".join(lines)
 
@@ -926,7 +1226,12 @@ def build_prompt(
         )
         compact_ctx = _compact_birth_context(birth_context)
         lines.append(f"Birth chart context: {json.dumps(compact_ctx)}")
-        summary = _format_birth_summary(birth_context)
+        # Muhurtha lines only for timing questions (Event Prediction intent):
+        # they describe the query moment, not the birth moment.
+        summary = _format_birth_summary(
+            birth_context,
+            include_muhurtha=(intent == ConsultationIntent.EVENT_PREDICTION),
+        )
         if summary:
             lines.append("\n" + summary)
         lines.append("")
