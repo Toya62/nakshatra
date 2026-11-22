@@ -13,7 +13,6 @@ Nakshatra Retrieval - hybrid BM25 + dense search with RRF fusion.
 
 from __future__ import annotations
 
-import json
 import re
 from collections import defaultdict
 from typing import Any
@@ -30,6 +29,33 @@ from nakshatra.ai.embeddings import (
 
 DEFAULT_RRF_K = 60
 IDF_FLOOR = 0.1
+
+# Task 13 step 7 — relevance floor. A retrieved chunk enters RRF fusion
+# only through a channel where it clears that channel's floor: BM25 score
+# >= DEFAULT_BM25_FLOOR, or dense cosine similarity >= DEFAULT_DENSE_FLOOR.
+# The BM25 number is calibrated on the step-1 eval set against the
+# production index (6,690 chunks): every top-5 BM25 score of the 6 golden
+# retrieval queries (tests/test_ai_eval.py) and the 4 classical queries
+# (tests/test_classical_rag_consultation.py) is >= 12.62, so the floor
+# drops none of them, while 5 of 8 off-topic probe queries return nothing
+# at all and the other 3 keep only their single best chunk (from 5).
+# The dense floor is a conservative default for cosine similarity with
+# the production all-MiniLM-L6-v2 embedder (relevant chunks typically
+# score well above 0.20); it is NOT calibrated here because
+# sentence-transformers is not installed in this environment, so no dense
+# measurement on the real index was possible.
+DEFAULT_BM25_FLOOR = 12.0
+DEFAULT_DENSE_FLOOR = 0.20
+
+# Absolute BM25 scores scale with corpus size (idf grows with log N), so
+# a floor calibrated on the 6,690-chunk production index is meaningless
+# on a tiny index, where even an exact match scores under 1.0. Measured
+# on random subsamples of the production index: at N=100 the golden
+# queries top out at 5-15, at N=1000 two of six top out below 12.0, and
+# at N=3000 all six top out at >= 13.6. The floor therefore only engages
+# at production scale (MIN_CHUNKS_FOR_FLOOR); below that, search behaves
+# exactly as before (no floor), so small test corpora keep working.
+MIN_CHUNKS_FOR_FLOOR = 3000
 
 
 def tokenize(text: str) -> list[str]:
@@ -476,6 +502,12 @@ class HybridRetriever:
 
     The embedder is optional; without it (or without vectors in the
     store) the retriever degrades to BM25-only lexical search.
+
+    A relevance floor (Task 13 step 7) drops chunks whose BM25 score and
+    dense cosine similarity are both below their floors, instead of
+    presenting top-k chunks when nothing matched. The floor engages only
+    on production-scale indexes (>= MIN_CHUNKS_FOR_FLOOR chunks); see the
+    constants above for the calibration.
     """
 
     def __init__(
@@ -483,12 +515,16 @@ class HybridRetriever:
         store: EmbeddingStore,
         embedder: BaseEmbedder | None = None,
         concept_map: ConceptMap | None = None,
+        bm25_floor: float = DEFAULT_BM25_FLOOR,
+        dense_floor: float = DEFAULT_DENSE_FLOOR,
     ) -> None:
         self._chunks = store.chunks
         self._bm25 = BM25Index(self._chunks)
         self._store = store
         self._embedder = embedder
         self._concept_map = concept_map or ConceptMap()
+        self._bm25_floor = bm25_floor
+        self._dense_floor = dense_floor
 
     def __len__(self) -> int:
         return len(self._chunks)
@@ -548,26 +584,38 @@ class HybridRetriever:
 
         rankings: list[list[int]] = []
 
-        # Lexical (BM25) ranking
+        # The relevance floor engages only at production scale (see
+        # MIN_CHUNKS_FOR_FLOOR): absolute BM25 scores are not comparable
+        # across corpus sizes, so on a small index every chunk is kept,
+        # exactly as before this step.
+        floor_on = len(self._chunks) >= MIN_CHUNKS_FOR_FLOOR
+
+        # Lexical (BM25) ranking: only chunks clearing the BM25 floor
+        # enter fusion when the floor is on; otherwise every chunk with
+        # a positive score, as before.
         bm25_scores = self._bm25.scores(expanded)
         lexical_order = [
-            int(index) for index in np.argsort(-bm25_scores) if bm25_scores[int(index)] > 0
+            int(index)
+            for index in np.argsort(-bm25_scores)
+            if bm25_scores[int(index)] > 0
+            and (not floor_on or bm25_scores[int(index)] >= self._bm25_floor)
         ]
         rankings.append(lexical_order)
 
-        # Dense (embedding) ranking
+        # Dense (embedding) ranking, mapped by chunk index (Task 13
+        # step 7): dense hits used to be keyed by the chunk's serialized
+        # dump, so duplicate identical chunks collapsed to one index and
+        # a hit could return the wrong duplicate. Only chunks clearing
+        # the dense cosine floor enter fusion when the floor is on.
         if self._embedder is not None:
-            dense_results = self._store.search(
+            dense_hits = self._store.search_with_indices(
                 self._embedder.embed_query(expanded),
                 top_k=min(len(self._chunks), top_k * 3),
             )
-            index_by_key = {
-                json.dumps(chunk.model_dump(), sort_keys=True): index
-                for index, chunk in enumerate(self._chunks)
-            }
             dense_order = [
-                index_by_key[json.dumps(result.chunk.model_dump(), sort_keys=True)]
-                for result in dense_results
+                index
+                for index, result in dense_hits
+                if not floor_on or result.score >= self._dense_floor
             ]
             rankings.append(dense_order)
 

@@ -1351,6 +1351,73 @@ def _compact_birth_context(chart: dict[str, Any]) -> dict[str, Any]:
     return compact
 
 
+# Task 13 step 7 — prompt token budget. The budget counts the whole
+# assembled prompt; when it is exceeded, the raw compact chart JSON is
+# shortened first (the formatted summary already carries the facts),
+# the summary is never cut, and references are never silently dropped.
+# Overridable with the PROMPT_TOKEN_BUDGET environment variable.
+PROMPT_TOKEN_BUDGET = 16000
+PROMPT_BUDGET_NOTE = (
+    "[Note: the raw birth chart JSON below was shortened to fit the "
+    "prompt token budget; the formatted summary below carries the full "
+    "facts. Do not treat the shortened JSON as the complete chart.]"
+)
+
+
+def _prompt_token_budget() -> int:
+    """Effective prompt token budget (env override, default 16000)."""
+    try:
+        return int(os.environ.get("PROMPT_TOKEN_BUDGET", str(PROMPT_TOKEN_BUDGET)))
+    except ValueError:
+        return PROMPT_TOKEN_BUDGET
+
+
+def estimate_prompt_tokens(text: str) -> int:
+    """Rough prompt-token estimate: ~4 characters per token.
+
+    tiktoken is not installed, so this is the standard rough heuristic
+    for English text — a soft budget that prevents gross context
+    overflow, not an exact tokenizer count. (Devanagari text tokenizes
+    denser than 4 chars/token, so the estimate is optimistic for
+    Nepali prompts; the budget still bounds the worst case.)
+    """
+    return (len(text) + 3) // 4
+
+
+def _apply_prompt_token_budget(prompt: str) -> str:
+    """Shorten the raw compact chart JSON until the prompt fits the budget.
+
+    Drops the largest top-level keys of the ``Birth chart context:``
+    JSON first, then the whole JSON if still over budget, and signals
+    the shortening in the prompt itself (note line + ``"__truncated__"``
+    marker in the JSON). The formatted summary and the numbered
+    references are left untouched. Prompts without a birth chart
+    context, and prompts already within budget, are returned as-is.
+    """
+    budget = _prompt_token_budget()
+    if estimate_prompt_tokens(prompt) <= budget:
+        return prompt
+    lines = prompt.split("\n")
+    for index, line in enumerate(lines):
+        if not line.startswith("Birth chart context: "):
+            continue
+        try:
+            ctx = json.loads(line[len("Birth chart context: ") :])
+        except json.JSONDecodeError:
+            break
+        if not isinstance(ctx, dict):
+            break
+        while ctx and estimate_prompt_tokens("\n".join(lines)) > budget:
+            largest = max(ctx, key=lambda key: len(json.dumps(ctx[key], default=str)))
+            del ctx[largest]
+            lines[index] = "Birth chart context: " + json.dumps(ctx)
+        ctx["__truncated__"] = True
+        lines[index] = "Birth chart context: " + json.dumps(ctx)
+        lines.insert(index, PROMPT_BUDGET_NOTE)
+        break
+    return "\n".join(lines)
+
+
 def build_prompt(
     question: str,
     results: list[SearchResult],
@@ -1658,7 +1725,7 @@ def build_prompt(
                 "Never recite ancient mathematical calculation algorithms, table numbers, or worked-out arithmetic examples from the commentary texts. "
                 "Do NOT append a redundant 'References:' or 'Citations:' bibliography list at the end of your response, as the platform interface automatically renders dedicated interactive citation cards below your answer."
             )
-    return "\n".join(lines)
+    return _apply_prompt_token_budget("\n".join(lines))
 
 
 def extract_citations(answer: str, results: list[SearchResult]) -> list[Citation]:
