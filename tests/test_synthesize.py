@@ -92,6 +92,46 @@ class TestBuildPrompt:
         assert "[1] BPHS Verse 12" in prompt
         assert "Chapter" not in prompt
 
+    def test_4_pillar_prediction_architecture_in_prompt(self):
+        prompt = build_prompt("When will I get promoted?", [_result()])
+        assert "### 1. Direct Verdict & Timing" in prompt
+        assert "### 2. Astrological Mechanism & Calculation Proof" in prompt
+        assert "### 3. Concrete Timeline Windows" in prompt
+        assert "### 4. Classical Lal Kitab Prescription" in prompt
+        assert "Zero conversational fluff" in prompt
+
+    def test_nepali_4_pillar_instruction_in_prompt(self):
+        prompt = build_prompt("मेरो जागिर कहिले हुन्छ?", [_result()], language="ne")
+        assert "### १. प्रत्यक्ष फलादेश र मुख्य निर्णय" in prompt
+        assert "### २. ज्योतिषीय आधार र गणितीय प्रमाण" in prompt
+        assert "### ३. यकिन समय-तालिका" in prompt
+        assert "### ४. प्रामाणिक लाल किताब उपाय तथा सावधानी" in prompt
+
+    def test_lal_kitab_remedies_in_birth_summary(self):
+        birth_context = {
+            "remedies": {
+                "afflicted_planets": [
+                    {
+                        "planet": "Saturn",
+                        "house": 8,
+                        "severity": "high",
+                        "lal_kitab": {
+                            "household_remedy": "Drop raw mustard oil in dirt",
+                            "symbolic_action": "Float 8 almonds in river",
+                            "forbidden_actions": ["Never drink alcohol", "Never tell lies"],
+                            "creature_service": "Feed stray black dogs",
+                        },
+                    }
+                ]
+            }
+        }
+        prompt = build_prompt("Remedies?", [_result()], birth_context=birth_context)
+        assert "Classical Lal Kitab 108 Upayas & Inviolable Precautions" in prompt
+        assert "Saturn in House 8 [HIGH AFFLICTION]" in prompt
+        assert "Float 8 almonds in river" in prompt
+        assert "Feed stray black dogs" in prompt
+        assert "Never drink alcohol" in prompt
+
 
 class TestExtractCitations:
     """[n] marker parsing from model output."""

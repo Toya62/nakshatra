@@ -1416,6 +1416,11 @@ async def rag_ask(request: RAGAskRequest) -> RAGAskResponse:
                 birth_context["predictions"] = {k: v.model_dump() for k, v in preds.items()}
             except Exception:
                 pass
+            try:
+                rem = chart.get_remedies(transits=transits)
+                birth_context["remedies"] = rem.model_dump()
+            except Exception:
+                pass
         answer, references = _rag_service.ask(
             request.question,
             index_dir=request.index_dir,
@@ -1462,6 +1467,11 @@ async def rag_ask_stream(request: RAGAskRequest) -> StreamingResponse:
         try:
             preds = chart.get_predictions(transits=transits)
             birth_context["predictions"] = {k: v.model_dump() for k, v in preds.items()}
+        except Exception:
+            pass
+        try:
+            rem = chart.get_remedies(transits=transits)
+            birth_context["remedies"] = rem.model_dump()
         except Exception:
             pass
 
