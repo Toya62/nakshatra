@@ -473,12 +473,29 @@ def calculate_remedies(
         # If afflicted, build dual remedy profile
         if reasons:
             par_info = PARASHARI_DATA.get(p_name, PARASHARI_DATA["Saturn"])
+            # An exalted or own-sign planet must never be STRENGTHENED with
+            # its gemstone — it is already strong. It can still appear here
+            # for propitiation (mantra, charity, seva) when the affliction
+            # comes from a transit (e.g. Sade Sati / Ashtama Shani), so the
+            # gemstone is withheld rather than the whole card being dropped.
+            if p_dignity in ("exalted", "own_sign"):
+                dignity_note = (
+                    "exalted" if p_dignity == "exalted" else "in its own sign"
+                )
+                gemstone = (
+                    f"Not prescribed — {p_name} is {dignity_note}; "
+                    f"do not wear {par_info['gemstone']} to strengthen it"
+                )
+                substitute_gem = "Not prescribed — see gemstone note"
+            else:
+                gemstone = par_info["gemstone"]
+                substitute_gem = par_info["substitute_gem"]
             p_remedy = ParashariRemedy(
                 deity=par_info["deity"],
                 beej_mantra=par_info["beej_mantra"],
                 mantra_count=par_info["mantra_count"],
-                gemstone=par_info["gemstone"],
-                substitute_gem=par_info["substitute_gem"],
+                gemstone=gemstone,
+                substitute_gem=substitute_gem,
                 metal=par_info["metal"],
                 gem_finger=par_info["gem_finger"],
                 gem_caution=par_info["gem_caution"],

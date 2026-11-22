@@ -726,7 +726,7 @@ LAL_KITAB_108_UPAYAS: dict[tuple[str, int], dict[str, Any]] = {
             "Never buy new iron articles or leather shoes on Saturdays",
             "Avoid disputes with subordinates",
         ],
-        "creature": "Feed black dogs and crows regularly on Saturday evenings.",
+        "creature": "Feed black dogs and crows regularly on Saturday mornings.",
     },
     ("Saturn", 7): {
         "household": "Bury an earthen pot filled with pure mustard oil in uncultivated, barren soil outside city limits.",
@@ -735,7 +735,7 @@ LAL_KITAB_108_UPAYAS: dict[tuple[str, int], dict[str, Any]] = {
             "Never initiate new construction work on Saturday evening",
             "Do not marry before age 22",
         ],
-        "creature": "Feed black crows and street dogs on Saturday evenings after sunset.",
+        "creature": "Feed black crows and street dogs on Saturday mornings.",
     },
     ("Saturn", 8): {
         "household": "Maintain barefoot visits to sacred temples on Saturdays; practice selfless karma yoga.",
@@ -775,12 +775,12 @@ LAL_KITAB_108_UPAYAS: dict[tuple[str, int], dict[str, Any]] = {
     },
     ("Saturn", 12): {
         "household": "Sleep in a room free from dark corners or dampness; maintain generous charity for the poor.",
-        "symbolic": "Donate a coarse black woolen blanket to an impoverished person on Saturday evening.",
+        "symbolic": "Donate a coarse black woolen blanket to an impoverished person on Saturday morning.",
         "forbidden": [
             "Never tell lies under oath",
             "Avoid keeping windows open towards the south during sleep",
         ],
-        "creature": "Feed black dogs and crows after sunset on Saturdays.",
+        "creature": "Feed black dogs and crows on Saturday mornings.",
     },
 
     # ==================== RAHU ====================
@@ -840,7 +840,7 @@ LAL_KITAB_108_UPAYAS: dict[tuple[str, int], dict[str, Any]] = {
     },
     ("Rahu", 7): {
         "household": "Fill an earthen pot with river water and silver coins, seal it tightly, and bury it in deep soil outside town.",
-        "symbolic": "Float 7 dry coconuts into flowing river water on Saturday evening.",
+        "symbolic": "Float 7 dry coconuts into flowing river water on Saturday morning.",
         "forbidden": [
             "Never marry before age 21",
             "Do not initiate partnership contracts with untrustworthy strangers",
@@ -849,12 +849,12 @@ LAL_KITAB_108_UPAYAS: dict[tuple[str, int], dict[str, Any]] = {
     },
     ("Rahu", 8): {
         "household": "Eat warm meals sitting inside the kitchen area; ensure kitchen sink and drainage pipes remain spotless.",
-        "symbolic": "Float 8 whole dry coconuts into flowing water on Saturday evening.",
+        "symbolic": "Float 8 whole dry coconuts into flowing water on Saturday morning.",
         "forbidden": [
             "Never leave garbage or rusty iron scrap under staircases",
             "Avoid sleeping in south direction",
         ],
-        "creature": "Feed crows and stray animals with leftover food after sunset.",
+        "creature": "Feed crows and stray animals with leftover food in the daytime.",
     },
     ("Rahu", 9): {
         "household": "Wear a gold chain or saffron tilak; maintain respect towards ancestral elders and spiritual gurus.",
