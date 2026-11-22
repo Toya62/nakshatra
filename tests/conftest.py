@@ -6,7 +6,11 @@ Ensures valid corpus and index structures exist on clean checkouts (such as CI r
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
+
+# Disable API rate limiting during pytest test sessions
+os.environ.setdefault("RATE_LIMIT_PER_MINUTE", "0")
 
 import pytest
 
