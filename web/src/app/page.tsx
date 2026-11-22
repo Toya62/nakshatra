@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Sidebar, TabId } from "@/components/Sidebar";
 import { BirthSummaryPill } from "@/components/BirthSummaryPill";
-import { NorthIndianChart } from "@/components/NorthIndianChart";
+import { KundaliView } from "@/components/KundaliView";
 import { PlanetsTable } from "@/components/PlanetsTable";
 import { YogasView } from "@/components/YogasView";
 import { TransitsView } from "@/components/TransitsView";
@@ -30,6 +30,25 @@ const VARGAS = [
   "D1", "D2", "D3", "D4", "D7", "D9", "D10",
   "D12", "D16", "D20", "D24", "D27", "D30", "D40", "D45", "D60"
 ];
+
+const VARGA_NAMES: Record<string, string> = {
+  D1: "Rasi (Root)",
+  D2: "Hora (Wealth)",
+  D3: "Drekkana (Siblings & Courage)",
+  D4: "Chaturthamsa (Fortune & Home)",
+  D7: "Saptamsa (Children & Lineage)",
+  D9: "Navamsha (Dharma & Spouse)",
+  D10: "Dasamsa (Career & Stature)",
+  D12: "Dwadasamsa (Parents & Ancestry)",
+  D16: "Shodasamsa (Vehicles & Happiness)",
+  D20: "Vimsamsa (Spiritual Progress)",
+  D24: "Chaturvimsamsa (Higher Learning)",
+  D27: "Saptavimsamsa (Strengths & Weaknesses)",
+  D30: "Trimsamsa (Arishta & Misfortune)",
+  D40: "Khavedamsa (Auspicious Effects)",
+  D45: "Akshavedamsa (All General Matters)",
+  D60: "Shastiamsa (Karma & Past Lives)",
+};
 
 const DEFAULT_BIRTH_DATA: BirthDataInput = NEUTRAL_SSR_BIRTH_DATA;
 
@@ -282,50 +301,30 @@ export default function Home() {
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
-                        marginBottom: "var(--space-4)",
+                        marginBottom: "var(--space-3)",
                         flexWrap: "wrap",
-                        gap: "var(--space-3)",
+                        gap: "var(--space-2)",
                       }}
                     >
-                      {/* Section title */}
                       <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
                         <span className="serif-section" style={{ fontSize: "1.05rem", color: "var(--gold-bright)", letterSpacing: "0.03em" }}>
                           Kundali Chart
                         </span>
-                      </div>
-
-                      {/* Varga chips (scrollable row for all 16 Shodashavargas) */}
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "var(--space-1)",
-                          overflowX: "auto",
-                          maxWidth: "100%",
-                          width: "100%",
-                          minWidth: 0,
-                          paddingBottom: "2px",
-                          WebkitOverflowScrolling: "touch",
-                          scrollbarWidth: "none",
-                        }}
-                        tabIndex={0}
-                        aria-label="Divisional chart selector"
-                      >
-                        <Layers size={13} color="var(--text-low)" aria-hidden="true" style={{ flexShrink: 0, marginRight: "2px" }} />
-                        {VARGAS.map((v) => (
-                          <button
-                            key={v}
-                            onClick={() => handleVargaChange(v)}
-                            className={`chip${selectedVarga === v ? " active" : ""}`}
-                            aria-pressed={selectedVarga === v}
-                          >
-                            {v}
-                          </button>
-                        ))}
+                        <span
+                          className="badge badge-gold"
+                          style={{ fontSize: "var(--type-micro)" }}
+                        >
+                          {VARGA_NAMES[selectedVarga] || selectedVarga}
+                        </span>
                       </div>
                     </div>
 
-                    <NorthIndianChart chart={chartData} varga={selectedVarga} size={500} />
+                    <KundaliView
+                      chart={chartData}
+                      selectedVarga={selectedVarga}
+                      onVargaChange={handleVargaChange}
+                      size={520}
+                    />
                   </div>
 
                   {/* Data Rail */}

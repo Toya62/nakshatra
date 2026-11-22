@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, forwardRef } from "react";
 import { ChartData } from "@/lib/types";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -119,7 +119,7 @@ interface PlanetBadgeData {
   dignity: DignityInfo;
 }
 
-export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 520 }) => {
+export const NorthIndianChart = forwardRef<SVGSVGElement, Props>(({ chart, varga = "D1", size = 520 }, ref) => {
   const { t, lang, num } = useLanguage();
   const [hoveredHouse, setHoveredHouse] = useState<number | null>(null);
 
@@ -339,6 +339,7 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
       {/* SVG Container */}
       <svg
+        ref={ref}
         width="100%"
         height="100%"
         viewBox={`0 0 ${w} ${h}`}
@@ -821,4 +822,6 @@ export const NorthIndianChart: React.FC<Props> = ({ chart, varga = "D1", size = 
       </div>
     </div>
   );
-};
+});
+
+NorthIndianChart.displayName = "NorthIndianChart";
