@@ -19,7 +19,6 @@ from types import SimpleNamespace
 
 import pytest
 
-from nakshatra.ai import synthesize as synth_mod
 from nakshatra.ai.synthesize import (
     GOOGLE_PRIMARY_MODEL,
     GOOGLE_ROTATION_MODELS,
