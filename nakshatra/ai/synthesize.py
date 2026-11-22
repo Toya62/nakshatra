@@ -23,6 +23,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from nakshatra.ai.retrieval import SearchResult
+from nakshatra.ai.validate import ValidationResult, validate_answer
 
 
 class ConsultationIntent(str, Enum):
@@ -431,6 +432,10 @@ class Answer(BaseModel):
     answer: str
     citations: list[Citation] = Field(default_factory=list)
     model: str = ""
+    # Post-generation validation (Task 13 step 1): flags for chart claims
+    # that do not match the chart context and for dropped citations.
+    # None for answers that were not LLM-validated (e.g. fallback).
+    validation: ValidationResult | None = None
 
 
 class BaseSynthesizer(ABC):
@@ -1278,11 +1283,16 @@ class LLMSynthesizer(BaseSynthesizer):
             except TypeError:
                 text = self._complete(prompt)
             clean_answer = _strip_trailing_references(text)
+            # Task 13 step 1: validate the LLM answer against the chart
+            # context it was given; drop unsupported/out-of-range citations
+            # and flag any placement/date/yoga/Sade Sati mismatch.
+            validation = validate_answer(clean_answer, birth_context, results)
             return Answer(
                 question=question,
-                answer=clean_answer,
-                citations=extract_citations(text, results),
+                answer=validation.cleaned_answer,
+                citations=extract_citations(validation.cleaned_answer, results),
                 model=self.model,
+                validation=validation,
             )
         except Exception as e:
             fb = FallbackSynthesizer()
