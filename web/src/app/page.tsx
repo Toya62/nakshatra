@@ -10,6 +10,7 @@ import { YogasView } from "@/components/YogasView";
 import { TransitsView } from "@/components/TransitsView";
 import { DashaView } from "@/components/DashaView";
 import { PanchangaView } from "@/components/PanchangaView";
+import { CalendarView } from "@/components/CalendarView";
 import { CompatibilityView } from "@/components/CompatibilityView";
 import { MuhurthaView } from "@/components/MuhurthaView";
 import { ConsultationView } from "@/components/ConsultationView";
@@ -39,6 +40,7 @@ const VALID_TABS: TabId[] = [
   "transits",
   "dasha",
   "panchanga",
+  "calendar",
   "compatibility",
   "muhurtha",
   "remedies",
@@ -336,6 +338,15 @@ export default function Home() {
         {/* ═══ Panchanga ═════════════════════════════════════════════════ */}
         {activeTab === "panchanga" && (
           <PanchangaView
+            defaultLat={birthData.latitude}
+            defaultLon={birthData.longitude}
+            defaultTz={birthData.timezone}
+          />
+        )}
+
+        {/* ═══ Calendar ══════════════════════════════════════════════════ */}
+        {activeTab === "calendar" && (
+          <CalendarView
             defaultLat={birthData.latitude}
             defaultLon={birthData.longitude}
             defaultTz={birthData.timezone}

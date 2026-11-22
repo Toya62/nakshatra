@@ -4,6 +4,7 @@ import React from "react";
 import {
   ChevronLeft,
   ChevronRight,
+  Calendar,
   Menu,
   X,
 } from "lucide-react";
@@ -30,6 +31,7 @@ export type TabId =
   | "transits"
   | "dasha"
   | "panchanga"
+  | "calendar"
   | "compatibility"
   | "muhurtha"
   | "remedies"
@@ -98,6 +100,16 @@ const TABS: {
       color: "var(--graha-mercury, #059669)",
       bg: "rgba(5, 150, 105, 0.10)",
       border: "rgba(5, 150, 105, 0.25)",
+    },
+  },
+  {
+    id: "calendar",
+    label: "Calendar",
+    Icon: Calendar,
+    accent: {
+      color: "var(--gold-vivid, #e5b94c)",
+      bg: "rgba(229, 185, 76, 0.10)",
+      border: "rgba(229, 185, 76, 0.25)",
     },
   },
   {
@@ -215,6 +227,7 @@ export const Sidebar: React.FC<Props> = ({
       case "transits": return t.nav.transits;
       case "dasha": return t.nav.dasha;
       case "panchanga": return t.nav.panchanga;
+      case "calendar": return t.nav.calendar;
       case "compatibility": return t.nav.compatibility;
       case "muhurtha": return t.nav.muhurtha;
       case "remedies": return t.nav.remedies;

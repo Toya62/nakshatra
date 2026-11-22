@@ -35,6 +35,7 @@ export const ne: TranslationSchema = {
     chart: "कुण्डली (D1/D9)",
     table: "ग्रह र भाव तालिका",
     panchanga: "दैनिक पञ्चाङ्ग",
+    calendar: "पात्रो",
     dasha: "विंशोत्तरी दशा",
     ashtakavarga: "अष्टकवर्ग",
     transits: "गोचर भ्रमण",
@@ -221,6 +222,12 @@ export const ne: TranslationSchema = {
       krishna: "कृष्ण पक्ष",
     },
     tomorrowPreview: "भोलिको पञ्चाङ्ग",
+  },
+  calendar: {
+    title: "पात्रो",
+    subtitle: "ईस्वी र विक्रम संवत्मा महिनाको पात्रो — पञ्चाङ्ग हेर्न दिन छान्नुहोस्",
+    today: "आज",
+    dayPanchanga: "यस दिनको पञ्चाङ्ग",
   },
   dasha: {
     title: "विंशोत्तरी महादशा",

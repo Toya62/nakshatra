@@ -14,6 +14,7 @@ import json
 import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from calendar import monthrange
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -594,6 +595,20 @@ async def convert_ad_to_bs(
 ) -> BikramSambatDate:
     """Convert Gregorian (AD) calendar date to Nepali Bikram Sambat (BS)."""
     return ad_to_bs(year, month, day)
+
+
+@app.get("/calendar/bs/month", response_model=list[BikramSambatDate], tags=["Calendar"])
+async def convert_ad_month_to_bs(
+    year: int = Query(..., ge=1, le=3000),
+    month: int = Query(..., ge=1, le=12),
+) -> list[BikramSambatDate]:
+    """Convert every day of a Gregorian month to Bikram Sambat, in order.
+
+    One call for the Calendar month grid, instead of one request per day.
+    Each entry is the BS date of the corresponding AD day (index + 1).
+    """
+    _, days_in_month = monthrange(year, month)
+    return [ad_to_bs(year, month, day) for day in range(1, days_in_month + 1)]
 
 
 @app.get("/calendar/ad", response_model=GregorianDate, tags=["Calendar"])
