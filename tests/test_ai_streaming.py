@@ -76,8 +76,7 @@ def _google_synth(model="gemini-3.8-flash"):
 
 def _partial_then_fail(tokens, exc):
     def _gen(*args, **kwargs):
-        for tok in tokens:
-            yield tok
+        yield from tokens
         raise exc
 
     return _gen

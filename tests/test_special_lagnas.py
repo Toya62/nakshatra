@@ -15,7 +15,7 @@ from nakshatra.core import BirthData, calculate_chart
 
 
 def _ghati(chart):
-    return next(l for l in chart.get_special_lagnas().lagnas if l.name == "Ghati Lagna")
+    return next(lagna for lagna in chart.get_special_lagnas().lagnas if lagna.name == "Ghati Lagna")
 
 
 def test_ghati_lagna_live_example():

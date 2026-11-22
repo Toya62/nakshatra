@@ -299,7 +299,8 @@ def _sunrise_hour_local(
 
     try:
         probe = datetime(year, month, day, 12, 0, 0, tzinfo=ZoneInfo(timezone_str))
-        offset_sec = probe.utcoffset().total_seconds() if probe.utcoffset() else 0.0
+        offset = probe.utcoffset()
+        offset_sec = offset.total_seconds() if offset is not None else 0.0
         t_tz_str = format_tz_offset(offset_sec)
         swe.set_ephe_path("")
         midnight = Datetime([year, month, day], 0.0, t_tz_str)
@@ -310,7 +311,7 @@ def _sunrise_hour_local(
         if res[0] != 0:
             return None
         ut_hour = swe.revjul(res[1][0], swe.GREG_CAL)[3]
-        return (ut_hour + offset_sec / 3600.0) % 24.0
+        return float((ut_hour + offset_sec / 3600.0) % 24.0)
     except Exception:
         return None
 

@@ -38,11 +38,8 @@ import re
 from dataclasses import dataclass, field
 from datetime import datetime
 
-import pytest
-
 from nakshatra.ai.corpus import CorpusChunk
 from nakshatra.ai.retrieval import SearchResult
-from nakshatra.ai.synthesize import extract_citations
 from nakshatra.core import BirthData, calculate_chart
 from nakshatra.transits import calculate_transits
 
@@ -1059,7 +1056,7 @@ def test_validate_citations_kwarg_alias():
 # ---------------------------------------------------------------------------
 
 def test_llm_synthesizer_validates_and_drops_citations():
-    from nakshatra.ai.synthesize import Answer, BaseSynthesizer, LLMSynthesizer
+    from nakshatra.ai.synthesize import Answer, LLMSynthesizer
 
     class StubLLM(LLMSynthesizer):
         def _complete(self, prompt, system_prompt=None):

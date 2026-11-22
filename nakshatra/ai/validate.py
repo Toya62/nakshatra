@@ -494,9 +494,9 @@ _DASHA_LEVEL_BY_WORD = {
 def _check_dates(answer: str, facts: _ChartFacts,
                  flags: list[ValidationFlag], result: ValidationResult) -> None:
     for sentence in _sentences(answer):
-        dates = [(m.start(), _parse_iso_date(m.group(0)))
-                 for m in _ISO_DATE.finditer(sentence)]
-        dates = [(pos, d) for pos, d in dates if d is not None]
+        parsed_dates = [(m.start(), _parse_iso_date(m.group(0)))
+                        for m in _ISO_DATE.finditer(sentence)]
+        dates = [(pos, d) for pos, d in parsed_dates if d is not None]
         if not dates:
             continue
         # "X to Y" ranges must not end before they start.
