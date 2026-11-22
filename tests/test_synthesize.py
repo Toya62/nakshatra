@@ -13,10 +13,14 @@ import pytest
 from nakshatra.ai.corpus import CorpusChunk
 from nakshatra.ai.retrieval import SearchResult
 from nakshatra.ai.synthesize import (
+    ConsultationIntent,
     FallbackSynthesizer,
     LLMSynthesizer,
+    _format_birth_summary,
     build_prompt,
+    classify_intent,
     extract_citations,
+    get_system_prompt,
 )
 
 
@@ -132,6 +136,103 @@ class TestBuildPrompt:
         assert "Feed stray black dogs" in prompt
         assert "Never drink alcohol" in prompt
 
+    def test_natal_identity_architecture_in_prompt(self):
+        prompt = build_prompt("tell me about myself", [_result()])
+        assert "NATAL IDENTITY & COSMIC PROFILE DIRECTIVE" in prompt
+        assert "### 1. Cosmic Blueprint & Ascendant Archetype" in prompt
+        assert "### 2. Emotional Landscape & Mind (Chandra & Nakshatra)" in prompt
+        assert "### 3. Soul Purpose & Driving Vitality (Surya & Karakas)" in prompt
+        assert "### 4. Key Strengths, Yogas & Karmic Evolution" in prompt
+        assert "Do NOT invent job application windows" in prompt
+        assert "dog-feeding" in prompt
+
+    def test_nepali_natal_identity_architecture_in_prompt(self):
+        prompt = build_prompt("आफ्नो बारेमा भन्नुहोस्", [_result()], language="ne")
+        assert "### १. कुण्डलीको मूल संरचना र लग्न स्वरूप" in prompt
+        assert "### २. मानसिक-भावनात्मक धरातल र चन्द्र-नक्षत्र" in prompt
+        assert "### ३. आत्मिक उद्देश्य र आत्मकारक ग्रह" in prompt
+        assert "### ४. मुख्य सामर्थ्य, शुभ योग र आत्म-विकास" in prompt
+
+
+class TestIntentClassification:
+    """Astrological consultation intent classification."""
+
+    def test_natal_identity_intents(self):
+        queries = [
+            "tell me about myself",
+            "who am I?",
+            "what is my personality?",
+            "what are my strengths and weaknesses?",
+            "describe my character",
+            "tell me about my chart",
+            "what is my soul purpose?",
+            "आफ्नो बारेमा भन्नुहोस्",
+            "म को हुँ?",
+            "मेरो स्वभाव कस्तो छ?",
+        ]
+        for q in queries:
+            assert classify_intent(q) == ConsultationIntent.NATAL_IDENTITY, f"Failed for '{q}'"
+
+    def test_event_prediction_intents(self):
+        queries = [
+            "When will I get promoted?",
+            "when will I get a job?",
+            "when will my finances improve?",
+            "मेरो जागिर कहिले हुन्छ?",
+            "विवाह कहिले हुन्छ?",
+        ]
+        for q in queries:
+            assert classify_intent(q) == ConsultationIntent.EVENT_PREDICTION, f"Failed for '{q}'"
+
+    def test_remedial_intents(self):
+        queries = [
+            "what remedies should I do for Saturn?",
+            "lal kitab upaya for Rahu",
+            "which gemstone should I wear?",
+            "शान्ति पूजा र उपाय",
+        ]
+        for q in queries:
+            assert classify_intent(q) == ConsultationIntent.REMEDIAL, f"Failed for '{q}'"
+
+    def test_conceptual_intents(self):
+        queries = [
+            "what is Sade Sati?",
+            "explain Gajakesari yoga",
+            "meaning of Retrograde Mercury",
+            "कालसर्प दोष भनेको के हो?",
+        ]
+        for q in queries:
+            assert classify_intent(q) == ConsultationIntent.CONCEPTUAL, f"Failed for '{q}'"
+
+
+class TestBirthSummaryEnrichment:
+    """Enriched natal summary generation."""
+
+    def test_lagna_lord_and_jaimini_karakas(self):
+        chart_data = {
+            "ascendant": {"sign": "Capricorn", "degree_in_sign": 21.0, "nakshatra": "Shravana", "pada": 4, "nakshatra_lord": "Moon"},
+            "planets": [
+                {"name": "Sun", "sign": "Virgo", "house": 9, "degree_in_sign": 27.7, "nakshatra": "Chitra", "pada": 2, "dignity": "neutral"},
+                {"name": "Moon", "sign": "Gemini", "house": 6, "degree_in_sign": 13.2, "nakshatra": "Ardra", "pada": 2, "dignity": "neutral"},
+                {"name": "Mars", "sign": "Scorpio", "house": 11, "degree_in_sign": 2.3, "nakshatra": "Vishakha", "pada": 4, "dignity": "own"},
+                {"name": "Mercury", "sign": "Virgo", "house": 9, "degree_in_sign": 11.4, "nakshatra": "Hasta", "pada": 1, "dignity": "exalted"},
+                {"name": "Jupiter", "sign": "Scorpio", "house": 11, "degree_in_sign": 19.1, "nakshatra": "Jyeshtha", "pada": 1, "dignity": "neutral"},
+                {"name": "Venus", "sign": "Libra", "house": 10, "degree_in_sign": 12.5, "nakshatra": "Swati", "pada": 2, "dignity": "own"},
+                {"name": "Saturn", "sign": "Aquarius", "house": 2, "degree_in_sign": 25.4, "nakshatra": "Purva Bhadrapada", "pada": 2, "retrograde": True, "dignity": "own"},
+            ],
+            "ashtakavarga": {
+                "sarvashtakavarga": [26, 24, 33, 23, 28, 35, 21, 27, 29, 34, 30, 27]
+            }
+        }
+        summary = _format_birth_summary(chart_data)
+        assert "Lagna Lord Placement: Saturn sits in House 2 in Aquarius" in summary
+        assert "Jaimini Chara Karakas: Atmakaraka (Soul): Sun (27.70°)" in summary
+        assert "Amatyakaraka (Career/Action): Saturn (25.40°)" in summary
+        assert "Darakaraka (Spouse/Partnership): Mars (2.30°)" in summary
+        assert "Sarvashtakavarga (SAV Points by House from Lagna):" in summary
+        assert "High Strength Houses (SAV >= 30 bindus):" in summary
+        assert "Do NOT recite all 12 signs or scores in a raw list" in summary
+
 
 class TestExtractCitations:
     """[n] marker parsing from model output."""
@@ -183,6 +284,22 @@ class TestFallbackSynthesizer:
             "Q", [_result()], birth_context={"ascendant": "Aries"}
         )
         assert answer.answer  # context accepted, formatted verbatim
+
+    def test_formats_natal_identity_results(self):
+        results = [_result(verse="1")]
+        answer = FallbackSynthesizer().synthesize("tell me about myself", results)
+        assert "### 1. Cosmic Blueprint & Ascendant Archetype" in answer.answer
+        assert "### 2. Emotional Landscape & Mind (Chandra & Nakshatra)" in answer.answer
+        assert "### 3. Soul Purpose & Driving Vitality (Surya & Karakas)" in answer.answer
+        assert "### 4. Key Strengths, Yogas & Karmic Evolution" in answer.answer
+
+    def test_formats_remedial_results(self):
+        results = [_result(verse="1")]
+        answer = FallbackSynthesizer().synthesize("what remedies for Saturn?", results)
+        assert "### 1. Core Afflictions & Karmic Imbalances" in answer.answer
+        assert "### 2. Primary 43-Day Daytime Lal Kitab Upaya" in answer.answer
+        assert "### 3. Creature & Household Seva" in answer.answer
+        assert "### 4. Inviolable Savdhani (Strict Behavioral Precautions)" in answer.answer
 
 
 class TestLLMSynthesizer:

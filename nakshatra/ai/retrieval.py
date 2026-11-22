@@ -334,6 +334,46 @@ class ConceptMap:
             ],
             ["Upaya", "Remedies", "Dana", "Japa", "Lal Kitab"],
         ),
+        "identity": (
+            [
+                "myself",
+                "about me",
+                "who am i",
+                "who i am",
+                "personality",
+                "nature",
+                "temperament",
+                "characteristics",
+                "character",
+                "strengths",
+                "weaknesses",
+                "soul purpose",
+                "life path",
+                "my chart",
+                "describe me",
+                "traits",
+                "आफ्नो बारेमा",
+                "मेरो बारेमा",
+                "म को हुँ",
+                "स्वभाव",
+                "चरित्र",
+                "व्यक्तित्व",
+                "गुण",
+                "कमजोरी",
+            ],
+            [
+                "Lagna",
+                "Tanu Bhava",
+                "Ascendant",
+                "Atmakaraka",
+                "Chandra",
+                "Moon",
+                "Sun",
+                "Nakshatra",
+                "Prakriti",
+                "Yogas",
+            ],
+        ),
     }
 
     def expand(self, query: str) -> str:
@@ -411,11 +451,43 @@ class HybridRetriever:
         query: str,
         top_k: int = 5,
         k: int = DEFAULT_RRF_K,
+        birth_context: dict[str, Any] | None = None,
     ) -> list[SearchResult]:
         """Retrieve top_k chunks by RRF-fused BM25 + dense ranking."""
         if not self._chunks:
             return []
         expanded = self._concept_map.expand(query)
+        if birth_context:
+            asc = birth_context.get("ascendant")
+            lagna_sign = asc.get("sign") if isinstance(asc, dict) else (asc if isinstance(asc, str) else None)
+            moon_sign = birth_context.get("moon_sign")
+            raw_yogas = birth_context.get("yogas") or []
+            yogas = [y.get("name") for y in raw_yogas if isinstance(y, dict) and y.get("name")]
+            extra_terms: list[str] = []
+            if lagna_sign:
+                extra_terms.append(f"{lagna_sign} Lagna")
+            if moon_sign:
+                extra_terms.append(f"{moon_sign} Moon")
+            if yogas:
+                extra_terms.extend(yogas[:2])
+            q_lower = query.lower()
+            if extra_terms and any(
+                w in q_lower
+                for w in [
+                    "myself",
+                    "about me",
+                    "who am i",
+                    "personality",
+                    "nature",
+                    "strengths",
+                    "chart",
+                    "character",
+                    "आफ्नो",
+                    "स्वभाव",
+                    "व्यक्तित्व",
+                ]
+            ):
+                expanded = f"{expanded} {' '.join(extra_terms)}"
 
         rankings: list[list[int]] = []
 

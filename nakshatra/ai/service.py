@@ -215,7 +215,7 @@ class RAGService:
     ) -> tuple[Answer, list[SearchResult]]:
         """Retrieve references and synthesize a cited answer."""
         retriever = self.load(index_dir)
-        results = retriever.search(question, top_k=top_k)
+        results = retriever.search(question, top_k=top_k, birth_context=birth_context)
         answer = self._get_synthesizer().synthesize(
             question, results, birth_context=birth_context, language=language
         )
@@ -231,7 +231,7 @@ class RAGService:
     ) -> tuple[Iterator[str], list[SearchResult], BaseSynthesizer]:
         """Retrieve references and stream synthesized answer tokens."""
         retriever = self.load(index_dir)
-        results = retriever.search(question, top_k=top_k)
+        results = retriever.search(question, top_k=top_k, birth_context=birth_context)
         synthesizer = self._get_synthesizer()
         stream = synthesizer.synthesize_stream(
             question, results, birth_context=birth_context, language=language

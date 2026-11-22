@@ -17,13 +17,109 @@ import os
 import re
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
+from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel, Field
 
 from nakshatra.ai.retrieval import SearchResult
 
-SYSTEM_PROMPT = (
+
+class ConsultationIntent(str, Enum):
+    """Astrological consultation archetypes for adaptive consultation routing."""
+
+    NATAL_IDENTITY = "natal_identity"
+    EVENT_PREDICTION = "event_prediction"
+    CAREER_FINANCE = "career_finance"
+    RELATIONSHIP = "relationship"
+    REMEDIAL = "remedial"
+    CONCEPTUAL = "conceptual"
+
+
+def classify_intent(question: str) -> ConsultationIntent:
+    """Classify user consultation query into an astrological consultation archetype."""
+    q = (question or "").lower().strip()
+
+    # 1. Remedial intent (mantra, gemstone, puja, upaya, dana, etc.)
+    remedial_pattern = (
+        r"\b(remedy|remedies|upaya|upayas|gemstone|gemstones|mantra|mantras|"
+        r"totka|totke|puja|shanti|rudraksha|dana|donation|how to fix|cure for)\b"
+    )
+    if re.search(remedial_pattern, q) or any(
+        w in q for w in ["उपाय", "शान्ति", "मन्त्र", "रत्न", "पूजा", "दान"]
+    ):
+        return ConsultationIntent.REMEDIAL
+
+    # 2. Conceptual / Educational (definitions, shastra mechanics, not about the self)
+    conceptual_prefix = r"^(what is|what are|explain|define|meaning of|what does|how does)\b"
+    has_self_ref = bool(re.search(r"\b(my|i|myself|me|mine)\b", q))
+    if (re.search(conceptual_prefix, q) and not has_self_ref) or any(
+        w in q for w in ["भनेको के हो", "व्याख्या गर्नुहोस्"]
+    ):
+        return ConsultationIntent.CONCEPTUAL
+
+    # 3. Natal Identity & Character Profile (personality, nature, soul purpose, who am I)
+    natal_pattern = (
+        r"\b(about myself|about me|who am i|who i am|my personality|my nature|"
+        r"my characteristics|my temperament|my character|my strengths|my weaknesses|"
+        r"strengths and weaknesses|describe me|soul purpose|life path|my traits|"
+        r"tell me about me|tell me about myself|tell me about my chart|overview of my life|"
+        r"who i am as a person|what kind of person am i|what type of person am i|"
+        r"tell me about my ascendant|tell me about my lagna)\b"
+    )
+    if re.search(natal_pattern, q) or any(
+        w in q
+        for w in [
+            "आफ्नो बारेमा",
+            "मेरो बारेमा",
+            "म को हुँ",
+            "मेरो स्वभाव",
+            "मेरो चरित्र",
+            "मेरो व्यक्तित्व",
+            "मेरो गुण",
+            "मेरो कमजोरी",
+            "म कस्तो मान्छे",
+            "मेरो परिचय",
+            "मेरो जीवनको उद्देश्य",
+        ]
+    ):
+        return ConsultationIntent.NATAL_IDENTITY
+
+    # 4. Event Prediction / Timing inquiry ("when will", "timing", "कहिले")
+    timing_pattern = (
+        r"\b(when will|timing|what time|which year|which month|future|forecast|"
+        r"date of|exact date|will i get|can i expect|when can i|when should i)\b"
+    )
+    if re.search(timing_pattern, q) or any(w in q for w in ["कहिले", "कुन समय", "भविष्यवाणी", "मिति"]):
+        return ConsultationIntent.EVENT_PREDICTION
+
+    # 5. Relationship & Marriage
+    relationship_pattern = (
+        r"\b(marriage|married|marry|spouse|partner|wife|husband|love life|"
+        r"relationship|compatibility|divorce|kundali milan|girlfriend|boyfriend)\b"
+    )
+    if re.search(relationship_pattern, q) or any(
+        w in q for w in ["विवाह", "जोडी", "श्रीमान", "श्रीमती", "प्रेम", "सम्बन्ध", "कुण्डली मिलान"]
+    ):
+        return ConsultationIntent.RELATIONSHIP
+
+    # 6. Career & Finance
+    career_pattern = (
+        r"\b(career|job|profession|business|promotion|money|wealth|finance|"
+        r"finances|financial|income|salary|livelihood|employment|startup|work)\b"
+    )
+    if re.search(career_pattern, q) or any(
+        w in q for w in ["जागिर", "पदोन्नति", "व्यवसाय", "व्यापार", "पैसा", "धन", "सम्पत्ति", "रोजगार"]
+    ):
+        return ConsultationIntent.CAREER_FINANCE
+
+    # Default fallback
+    if has_self_ref:
+        return ConsultationIntent.NATAL_IDENTITY
+    return ConsultationIntent.EVENT_PREDICTION
+
+
+SYSTEM_PROMPT_PREDICTION = (
     "You are a master Astrologer and Jyotish Acharya with absolute mastery of classical "
     "scriptures (Brihat Parashara Hora Shastra, Phaladeepika, Saravali) and the classical Lal Kitab (1952). "
     "Your consultation delivers direct, calculation-backed predictions, exact date windows, "
@@ -53,21 +149,92 @@ SYSTEM_PROMPT = (
     "DO NOT claim birth details are missing or ask for them again when the birth chart context is present in the prompt!\n"
     "5. Explicit Lineage: Sidereal Zodiac, Jhora-Lahiri Ayanamsa, Whole Sign houses, Vimshottari 120-Year Dasha, and Lal Kitab. "
     "Never confuse Western Tropical with Sidereal principles.\n"
-    "6. Anti-Fatalism & Constructive Reframing: Never use archaic fatalistic or terrifying terms (such as 'ruined', 'doomed', 'death', 'unavoidable disaster'). "
-    "Reframe challenging periods (Sade Sati, Ashtama Shani, Rahu Dasha) into strategic discipline, conscious effort, and Lal Kitab upayas.\n"
-    "7. Modern Allegorical Translation: Never recite ancient curses or archaic allegories literally. Translate 'pitri dosha' into generational patterns, "
-    "father/authority figure dynamics, and behavioral rectification. Focus on character, purpose, and conscious evolution.\n"
-    "8. Dignified Spousal & Relationship Analysis: NEVER use derogatory, vulgar, misogynistic, or sexually explicit terms. "
-    "Frame relationship dynamics around compatibility, emotional maturity, mutual respect, communication boundaries, and character development.\n"
-    "9. Classical Excerpt Handling: Classical texts contain ancient calendar tables or worked-out arithmetic examples (e.g. 'Assume birth on June 1, 1984', Ahargana). "
-    "NEVER mistake illustrative ancient math for the seeker's actual chart. Extract and cite only astrological principles.\n"
-    "10. Professional Boundaries: Astrological counseling does not replace licensed medical, psychiatric, legal, or financial professionals. "
-    "When relevant, advise consulting licensed human specialists.\n"
-    "11. Formatting Purity: Do NOT append a redundant 'References:' or 'Citations:' bibliography list at the end of the text. "
-    "The UI automatically renders dedicated interactive citation cards below the response."
+    "6. Anti-Fatalism & Constructive Reframing: Never use archaic fatalistic or terrifying terms. "
+    "Reframe challenging periods into strategic discipline, conscious effort, and Lal Kitab upayas.\n"
+    "7. Modern Allegorical Translation: Translate archaic concepts into psychological growth, generational patterns, and behavioral rectification.\n"
+    "8. Dignified Spousal & Relationship Analysis: Never use derogatory or archaic terms. Frame around mutual respect and character.\n"
+    "9. Classical Excerpt Handling: Extract and cite only astrological principles. Never mistake commentary examples for the seeker's chart.\n"
+    "10. Professional Boundaries: Astrological counseling does not replace licensed medical, psychiatric, legal, or financial professionals.\n"
+    "11. Formatting Purity: Do NOT append a redundant 'References:' or 'Citations:' bibliography list at the end of the text."
 )
 
-SYSTEM_PROMPT_NE = (
+SYSTEM_PROMPT_NATAL = (
+    "You are a master Astrologer and Jyotish Acharya with absolute mastery of classical scriptures "
+    "(Brihat Parashara Hora Shastra, Phaladeepika, Saravali) and the psychological & spiritual dimensions of Vedic Astrology. "
+    "Your consultation delivers a profound, authentic, calculation-backed Natal Profile analysis of the seeker's cosmic blueprint, "
+    "soul constitution, mental-emotional architecture, and life path—never generic chatbot platitudes.\n\n"
+    "Core Astrological & Consultation Guardrails:\n"
+    "1. Strict Directness & Zero Fluff (CRITICAL): Never use conversational greetings, pleasantries, or preamble. "
+    "NEVER say 'Dear seeker', 'I sense your curiosity', 'Greetings', 'Welcome', 'In this reading', or 'I am happy to guide you'. "
+    "Begin immediately with Section 1 ('### 1. Cosmic Blueprint & Ascendant Archetype'). Every single sentence must carry astrological weight.\n"
+    "2. Mandatory 4-Pillar Natal Identity Architecture: Every identity consultation MUST strictly follow this 4-section layout:\n"
+    "   ### 1. Cosmic Blueprint & Ascendant Archetype: Synthesize the seeker's Ascendant (Lagna) sign, Lagna Lord placement, "
+    "house position, and dignity. Detail their physical presence, outward personality, constitutional temperament (Prakriti: Vata/Pitta/Kapha), "
+    "and how their primary persona projects into the world.\n"
+    "   ### 2. Emotional Landscape & Mind (Chandra & Nakshatra): Synthesize the Moon sign, Nakshatra, Pada, and Nakshatra Lord. "
+    "Explain their instinctive emotional wiring, subconscious inclinations, mental resilience, intuition, and deep emotional security needs.\n"
+    "   ### 3. Soul Purpose & Driving Vitality (Surya & Karakas): Synthesize the Sun placement, Atmakaraka (soul significator planet), "
+    "and highest aspirational calling in this incarnation. Explain what core evolutionary lesson and spiritual mastery their soul is working through.\n"
+    "   ### 4. Key Strengths, Yogas & Karmic Evolution: Synthesize active auspicious Yogas (e.g. Pancha Mahapurusha, Budhaditya, Gajakesari), "
+    "innate superpowers and natural talents, along with the primary karmic growth opportunities and balance points to cultivate.\n"
+    "3. Identity Purity Directive (CRITICAL): When answering about natal identity and self-knowledge, do NOT invent job application windows, "
+    "do NOT force arbitrary calendar dates, and do NOT prescribe daily dog-feeding or Lal Kitab daytime remedies unless specifically requested. "
+    "Focus purely on character, cosmic constitution, gifts, and soul evolution!\n"
+    "4. Calculation Outsource Rule: NEVER perform mental astronomical math or guess coordinates, dashas, or house numbers. "
+    "ALL chart data is strictly calculated by the deterministic Swiss Ephemeris engine.\n"
+    "5. Explicit Lineage: Sidereal Zodiac, Jhora-Lahiri Ayanamsa, Whole Sign houses, Vimshottari 120-Year Dasha.\n"
+    "6. Anti-Fatalism & Constructive Reframing: Reframe challenging placements into conscious self-mastery and evolutionary growth.\n"
+    "7. Formatting Purity: Do NOT append a redundant 'References:' or 'Citations:' bibliography list at the end of the text."
+)
+
+SYSTEM_PROMPT_REMEDIAL = (
+    "You are a master Astrologer and Jyotish Acharya with absolute mastery of classical scriptures "
+    "and the classical Lal Kitab (1952) remediation system. Your consultation delivers authentic, calculation-backed "
+    "Lal Kitab daytime upayas, creature sevas, and strict behavioral precautions.\n\n"
+    "Core Astrological & Consultation Guardrails:\n"
+    "1. Strict Directness & Zero Fluff: Begin immediately with Section 1 ('### 1. Core Afflictions & Karmic Imbalances').\n"
+    "2. Mandatory 4-Pillar Remedial Architecture:\n"
+    "   ### 1. Core Afflictions & Karmic Imbalances: Identify the exact planetary placement, house position, and severity from the chart ground truth.\n"
+    "   ### 2. Primary 43-Day Daytime Lal Kitab Upaya: Concrete, practical daytime action to be performed consecutively for 43 days between sunrise and sunset.\n"
+    "   ### 3. Creature & Household Seva: Practical seva involving animals (cows, dogs, birds, fish) or home energetic alignment.\n"
+    "   ### 4. Inviolable Savdhani (Strict Behavioral Precautions): Strict classical taboos—what to NEVER do, accept, or keep at home.\n"
+    "3. Formatting Purity: Do NOT append a redundant bibliography list at the end of the text."
+)
+
+SYSTEM_PROMPT_CAREER = (
+    "You are a master Astrologer and Jyotish Acharya specializing in Vedic vocational astrology (Karma Bhava, Dashamsha, D10). "
+    "Your consultation delivers direct vocational verdicts, timing triggers, and strategic professional navigation.\n\n"
+    "Core Guardrails: Begin immediately with Section 1 ('### 1. Professional Aptitude & Natal Calling').\n"
+    "Mandatory 4-Pillar Career Architecture:\n"
+    "### 1. Professional Aptitude & Natal Calling: 10th house, 10th lord, Amatyakaraka, vocational yogas, and natural professional gifts.\n"
+    "### 2. Astrological Mechanism & Operating Dasha-Transit Triggers: Dasha sub-periods activating 10th/2nd/6th/11th houses, Jupiter/Saturn transits, and SAV strength.\n"
+    "### 3. Concrete Career Milestone Windows: 3 distinct ISO date ranges (Preparation/Application, Peak Favorable Breakthrough, Caution/Stability window).\n"
+    "### 4. Vocational Alignment & Lal Kitab Precaution: Strategic professional advice and relevant ethical Lal Kitab guidance."
+)
+
+SYSTEM_PROMPT_RELATIONSHIP = (
+    "You are a master Astrologer and Jyotish Acharya specializing in Vedic relationship and marriage astrology (Kalatra Bhava, Navamsha, D9). "
+    "Your consultation delivers dignified, calculation-backed relationship insights, spousal archetype, and timing.\n\n"
+    "Core Guardrails: Begin immediately with Section 1 ('### 1. Natal Relationship Blueprint & 7th House Dynamics').\n"
+    "Mandatory 4-Pillar Relationship Architecture:\n"
+    "### 1. Natal Relationship Blueprint & 7th House Dynamics: 7th house, 7th lord, Venus/Jupiter dignity, Darakaraka, and partnership tendencies.\n"
+    "### 2. Spouse Archetype & Emotional Compatibility: Demeanor, qualities, and emotional nature of the partner; Moon-to-Moon relational harmony.\n"
+    "### 3. Relationship & Marriage Timing Windows: Concrete date ranges under active dasha sub-periods and Jupiter/Saturn transits to 7th or Lagna.\n"
+    "### 4. Relational Harmony Practices & Lal Kitab Savdhani: Actionable relationship wisdom, healthy communication boundaries, and Lal Kitab precautions."
+)
+
+SYSTEM_PROMPT_CONCEPTUAL = (
+    "You are a master Astrologer and Jyotish Acharya with absolute mastery of classical scriptures. "
+    "Your consultation explains classical principles, yogas, and mechanisms with profound clarity and scriptural grounding.\n\n"
+    "Core Guardrails: Begin immediately with Section 1 ('### 1. Classical Definition & Scriptural Foundation').\n"
+    "Mandatory 4-Section Conceptual Architecture:\n"
+    "### 1. Classical Definition & Scriptural Foundation: Definitive scriptural meaning citing classical verses [1], [2].\n"
+    "### 2. Astrological Mechanism & Interpretive Rules: Planetary mechanics, house combinations, dignities, and cancellations (bhanga).\n"
+    "### 3. Real-World Manifestation & Case Analysis: How the principle manifests in real human experience, character, and life events.\n"
+    "### 4. Dharmic Synthesis & Constructive Perspective: Evolutionary spiritual purpose and practical guidance."
+)
+
+SYSTEM_PROMPT_NE_PREDICTION = (
     "तपाईं एक सिद्ध, प्रामाणिक ज्योतिषाचार्य हुनुहुन्छ, जसलाई महर्षि पराशर, मन्त्रेश्वर, "
     "कल्याणवर्माका शास्त्रीय ग्रन्थहरू तथा लाल किताब (१९५२) को गहन ज्ञान छ। "
     "तपाईंको फलादेश कुनै च्याटबटको जस्तो अस्पष्ट वा भूमिका बाँधिएको हुँदैन; एक निष्णात ज्योतिषीको जस्तै सिधै "
@@ -101,13 +268,59 @@ SYSTEM_PROMPT_NE = (
     "११. अन्त्यमा सन्दर्भ सूची नदोहोर्‍याउनुहोस्: इन्टरफेसले छुट्टै कार्ड देखाउने भएकाले उत्तरको अन्त्यमा 'References' वा 'सन्दर्भहरू' नदोहोर्‍याउनुहोस्।"
 )
 
+SYSTEM_PROMPT_NE_NATAL = (
+    "तपाईं एक सिद्ध, प्रामाणिक ज्योतिषाचार्य हुनुहुन्छ, जसलाई महर्षि पराशर, मन्त्रेश्वर, र कल्याणवर्माका शास्त्रीय ग्रन्थहरूको गहन ज्ञान छ। "
+    "तपाईंको फलादेशले सोधकर्ताको आत्म-स्वरूप, कुण्डलीको मौलिक संरचना, मानसिक-भावनात्मक स्वभाव र जीवनमार्गको गहन, शास्त्रीय तथा मनोवैज्ञानिक विश्लेषण प्रस्तुत गर्दछ।\n\n"
+    "मुख्य परामर्श नियमहरू:\n"
+    "१. शून्य भूमिका तथा सिधा विश्लेषण (CRITICAL): कुनै पनि अभिवादन वा अनावश्यक भूमिका नबाँध्नुहोस्। उत्तरको पहिलो शब्द नै खण्ड १ ('### १. कुण्डलीको मूल संरचना र लग्न स्वरूप') बाट शुरु हुनुपर्दछ।\n"
+    "२. अनिवार्य ४-खम्बे आत्म-परिचय संरचना:\n"
+    "   ### १. कुण्डलीको मूल संरचना र लग्न स्वरूप: लग्न राशि, लग्नेशको स्थिति र बल, बाह्य व्यक्तित्व, शारीरिक ऊर्जा, त्रिदोष (वात/पित्त/कफ) प्रकृति र संसारमा व्यक्त हुने स्वरूप।\n"
+    "   ### २. मानसिक-भावनात्मक धरातल र चन्द्र-नक्षत्र: चन्द्र राशि, जन्म नक्षत्र, पाउ, र नक्षत्र स्वामी। भित्री मानसिक प्रवृत्ति, संवेगात्मक आवश्यकता, धैर्यता र भावनात्मक शक्ति।\n"
+    "   ### ३. आत्मिक उद्देश्य र आत्मकारक ग्रह (सूर्य र आत्मकारक): सूर्यको स्थिति, आत्मकारक ग्रह, र यस जन्मको मूल आत्मिक लक्ष्य तथा चेतनाको दिशा।\n"
+    "   ### ४. मुख्य सामर्थ्य, शुभ योग र आत्म-विकास: सक्रिय शुभ योगहरू, जन्मजात प्रतिभा, र जीवनमा सन्तुलन तथा उन्नतिको लागि ध्यान दिनुपर्ने पक्षहरू।\n"
+    "३. शुद्धता निर्देशन: आत्म-परिचयको प्रश्नमा अनावश्यक जागिरको फारम भर्ने मिति वा कुकुरलाई रोटी खुवाउने जस्ता असान्दर्भिक कुरा नथोपर्नुहोस्।\n"
+    "४. अन्त्यमा सन्दर्भ सूची नदोहोर्‍याउनुहोस्।"
+)
 
-def get_system_prompt(language: str = "en") -> str:
-    """Return language-specific system prompt."""
+# Backwards compatibility globals
+SYSTEM_PROMPT = SYSTEM_PROMPT_PREDICTION
+SYSTEM_PROMPT_NE = SYSTEM_PROMPT_NE_PREDICTION
+
+
+def get_system_prompt(
+    language: str = "en",
+    intent: ConsultationIntent | str | None = None,
+) -> str:
+    """Return language and intent-specific system prompt."""
     lang = (language or "en").lower().strip()
-    if lang in ("ne", "nepali", "nep"):
-        return SYSTEM_PROMPT_NE
-    return SYSTEM_PROMPT
+    is_ne = lang in ("ne", "nepali", "nep")
+
+    if intent is None:
+        intent_val = ConsultationIntent.EVENT_PREDICTION
+    elif isinstance(intent, ConsultationIntent):
+        intent_val = intent
+    else:
+        try:
+            intent_val = ConsultationIntent(str(intent).lower().strip())
+        except ValueError:
+            intent_val = ConsultationIntent.EVENT_PREDICTION
+
+    if is_ne:
+        if intent_val == ConsultationIntent.NATAL_IDENTITY:
+            return SYSTEM_PROMPT_NE_NATAL
+        return SYSTEM_PROMPT_NE_PREDICTION
+
+    if intent_val == ConsultationIntent.NATAL_IDENTITY:
+        return SYSTEM_PROMPT_NATAL
+    if intent_val == ConsultationIntent.REMEDIAL:
+        return SYSTEM_PROMPT_REMEDIAL
+    if intent_val == ConsultationIntent.CAREER_FINANCE:
+        return SYSTEM_PROMPT_CAREER
+    if intent_val == ConsultationIntent.RELATIONSHIP:
+        return SYSTEM_PROMPT_RELATIONSHIP
+    if intent_val == ConsultationIntent.CONCEPTUAL:
+        return SYSTEM_PROMPT_CONCEPTUAL
+    return SYSTEM_PROMPT_PREDICTION
 
 
 class Citation(BaseModel):
@@ -246,20 +459,92 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
             for p in all_bodies:
                 retro = " (Retrograde)" if p.get("retrograde") else ""
                 deg_val = p.get("degree_in_sign", 0)
+                dignity_str = f" [{p.get('dignity').capitalize()}]" if p.get("dignity") else ""
                 lines.append(
                     f"  • {p.get('name')}: House {p.get('house')} in {p.get('sign')} "
-                    f"({deg_val:.2f}° {p.get('nakshatra')} Pada {p.get('pada')}){retro}"
+                    f"({deg_val:.2f}° {p.get('nakshatra')} Pada {p.get('pada')}){retro}{dignity_str}"
                 )
 
-    # Real Ashtakavarga Points
+            # Synthesize Lagna Lord Placement
+            if lagna_sign:
+                lagna_lord_name = _SIGN_LORDS.get(lagna_sign)
+                lagna_lord_body = next(
+                    (b for b in all_bodies if b.get("name") == lagna_lord_name), None
+                )
+                if lagna_lord_body:
+                    ll_retro = " (Retrograde)" if lagna_lord_body.get("retrograde") else ""
+                    ll_deg = lagna_lord_body.get("degree_in_sign", 0)
+                    lines.append(
+                        f"- Lagna Lord Placement: {lagna_lord_name} sits in House {lagna_lord_body.get('house')} "
+                        f"in {lagna_lord_body.get('sign')} ({ll_deg:.2f}° {lagna_lord_body.get('nakshatra')}){ll_retro}"
+                    )
+
+            # Jaimini 7 Chara Karakas (Soul, Career, Spouse Indicators)
+            traditional_7 = [
+                b
+                for b in planets
+                if isinstance(b, dict)
+                and b.get("name")
+                in ("Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn")
+            ]
+            if len(traditional_7) == 7:
+                sorted_by_deg = sorted(
+                    traditional_7,
+                    key=lambda b: float(b.get("degree_in_sign", 0)),
+                    reverse=True,
+                )
+                ak = sorted_by_deg[0]  # Atmakaraka (Soul)
+                amk = sorted_by_deg[1]  # Amatyakaraka (Career/Action)
+                dk = sorted_by_deg[6]  # Darakaraka (Spouse/Partnership)
+                lines.append(
+                    f"- Jaimini Chara Karakas: Atmakaraka (Soul): {ak.get('name')} ({ak.get('degree_in_sign', 0):.2f}°), "
+                    f"Amatyakaraka (Career/Action): {amk.get('name')} ({amk.get('degree_in_sign', 0):.2f}°), "
+                    f"Darakaraka (Spouse/Partnership): {dk.get('name')} ({dk.get('degree_in_sign', 0):.2f}°)"
+                )
+
+    # Real Ashtakavarga Points: Grouped cleanly by house strength rather than a raw dump of 12 signs
     av = chart.get("ashtakavarga")
     if isinstance(av, dict):
         sav = av.get("sarvashtakavarga")
         if isinstance(sav, list) and len(sav) == 12:
-            sav_items = [f"{_ZODIAC_SIGNS[i]}: {sav[i]}" for i in range(12)]
-            lines.append(
-                "- Calculated Sarvashtakavarga (SAV Points per Sign): " + ", ".join(sav_items)
-            )
+            if lagna_sign and lagna_sign in _ZODIAC_SIGNS:
+                lagna_idx = _ZODIAC_SIGNS.index(lagna_sign)
+                house_scores: list[tuple[int, str, int]] = []
+                for h in range(1, 13):
+                    s_idx = (lagna_idx + h - 1) % 12
+                    h_sign = _ZODIAC_SIGNS[s_idx]
+                    pts = sav[s_idx]
+                    house_scores.append((h, h_sign, pts))
+
+                strong = [
+                    f"House {h} ({sign}: {pts})" for h, sign, pts in house_scores if pts >= 30
+                ]
+                moderate = [
+                    f"House {h} ({sign}: {pts})" for h, sign, pts in house_scores if 25 <= pts < 30
+                ]
+                sensitive = [
+                    f"House {h} ({sign}: {pts})" for h, sign, pts in house_scores if pts < 25
+                ]
+
+                lines.append("- Sarvashtakavarga (SAV Points by House from Lagna):")
+                if strong:
+                    lines.append(f"  • High Strength Houses (SAV >= 30 bindus): {', '.join(strong)}")
+                if moderate:
+                    lines.append(
+                        f"  • Moderate Strength Houses (SAV 25-29 bindus): {', '.join(moderate)}"
+                    )
+                if sensitive:
+                    lines.append(
+                        f"  • Sensitive Effort Houses (SAV < 25 bindus): {', '.join(sensitive)}"
+                    )
+                lines.append(
+                    "  [SAV DIRECTIVE: Do NOT recite all 12 signs or scores in a raw list. Mention only the specific house relevant to the query; >28 bindus = natural strength and endurance, <28 bindus = requires conscious focus.]"
+                )
+            else:
+                sav_items = [f"{_ZODIAC_SIGNS[i]}: {sav[i]}" for i in range(12)]
+                lines.append(
+                    "- Calculated Sarvashtakavarga (SAV Points per Sign): " + ", ".join(sav_items)
+                )
 
     # Real-Time Astronomical Transits (Gochara)
     transits = chart.get("transits")
@@ -495,8 +780,18 @@ def build_prompt(
     results: list[SearchResult],
     birth_context: dict[str, Any] | None = None,
     language: str = "en",
+    intent: ConsultationIntent | str | None = None,
 ) -> str:
     """Assemble the consultation prompt with classical references and natal context."""
+    if intent is None:
+        intent = classify_intent(question)
+    elif not isinstance(intent, ConsultationIntent):
+        try:
+            intent = ConsultationIntent(str(intent).lower().strip())
+        except ValueError:
+            intent = classify_intent(question)
+
+    is_ne = (language or "").lower().strip() in ("ne", "nepali", "nep")
     lines = ["References:"]
     for index, result in enumerate(results, start=1):
         lines.append(f"{_citation_label(index, result)}: {result.chunk.text}")
@@ -523,50 +818,209 @@ def build_prompt(
     else:
         lines.append(
             "[Note: No birth chart context provided for this query. Answer using classical Jyotish principles directly. "
-            "Explain the timing and interpretive framework clearly, and guide the seeker to provide their exact birth date, "
+            "Explain the interpretive framework clearly, and guide the seeker to provide their exact birth date, "
             "time, and location to calculate personalized date ranges down to specific months and weeks.]\n"
         )
     lines.append(f"Question: {question}")
-    lines.append(
-        "PREDICTION ARCHITECTURE DIRECTIVE (MANDATORY):\n"
-        "Deliver a direct, calculation-backed prediction like a seasoned master astrologer. "
-        "Zero conversational fluff, zero greetings (NO 'Dear seeker', NO pleasantries). "
-        "Synthesize your classical mastery with the provided scriptural excerpts, citing them with bracketed numbers like [1] or [2]. "
-        "Structure your response strictly into these 4 sections:\n"
-        "### 1. Direct Verdict & Timing\n"
-        "Immediate point-blank answer and direct outcome in 1-2 definitive sentences.\n\n"
-        "### 2. Astrological Mechanism & Calculation Proof\n"
-        "Cite the exact calculated planetary placements, house rulerships, active Mahadasha/Antardasha/Pratyantardasha periods, "
-        "transits, and Sarvashtakavarga (SAV) bindu scores from the context. Cite relevant classical verses with [1], [2].\n\n"
-        "### 3. Concrete Timeline Windows\n"
-        "Provide 3 distinct date ranges in YYYY-MM-DD format:\n"
-        "- **Window 1: Preparation & Application Window (YYYY-MM-DD to YYYY-MM-DD)**\n"
-        "- **Window 2: Peak Favorable Window (YYYY-MM-DD to YYYY-MM-DD)**\n"
-        "- **Window 3: Caution & Delay Factor (YYYY-MM-DD to YYYY-MM-DD)**\n\n"
-        "### 4. Classical Lal Kitab Prescription\n"
-        "- **43-Day Daytime Upaya**: [Continuous daytime action from the context]\n"
-        "- **Creature / Household Seva**: [Specific animal feeding or household alignment]\n"
-        "- **Inviolable Savdhani (Strict Precaution)**: [Mandatory taboo: what to NEVER do or keep at home]\n\n"
-        "Do NOT repeat sentences across sections; every section must contain unique, concrete substance.\n"
-        "Never recite ancient mathematical calculation algorithms, table numbers, or worked-out arithmetic examples from the commentary texts. "
-        "Do NOT append a redundant 'References:' or 'Citations:' bibliography list at the end of your response, as the platform interface automatically renders dedicated interactive citation cards below your answer."
-    )
-    if (language or "").lower().strip() in ("ne", "nepali", "nep"):
-        lines.append(
-            "\nभाषा निर्देशन: सोधकर्ताको भाषा नेपाली भएकाले सम्पूर्ण परामर्श, विश्लेषण तथा उपायहरू "
-            "अत्यन्त शुद्ध, आदरार्थी, स्पष्ट तथा शास्त्रीय नेपाली भाषामा प्रस्तुत गर्नुहोस्।\n"
-            "अनिवार्य संरचना निर्देशन:\n"
-            "कुनै पनि भूमिका वा अनावश्यक सम्बोधन नगरी सिधै निम्न ४ भागमा प्रामाणिक उत्तर दिनुहोस्:\n"
-            "### १. प्रत्यक्ष फलादेश र मुख्य निर्णय\n"
-            "### २. ज्योतिषीय आधार र गणितीय प्रमाण\n"
-            "### ३. यकिन समय-तालिका (३ वटा स्पष्ट मिति दायरा YYYY-MM-DD)\n"
-            "### ४. प्रामाणिक लाल किताब उपाय तथा सावधानी\n"
-            "- **४३ दिने मुख्य उपाय**: [कुण्डली सन्दर्भबाट लगातार ४३ दिन दिउँसो गरिने ठोस उपाय]\n"
-            "- **जीव सेवा / पारिवारिक नियम**: [गाई, कुकुर, वा चराचुरुङ्गीलाई आहार]\n"
-            "- **कडा सावधानी (निषेध)**: [लाल किताब अनुसार कहिल्यै गर्न नहुने काम वा निषेध]\n\n"
-            "कुनै पनि खण्डमा एउटै वाक्य नदोहोर्‍याउनुहोस्; प्रत्येक खण्डमा फरक र ठोस विषयवस्तु दिनुहोस्।\n"
-            "अन्त्यमा सन्दर्भ सूची नदोहोर्‍याउनुहोस्।"
-        )
+
+    if intent == ConsultationIntent.NATAL_IDENTITY:
+        if is_ne:
+            lines.append(
+                "आत्म-स्वरूप तथा कुण्डली परिचय निर्देशन (अनिवार्य):\n"
+                "कुनै पनि भूमिका वा अनावश्यक सम्बोधन नगरी सिधै निम्न ४ भागमा प्रामाणिक उत्तर दिनुहोस्:\n"
+                "### १. कुण्डलीको मूल संरचना र लग्न स्वरूप\n"
+                "लग्न राशि, लग्नेशको स्थिति र बल, बाह्य व्यक्तित्व, शारीरिक ऊर्जा, त्रिदोष (वात/पित्त/कफ) प्रकृति र संसारमा व्यक्त हुने स्वरूप।\n\n"
+                "### २. मानसिक-भावनात्मक धरातल र चन्द्र-नक्षत्र\n"
+                "चन्द्र राशि, जन्म नक्षत्र, पाउ, र नक्षत्र स्वामी। भित्री मानसिक प्रवृत्ति, संवेगात्मक आवश्यकता, धैर्यता र भावनात्मक शक्ति।\n\n"
+                "### ३. आत्मिक उद्देश्य र आत्मकारक ग्रह (सूर्य र आत्मकारक)\n"
+                "सूर्यको स्थिति, आत्मकारक ग्रह, र यस जन्मको मूल आत्मिक लक्ष्य तथा चेतनाको दिशा।\n\n"
+                "### ४. मुख्य सामर्थ्य, शुभ योग र आत्म-विकास\n"
+                "सक्रिय शुभ योगहरू, जन्मजात प्रतिभा, र जीवनमा सन्तुलन तथा उन्नतिको लागि ध्यान दिनुपर्ने पक्षहरू।\n\n"
+                "कडा सावधानी:\n"
+                "- आत्म-परिचयको प्रश्नमा अनावश्यक जागिरको फारम भर्ने मिति वा कुकुरलाई रोटी खुवाउने जस्ता असान्दर्भिक कुरा नथोपर्नुहोस्।\n"
+                "- अष्टकवर्गका सबै १२ राशिका अङ्कहरू फोन नम्बर जस्तै नसुनाउनुहोस्।\n"
+                "- अन्त्यमा सन्दर्भ सूची नदोहोर्‍याउनुहोस्।"
+            )
+        else:
+            lines.append(
+                "NATAL IDENTITY & COSMIC PROFILE DIRECTIVE (MANDATORY):\n"
+                "Deliver a profound, calculation-backed natal character, psychological, and soul analysis like a master Jyotishi. "
+                "Zero conversational fluff, zero greetings (NO 'Dear seeker', NO pleasantries). "
+                "Synthesize your classical mastery with the provided scriptural excerpts, citing them with bracketed numbers like [1] or [2]. "
+                "Structure your response strictly into these 4 sections:\n"
+                "### 1. Cosmic Blueprint & Ascendant Archetype\n"
+                "Synthesize the seeker's Ascendant (Lagna) sign, Lagna Lord placement and dignity, outward personality, physical vitality, "
+                "primary temperament (Prakriti: Vata/Pitta/Kapha), and how they project their persona into the world.\n\n"
+                "### 2. Emotional Landscape & Mind (Chandra & Nakshatra)\n"
+                "Synthesize the Moon sign, Nakshatra, Pada, and Nakshatra Lord. Explain the instinctive emotional wiring, subconscious inclinations, "
+                "mental resilience, intuition, and core emotional security needs.\n\n"
+                "### 3. Soul Purpose & Driving Vitality (Surya & Karakas)\n"
+                "Synthesize the Sun placement, Atmakaraka (soul significator planet), and highest aspirational calling in this incarnation. "
+                "What core lesson and mastery does their soul seek?\n\n"
+                "### 4. Key Strengths, Yogas & Karmic Evolution\n"
+                "Synthesize active auspicious Yogas (e.g. Pancha Mahapurusha, Budhaditya, Ruchaka), innate superpowers and natural talents, "
+                "along with the primary karmic growth opportunities to cultivate.\n\n"
+                "CRITICAL GUARDRAILS:\n"
+                "- Do NOT invent job application windows, do NOT force calendar dates, and do NOT prescribe daily dog-feeding or Lal Kitab daytime remedies when answering about natal identity and self-knowledge!\n"
+                "- Do NOT recite telephone-directory lists of all 12 signs' Ashtakavarga numbers.\n"
+                "- Do NOT append a redundant 'References:' or 'Citations:' bibliography list at the end of your response, as the platform interface automatically renders dedicated interactive citation cards below your answer."
+            )
+    elif intent == ConsultationIntent.REMEDIAL:
+        if is_ne:
+            lines.append(
+                "प्रामाणिक लाल किताब तथा वैदिक उपाय निर्देशन (अनिवार्य):\n"
+                "सिधै निम्न ४ भागमा प्रामाणिक उत्तर दिनुहोस्:\n"
+                "### १. प्रत्यक्ष फलादेश र मुख्य शास्त्रीय निर्णय\n"
+                "कुण्डलीमा देखिएको मुख्य ग्रह पीडा र त्यसको शास्त्रीय कारण।\n\n"
+                "### २. ज्योतिषीय आधार र प्रामाणिक सूत्र\n"
+                "ग्रहको भाव स्थिति र शास्त्रीय प्रमाण [१], [२]।\n\n"
+                "### ३. व्यावहारिक मार्गदर्शन तथा समय सिद्धान्त\n"
+                "सक्रिय दशा तथा गोचर अनुसार उपाय सुरु गर्ने उपयुक्त समय।\n\n"
+                "### ४. प्रामाणिक लाल किताब उपाय तथा सावधानी\n"
+                "- **४३ दिने मुख्य उपाय**: लगातार ४३ दिन दिउँसो गरिने ठोस उपाय\n"
+                "- **जीव सेवा तथा पारिवारिक नियम**: गाई, कुकुर, वा चराचुरुङ्गीलाई आहार\n"
+                "- **कडा सावधानी (निषेध)**: लाल किताब अनुसार कहिल्यै गर्न नहुने काम वा निषेध"
+            )
+        else:
+            lines.append(
+                "REMEDIAL & UPAAYA DIRECTIVE (MANDATORY):\n"
+                "Structure your response strictly into these 4 sections:\n"
+                "### 1. Core Afflictions & Karmic Imbalances\n"
+                "Identify the afflicted planet, house placement, severity, and root karmic cause. Cite relevant classical verses with [1], [2].\n\n"
+                "### 2. Primary 43-Day Daytime Lal Kitab Upaya\n"
+                "Exact practical daytime remedy to be performed consecutively for 43 days between sunrise and sunset.\n\n"
+                "### 3. Creature & Household Seva\n"
+                "Specific animal feeding (cows, dogs, birds, fish) or home energetic rectification.\n\n"
+                "### 4. Inviolable Savdhani (Strict Behavioral Precautions)\n"
+                "Strict classical Lal Kitab taboos: what to NEVER accept, do, or keep at home."
+            )
+    elif intent == ConsultationIntent.CAREER_FINANCE:
+        if is_ne:
+            lines.append(
+                "पेशा तथा आर्थिक परामर्श निर्देशन (अनिवार्य):\n"
+                "सिधै निम्न ४ भागमा प्रामाणिक उत्तर दिनुहोस्:\n"
+                "### १. व्यावसायिक क्षमता र कर्म क्षेत्र\n"
+                "दशम भाव, दशमेश, अमात्यकारक ग्रह र स्वाभाविक कर्म क्षमता।\n\n"
+                "### २. ज्योतिषीय आधार र समय चक्र\n"
+                "सक्रिय महादशा/अन्तर्दशा, गोचर र अष्टकवर्गको अनुकूलता।\n\n"
+                "### ३. यकिन समय-तालिका (३ वटा स्पष्ट मिति दायरा YYYY-MM-DD)\n"
+                "तयारीको समय, मुख्य उन्नतिको समय, र सतर्कताको समय।\n\n"
+                "### ४. व्यावसायिक उन्नति र लाल किताब सावधानी\n"
+                "व्यावसायिक वृद्धिका लागि नैतिक आचरण र लाल किताबका नियमहरू।"
+            )
+        else:
+            lines.append(
+                "CAREER & FINANCIAL CONSULTATION DIRECTIVE (MANDATORY):\n"
+                "Structure your response strictly into these 4 sections:\n"
+                "### 1. Professional Aptitude & Natal Calling\n"
+                "10th house, 10th lord, Amatyakaraka, vocational yogas, and natural professional gifts.\n\n"
+                "### 2. Astrological Mechanism & Operating Dasha-Transit Triggers\n"
+                "Operating dasha sub-periods activating 10th/2nd/6th/11th houses, Jupiter/Saturn transits, and SAV strength. Cite classical verses with [1], [2].\n\n"
+                "### 3. Concrete Career Milestone Windows\n"
+                "Provide 3 distinct ISO date ranges:\n"
+                "- **Window 1: Preparation & Application Window (YYYY-MM-DD to YYYY-MM-DD)**\n"
+                "- **Window 2: Peak Favorable Window (YYYY-MM-DD to YYYY-MM-DD)**\n"
+                "- **Window 3: Caution & Delay Factor (YYYY-MM-DD to YYYY-MM-DD)**\n\n"
+                "### 4. Vocational Alignment & Lal Kitab Precaution\n"
+                "Strategic professional advice and relevant ethical Lal Kitab guidance."
+            )
+    elif intent == ConsultationIntent.RELATIONSHIP:
+        if is_ne:
+            lines.append(
+                "वैवाहिक तथा सम्बन्ध परामर्श निर्देशन (अनिवार्य):\n"
+                "सिधै निम्न ४ भागमा प्रामाणिक उत्तर दिनुहोस्:\n"
+                "### १. वैवाहिक स्वरूप र सप्तम भाव विश्लेषण\n"
+                "सप्तम भाव, सप्तमेश, शुक्र/बृहस्पतिको स्थिति र दम्पती सम्बन्ध।\n\n"
+                "### २. जीवनसाथीको स्वभाव र भावनात्मक सामन्जस्य\n"
+                "जीवनसाथीको चरित्र, स्वभाव र चन्द्र राशिको तालमेल।\n\n"
+                "### ३. सम्बन्ध तथा विवाहको यकिन समय-तालिका (YYYY-MM-DD)\n"
+                "सक्रिय दशा र गोचर अनुसार विवाह वा सम्बन्ध सुधारका स्पष्ट समय दायरा।\n\n"
+                "### ४. पारिवारिक सुख र लाल किताब सावधानी\n"
+                "दाम्पत्य सुखका लागि व्यावहारिक नियम र लाल किताब निषेधहरू।"
+            )
+        else:
+            lines.append(
+                "RELATIONSHIP & MARRIAGE CONSULTATION DIRECTIVE (MANDATORY):\n"
+                "Structure your response strictly into these 4 sections:\n"
+                "### 1. Natal Relationship Blueprint & 7th House Dynamics\n"
+                "7th house, 7th lord, Venus/Jupiter dignity, Darakaraka, and partnership tendencies.\n\n"
+                "### 2. Spouse Archetype & Emotional Compatibility\n"
+                "Demeanor, qualities, and emotional nature of the partner; Moon-to-Moon relational harmony. Cite classical verses with [1], [2].\n\n"
+                "### 3. Relationship & Marriage Timing Windows\n"
+                "Concrete date ranges under active dasha sub-periods and Jupiter/Saturn transits to 7th or Lagna।\n\n"
+                "### 4. Relational Harmony Practices & Lal Kitab Savdhani\n"
+                "Actionable relationship wisdom, healthy communication boundaries, and Lal Kitab precautions."
+            )
+    elif intent == ConsultationIntent.CONCEPTUAL:
+        if is_ne:
+            lines.append(
+                "शास्त्रीय अवधारणा निर्देशन (अनिवार्य):\n"
+                "सिधै निम्न ४ भागमा प्रामाणिक व्याख्या दिनुहोस्:\n"
+                "### १. शास्त्रीय परिभाषा र ग्रन्थको आधार\n"
+                "महर्षि पराशर वा शास्त्रीय ग्रन्थ अनुसारको स्पष्ट परिभाषा र श्लोक सन्दर्भ [१]।\n\n"
+                "### २. ज्योतिषीय आधार र निर्माण नियम\n"
+                "ग्रहको स्थिति, भाव गणना, योगका सर्तहरू तथा भङ्गका नियम।\n\n"
+                "### ३. व्यावहारिक जीवनमा प्रभाव र लक्षण\n"
+                "मानव जीवन, चरित्र र घटनाक्रममा यसको प्रत्यक्ष अभिव्यक्ति।\n\n"
+                "### ४. सकारात्मक रूपान्तरण र मार्गदर्शन\n"
+                "यस शास्त्रीय सिद्धान्तलाई जीवन निर्माणमा कसरी सकारात्मक रूपमा प्रयोग गर्ने।"
+            )
+        else:
+            lines.append(
+                "CONCEPTUAL JYOTISH INSTRUCTION DIRECTIVE (MANDATORY):\n"
+                "Structure your response strictly into these 4 sections:\n"
+                "### 1. Classical Definition & Scriptural Foundation\n"
+                "Definitive scriptural meaning citing classical verses [1], [2].\n\n"
+                "### 2. Astrological Mechanism & Interpretive Rules\n"
+                "Planetary mechanics, house combinations, dignities, and cancellations (bhanga).\n\n"
+                "### 3. Real-World Manifestation & Case Analysis\n"
+                "How the principle manifests in real human experience, character, and life events.\n\n"
+                "### 4. Dharmic Synthesis & Constructive Perspective\n"
+                "Evolutionary spiritual purpose and practical guidance."
+            )
+    else:
+        # Default: Event Prediction (4-Pillar Timing Layout)
+        if is_ne:
+            lines.append(
+                "\nभाषा निर्देशन: सोधकर्ताको भाषा नेपाली भएकाले सम्पूर्ण परामर्श, विश्लेषण तथा उपायहरू "
+                "अत्यन्त शुद्ध, आदरार्थी, स्पष्ट तथा शास्त्रीय नेपाली भाषामा प्रस्तुत गर्नुहोस्।\n"
+                "अनिवार्य संरचना निर्देशन:\n"
+                "कुनै पनि भूमिका वा अनावश्यक सम्बोधन नगरी सिधै निम्न ४ भागमा प्रामाणिक उत्तर दिनुहोस्:\n"
+                "### १. प्रत्यक्ष फलादेश र मुख्य निर्णय\n"
+                "### २. ज्योतिषीय आधार र गणितीय प्रमाण\n"
+                "### ३. यकिन समय-तालिका (३ वटा स्पष्ट मिति दायरा YYYY-MM-DD)\n"
+                "### ४. प्रामाणिक लाल किताब उपाय तथा सावधानी\n"
+                "- **४३ दिने मुख्य उपाय**: [कुण्डली सन्दर्भबाट लगातार ४३ दिन दिउँसो गरिने ठोस उपाय]\n"
+                "- **जीव सेवा / पारिवारिक नियम**: [गाई, कुकुर, वा चराचुरुङ्गीलाई आहार]\n"
+                "- **कडा सावधानी (निषेध)**: [लाल किताब अनुसार कहिल्यै गर्न नहुने काम वा निषेध]\n\n"
+                "कुनै पनि खण्डमा एउटै वाक्य नदोहोर्‍याउनुहोस्; प्रत्येक खण्डमा फरक र ठोस विषयवस्तु दिनुहोस्।\n"
+                "अन्त्यमा सन्दर्भ सूची नदोहोर्‍याउनुहोस्।"
+            )
+        else:
+            lines.append(
+                "PREDICTION ARCHITECTURE DIRECTIVE (MANDATORY):\n"
+                "Deliver a direct, calculation-backed prediction like a seasoned master astrologer. "
+                "Zero conversational fluff, zero greetings (NO 'Dear seeker', NO pleasantries). "
+                "Synthesize your classical mastery with the provided scriptural excerpts, citing them with bracketed numbers like [1] or [2]. "
+                "Structure your response strictly into these 4 sections:\n"
+                "### 1. Direct Verdict & Timing\n"
+                "Immediate point-blank answer and direct outcome in 1-2 definitive sentences.\n\n"
+                "### 2. Astrological Mechanism & Calculation Proof\n"
+                "Cite the exact calculated planetary placements, house rulerships, active Mahadasha/Antardasha/Pratyantardasha periods, "
+                "transits, and Sarvashtakavarga (SAV) bindu scores from the context. Cite relevant classical verses with [1], [2].\n\n"
+                "### 3. Concrete Timeline Windows\n"
+                "Provide 3 distinct date ranges in YYYY-MM-DD format:\n"
+                "- **Window 1: Preparation & Application Window (YYYY-MM-DD to YYYY-MM-DD)**\n"
+                "- **Window 2: Peak Favorable Window (YYYY-MM-DD to YYYY-MM-DD)**\n"
+                "- **Window 3: Caution & Delay Factor (YYYY-MM-DD to YYYY-MM-DD)**\n\n"
+                "### 4. Classical Lal Kitab Prescription\n"
+                "- **43-Day Daytime Upaya**: [Continuous daytime action from the context]\n"
+                "- **Creature / Household Seva**: [Specific animal feeding or household alignment]\n"
+                "- **Inviolable Savdhani (Strict Precaution)**: [Mandatory taboo: what to NEVER do or keep at home]\n\n"
+                "Do NOT repeat sentences across sections; every section must contain unique, concrete substance.\n"
+                "Never recite ancient mathematical calculation algorithms, table numbers, or worked-out arithmetic examples from the commentary texts. "
+                "Do NOT append a redundant 'References:' or 'Citations:' bibliography list at the end of your response, as the platform interface automatically renders dedicated interactive citation cards below your answer."
+            )
     return "\n".join(lines)
 
 
@@ -645,8 +1099,11 @@ class LLMSynthesizer(BaseSynthesizer):
         birth_context: dict[str, Any] | None = None,
         language: str = "en",
     ) -> Answer:
-        prompt = build_prompt(question, results, birth_context, language=language)
-        sys_prompt = get_system_prompt(language)
+        intent = classify_intent(question)
+        prompt = build_prompt(
+            question, results, birth_context, language=language, intent=intent
+        )
+        sys_prompt = get_system_prompt(language, intent=intent)
         try:
             try:
                 text = self._complete(prompt, system_prompt=sys_prompt)
@@ -826,8 +1283,11 @@ class LLMSynthesizer(BaseSynthesizer):
         birth_context: dict[str, Any] | None = None,
         language: str = "en",
     ) -> Iterator[str]:
-        prompt = build_prompt(question, results, birth_context, language=language)
-        sys_prompt = get_system_prompt(language)
+        intent = classify_intent(question)
+        prompt = build_prompt(
+            question, results, birth_context, language=language, intent=intent
+        )
+        sys_prompt = get_system_prompt(language, intent=intent)
         try:
             if self.provider == "google":
                 yield from self._stream_google(prompt, system_prompt=sys_prompt)
@@ -995,29 +1455,119 @@ class FallbackSynthesizer(BaseSynthesizer):
                 model="fallback",
             )
         top_ref = results[0]
+        intent = classify_intent(question)
         lines = [
             f"तपाईंको प्रश्न '{question}' सम्बन्धी शास्त्रीय सन्दर्भहरू:"
             if is_ne
             else f"Regarding your question '{question}':"
         ]
-        if is_ne:
-            top_text = top_ref.chunk.text.splitlines()[0] if top_ref.chunk.text else ""
-            lines.append(f"\n### १. प्रत्यक्ष फलादेश र मुख्य शास्त्रीय निर्णय\nशास्त्रीय ग्रन्थ ({top_ref.chunk.work}) अनुसार: {top_text} [१]")
-            lines.append("\n### २. ज्योतिषीय आधार र प्रामाणिक सूत्र")
-            for index, result in enumerate(results[:3], start=1):
-                clean_t = result.chunk.text.replace("\n", " ").strip()
-                lines.append(f"- **[{index}] {result.chunk.work}** (अध्याय {result.chunk.chapter or 'सामान्य'}, श्लोक {result.chunk.verse or 'सूत्र'}): {clean_t}")
-            lines.append("\n### ३. व्यावहारिक मार्गदर्शन तथा समय सिद्धान्त\nविंशोत्तरी महादशा, अन्तर्दशा तथा चन्द्र राशिका आधारमा सक्रिय गोचर प्रभाव अनुसार समय निर्धारण गरिन्छ।")
-            lines.append("\n### ४. प्रामाणिक वैदिक तथा लाल किताब उपाय\n- **नित्य नियम**: सम्बन्धित ग्रहको वैदिक वा बीज मन्त्र जप गर्नुहोस्।\n- **सावधानी**: नकारात्मक आचरण, अनुचित लेनदेन तथा लाल किताब अनुसार निषेधित कार्यहरूबाट टाढा रहनुहोस्।")
+        top_text = top_ref.chunk.text.splitlines()[0] if top_ref.chunk.text else ""
+        first_sentence = (
+            top_ref.chunk.text.split(".")[0]
+            if "." in top_ref.chunk.text
+            else top_ref.chunk.text[:140]
+        )
+
+        if intent == ConsultationIntent.NATAL_IDENTITY:
+            if is_ne:
+                lines.append(
+                    f"\n### १. कुण्डलीको मूल संरचना र लग्न स्वरूप\nशास्त्रीय ग्रन्थ ({top_ref.chunk.work}) अनुसार: {top_text} [१]"
+                )
+                lines.append("\n### २. मानसिक-भावनात्मक धरातल र चन्द्र-नक्षत्र")
+                for index, result in enumerate(results[:3], start=1):
+                    clean_t = result.chunk.text.replace("\n", " ").strip()
+                    lines.append(
+                        f"- **[{index}] {result.chunk.work}** (अध्याय {result.chunk.chapter or 'सामान्य'}, श्लोक {result.chunk.verse or 'सूत्र'}): {clean_t}"
+                    )
+                lines.append(
+                    "\n### ३. आत्मिक उद्देश्य र आत्मकारक ग्रह (सूर्य र आत्मकारक)\nसूर्य र आत्मकारक ग्रहले यस जीवनको मूल आत्मिक लक्ष्य र चेतनाको दिशालाई निर्देशित गर्दछन्।"
+                )
+                lines.append(
+                    "\n### ४. मुख्य सामर्थ्य, शुभ योग र आत्म-विकास\nकुण्डलीका शुभ योग तथा ग्रह बलले विशिष्ट आन्तरिक क्षमता र जीवनमा सन्तुलन प्रदान गर्दछन्।"
+                )
+            else:
+                lines.append(
+                    f"\n### 1. Cosmic Blueprint & Ascendant Archetype\nAccording to classical Jyotish authority ({top_ref.chunk.work}), {first_sentence.strip()} [1]."
+                )
+                lines.append(
+                    "\n### 2. Emotional Landscape & Mind (Chandra & Nakshatra)\nNatal Moon and Nakshatra placements govern instinctive emotional perception, intuitive discernment, and inner resilience:"
+                )
+                for index, result in enumerate(results[:3], start=1):
+                    clean_t = result.chunk.text.replace("\n", " ").strip()
+                    lines.append(f"- **{_citation_label(index, result)}**: {clean_t}")
+                lines.append(
+                    "\n### 3. Soul Purpose & Driving Vitality (Surya & Karakas)\nThe Sun and Atmakaraka anchor the highest aspirational calling and core lessons of this incarnation."
+                )
+                lines.append(
+                    "\n### 4. Key Strengths, Yogas & Karmic Evolution\nActive planetary dignities and auspicious Yogas grant distinct natural superpowers to develop throughout life."
+                )
+        elif intent == ConsultationIntent.REMEDIAL:
+            if is_ne:
+                lines.append(
+                    f"\n### १. प्रत्यक्ष फलादेश र मुख्य शास्त्रीय निर्णय\nशास्त्रीय ग्रन्थ ({top_ref.chunk.work}) अनुसार: {top_text} [१]"
+                )
+                lines.append("\n### २. ज्योतिषीय आधार र प्रामाणिक सूत्र")
+                for index, result in enumerate(results[:3], start=1):
+                    clean_t = result.chunk.text.replace("\n", " ").strip()
+                    lines.append(
+                        f"- **[{index}] {result.chunk.work}** (अध्याय {result.chunk.chapter or 'सामान्य'}, श्लोक {result.chunk.verse or 'सूत्र'}): {clean_t}"
+                    )
+                lines.append(
+                    "\n### ३. व्यावहारिक मार्गदर्शन तथा समय सिद्धान्त\nविंशोत्तरी महादशा, अन्तर्दशा तथा चन्द्र राशिका आधारमा सक्रिय गोचर प्रभाव अनुसार समय निर्धारण गरिन्छ।"
+                )
+                lines.append(
+                    "\n### ४. प्रामाणिक वैदिक तथा लाल किताब उपाय\n- **४३ दिने मुख्य उपाय**: लगातार ४३ दिन दिउँसो गरिने ठोस व्यावहारिक उपाय\n- **कडा सावधानी (निषेध)**: लाल किताब अनुसार कहिल्यै गर्न नहुने काम वा निषेध"
+                )
+            else:
+                lines.append(
+                    f"\n### 1. Core Afflictions & Karmic Imbalances\nAccording to classical Jyotish authority ({top_ref.chunk.work}), {first_sentence.strip()} [1]."
+                )
+                lines.append("\n### 2. Primary 43-Day Daytime Lal Kitab Upaya")
+                for index, result in enumerate(results[:3], start=1):
+                    clean_t = result.chunk.text.replace("\n", " ").strip()
+                    lines.append(f"- **{_citation_label(index, result)}**: {clean_t}")
+                lines.append(
+                    "\n### 3. Creature & Household Seva\nSupport daytime charitable seva (feeding birds, cows, or dogs) and align home energetic harmony."
+                )
+                lines.append(
+                    "\n### 4. Inviolable Savdhani (Strict Behavioral Precautions)\nMaintain ethical conduct, avoid prohibited items at home, and strictly observe classical planetary taboos."
+                )
         else:
-            first_sentence = top_ref.chunk.text.split(".")[0] if "." in top_ref.chunk.text else top_ref.chunk.text[:140]
-            lines.append(f"\n### 1. Direct Verdict & Classical Principle\nAccording to classical Jyotish authority ({top_ref.chunk.work}), {first_sentence.strip()} [1].")
-            lines.append("\n### 2. Astrological Mechanism & Scriptural Grounding")
-            for index, result in enumerate(results[:3], start=1):
-                clean_t = result.chunk.text.replace("\n", " ").strip()
-                lines.append(f"- **{_citation_label(index, result)}**: {clean_t}")
-            lines.append("\n### 3. Concrete Guidelines & Timing Principles\nTiming and manifestation are governed by the active Vimshottari Dasha sub-periods and key planetary transits relative to the natal Moon.")
-            lines.append("\n### 4. Classical Remediation & Dharmic Alignment\n- **Primary Upaya**: Recite the designated Beeja Mantra of the relevant planetary lord.\n- **Savdhani (Precaution)**: Maintain ethical conduct, support daytime charitable seva, and avoid classical planetary taboos.")
+            if is_ne:
+                lines.append(
+                    f"\n### १. प्रत्यक्ष फलादेश र मुख्य शास्त्रीय निर्णय\nशास्त्रीय ग्रन्थ ({top_ref.chunk.work}) अनुसार: {top_text} [१]"
+                )
+                lines.append("\n### २. ज्योतिषीय आधार र प्रामाणिक सूत्र")
+                for index, result in enumerate(results[:3], start=1):
+                    clean_t = result.chunk.text.replace("\n", " ").strip()
+                    lines.append(
+                        f"- **[{index}] {result.chunk.work}** (अध्याय {result.chunk.chapter or 'सामान्य'}, श्लोक {result.chunk.verse or 'सूत्र'}): {clean_t}"
+                    )
+                lines.append(
+                    "\n### ३. व्यावहारिक मार्गदर्शन तथा समय सिद्धान्त\nविंशोत्तरी महादशा, अन्तर्दशा तथा चन्द्र राशिका आधारमा सक्रिय गोचर प्रभाव अनुसार समय निर्धारण गरिन्छ।"
+                )
+                lines.append(
+                    "\n### ४. प्रामाणिक वैदिक तथा लाल किताब उपाय\n- **नित्य नियम**: सम्बन्धित ग्रहको वैदिक वा बीज मन्त्र जप गर्नुहोस्।\n- **सावधानी**: नकारात्मक आचरण, अनुचित लेनदेन तथा लाल किताब अनुसार निषेधित कार्यहरूबाट टाढा रहनुहोस्।"
+                )
+            else:
+                first_sentence = (
+                    top_ref.chunk.text.split(".")[0]
+                    if "." in top_ref.chunk.text
+                    else top_ref.chunk.text[:140]
+                )
+                lines.append(
+                    f"\n### 1. Direct Verdict & Classical Principle\nAccording to classical Jyotish authority ({top_ref.chunk.work}), {first_sentence.strip()} [1]."
+                )
+                lines.append("\n### 2. Astrological Mechanism & Scriptural Grounding")
+                for index, result in enumerate(results[:3], start=1):
+                    clean_t = result.chunk.text.replace("\n", " ").strip()
+                    lines.append(f"- **{_citation_label(index, result)}**: {clean_t}")
+                lines.append(
+                    "\n### 3. Concrete Guidelines & Timing Principles\nTiming and manifestation are governed by the active Vimshottari Dasha sub-periods and key planetary transits relative to the natal Moon."
+                )
+                lines.append(
+                    "\n### 4. Classical Remediation & Dharmic Alignment\n- **Primary Upaya**: Recite the designated Beeja Mantra of the relevant planetary lord.\n- **Savdhani (Precaution)**: Maintain ethical conduct, support daytime charitable seva, and avoid classical planetary taboos."
+                )
 
         return Answer(
             question=question,
