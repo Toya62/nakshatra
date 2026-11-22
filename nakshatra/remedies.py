@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel
 
+from nakshatra.compatibility import MANGLIK_HOUSES
 from nakshatra.core import (
     ChartData,
     PlanetPosition,
@@ -451,8 +452,10 @@ def calculate_remedies(
             if severity == AfflictionSeverity.MILD:
                 severity = AfflictionSeverity.MODERATE
 
-        # Affliction Check 4: Manglik / Kuja Dosha
-        if p_name == "Mars" and p_house in (1, 4, 7, 8, 12):
+        # Affliction Check 4: Manglik / Kuja Dosha — uses the single shared
+        # MANGLIK_HOUSES set from nakshatra.compatibility (see its comment
+        # for why the set is {1, 2, 4, 7, 8, 12}).
+        if p_name == "Mars" and p_house in MANGLIK_HOUSES:
             reasons.append(
                 f"Kuja Dosha placement in House {p_house} (demands marital balance and anger control)"
             )

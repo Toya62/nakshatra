@@ -505,8 +505,35 @@ def calculate_vashya(bride_sign: str, groom_sign: str) -> KutaScore:
     )
 
 
-def calculate_tara(bride_nak_idx: int, groom_nak_idx: int) -> KutaScore:
+def _unknown_kuta(
+    name: str, max_score: float, bride_val: str, groom_val: str
+) -> KutaScore:
+    """KutaScore for an unevaluatable koota: unknown/empty Moon nakshatra.
+
+    Scores 0 (not favourable) but is explicitly marked "unknown" in the
+    notes, so a report never silently presents an Ashwini-defaulted or
+    otherwise fabricated value for a nakshatra it does not know.
+    """
+    return KutaScore(
+        name=name,
+        max_score=max_score,
+        obtained_score=0.0,
+        bride_val=bride_val or "Unknown",
+        groom_val=groom_val or "Unknown",
+        is_favorable=False,
+        notes=(
+            f"Unknown Moon nakshatra ({bride_val or 'Unknown'} / "
+            f"{groom_val or 'Unknown'}) — {name} cannot be evaluated"
+        ),
+    )
+
+
+def calculate_tara(
+    bride_nak_idx: int | None, groom_nak_idx: int | None
+) -> KutaScore:
     """3. Tara / Dina Koota (3 points): Destiny, health, and longevity from 27 Nakshatras."""
+    if bride_nak_idx is None or groom_nak_idx is None:
+        return _unknown_kuta("Tara", 3.0, "Unknown", "Unknown")
     d_b_to_g = ((groom_nak_idx - bride_nak_idx) % 27) + 1
     t1 = d_b_to_g % 9
     if t1 == 0:
@@ -544,6 +571,8 @@ def calculate_tara(bride_nak_idx: int, groom_nak_idx: int) -> KutaScore:
 
 def calculate_yoni(bride_nak: str, groom_nak: str) -> KutaScore:
     """4. Yoni Koota (4 points): Sexual and biological intimacy compatibility."""
+    if bride_nak not in YONI_MAP or groom_nak not in YONI_MAP:
+        return _unknown_kuta("Yoni", 4.0, bride_nak, groom_nak)
     b_animal, b_gender = YONI_MAP[bride_nak]
     g_animal, g_gender = YONI_MAP[groom_nak]
 
@@ -634,6 +663,8 @@ def calculate_graha_maitri(bride_sign: str, groom_sign: str) -> KutaScore:
 
 def calculate_gana(bride_nak: str, groom_nak: str) -> KutaScore:
     """6. Gana Koota (6 points): Temperament and behavior alignment."""
+    if bride_nak not in GANA_MAP or groom_nak not in GANA_MAP:
+        return _unknown_kuta("Gana", 6.0, bride_nak, groom_nak)
     b_gana = GANA_MAP[bride_nak]
     g_gana = GANA_MAP[groom_nak]
 
@@ -753,6 +784,8 @@ def calculate_nadi(
     groom_sign: str = "",
 ) -> KutaScore:
     """8. Nadi Koota (8 points): Genetic and physiological compatibility."""
+    if bride_nak not in NADI_MAP or groom_nak not in NADI_MAP:
+        return _unknown_kuta("Nadi", 8.0, bride_nak, groom_nak)
     b_nadi = NADI_MAP[bride_nak]
     g_nadi = NADI_MAP[groom_nak]
 
@@ -820,10 +853,21 @@ def calculate_nadi(
 def calculate_extended_kutas(
     bride_nak: str,
     groom_nak: str,
-    bride_nak_idx: int,
-    groom_nak_idx: int,
+    bride_nak_idx: int | None,
+    groom_nak_idx: int | None,
 ) -> ExtendedKutasReport:
-    """Evaluate Mahendra, Stree Deergha, Rajju, and Vedha."""
+    """Evaluate Mahendra, Stree Deergha, Rajju, and Vedha.
+
+    Unknown/empty Moon nakshatras (indices None) yield "unknown" scores,
+    never silently defaulted Ashwini-based values.
+    """
+    if bride_nak_idx is None or groom_nak_idx is None:
+        return ExtendedKutasReport(
+            mahendra=_unknown_kuta("Mahendra", 1.0, bride_nak, groom_nak),
+            stree_deergha=_unknown_kuta("Stree Deergha", 1.0, bride_nak, groom_nak),
+            rajju=_unknown_kuta("Rajju", 1.0, bride_nak, groom_nak),
+            vedha=_unknown_kuta("Vedha", 1.0, bride_nak, groom_nak),
+        )
     # 1. Mahendra Kuta: Distance from bride to groom in {4, 7, 10, 13, 16, 19, 22, 25}
     d_b_to_g = ((groom_nak_idx - bride_nak_idx) % 27) + 1
     mahendra_favorable = d_b_to_g in {4, 7, 10, 13, 16, 19, 22, 25}
@@ -839,8 +883,10 @@ def calculate_extended_kutas(
         else "Neutral / Average",
     )
 
-    # 2. Stree Deergha: Groom nakshatra > 13 away from bride
-    stree_deergha_favorable = d_b_to_g >= 13
+    # 2. Stree Deergha: Groom nakshatra MORE THAN 13 away from bride
+    # (classical rule: "beyond the 13th" / "more than 13" — so exactly 13
+    # is NOT favourable; the old code used >= 13, contradicting this).
+    stree_deergha_favorable = d_b_to_g > 13
     stree_deergha_kuta = KutaScore(
         name="Stree Deergha",
         max_score=1.0,
@@ -848,9 +894,9 @@ def calculate_extended_kutas(
         bride_val=str(bride_nak_idx),
         groom_val=str(groom_nak_idx),
         is_favorable=stree_deergha_favorable,
-        notes=f"Distance {d_b_to_g} nakshatras (>=13 auspicious for long life and wealth)"
+        notes=f"Distance {d_b_to_g} nakshatras (>13 auspicious for long life and wealth)"
         if stree_deergha_favorable
-        else f"Distance {d_b_to_g} nakshatras (<13)",
+        else f"Distance {d_b_to_g} nakshatras (<=13)",
     )
 
     # 3. Rajju: Affliction if in same anatomical level
@@ -897,6 +943,23 @@ def calculate_extended_kutas(
 # Kuja Dosha (Manglik) Engine
 # ---------------------------------------------------------------------------
 
+# Kuja Dosha (Manglik) houses — THE single house set used by this module,
+# nakshatra.remedies and nakshatra.predictor (both import MANGLIK_HOUSES;
+# do not redefine it there). Chosen set: {1, 2, 4, 7, 8, 12}, counted from
+# Lagna, Moon and Venus.
+# Why this set and not the stricter Lagna-only {1, 4, 7, 8, 12}: the oldest
+# verse (BPHS II, ch. 80, v. 47) names only 12th/4th/7th/8th from the
+# Ascendant (+ Lagna itself) with no 2nd house and no Moon/Venus count — but
+# the fuller matching formulation this engine implements (three reference
+# points, weighted Lagna 1.0 / Moon 0.5 / Venus 0.25) is the widespread later
+# convention (AstroSage/Drik; South Indian practice adds the 2nd, the house
+# of family/speech) of Mars in 1, 2, 4, 7, 8, 12 from Lagna, Moon and Venus.
+# Unifying on the broader set is the conservative choice for a marriage
+# dosha: it never silently drops a flag the fuller formulation would raise,
+# and it keeps the compatibility verdict and the remedies affliction scan in
+# agreement. Note for BPHS-strict readers: Mars in the 2nd from Lagna alone
+# is not a dosha under the verse; it is flagged here only under the fuller
+# three-reference convention.
 MANGLIK_HOUSES = {1, 2, 4, 7, 8, 12}
 
 
@@ -1055,8 +1118,8 @@ def calculate_compatibility(
     b_pada = b_moon.pada or 1
     g_pada = g_moon.pada or 1
 
-    b_nak_idx = NAKSHATRA_NAMES.index(b_nak) + 1 if b_nak in NAKSHATRA_NAMES else 1
-    g_nak_idx = NAKSHATRA_NAMES.index(g_nak) + 1 if g_nak in NAKSHATRA_NAMES else 1
+    b_nak_idx = NAKSHATRA_NAMES.index(b_nak) + 1 if b_nak in NAKSHATRA_NAMES else None
+    g_nak_idx = NAKSHATRA_NAMES.index(g_nak) + 1 if g_nak in NAKSHATRA_NAMES else None
 
     # 1. 8 Kootas
     varna = calculate_varna(b_sign, g_sign)

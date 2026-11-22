@@ -781,6 +781,34 @@ def calculate_vedic_aspects(
     return aspects
 
 
+def _house_from_chart_object(chart: Any, object_name: str, fallback: int) -> int:
+    """House number of a mayaastrolib chart object (e.g. "North Node").
+
+    Mirrors the graha house extraction in calculate_chart: ``house.num``
+    when present, else the number parsed from ``house.id`` ("House5").
+    Returns ``fallback`` (the whole-sign house) when the object or its
+    house is unavailable, so callers never crash on an unusual chart.
+    """
+    try:
+        obj = chart.getObject(object_name)
+    except Exception:
+        return fallback
+    if obj is None or not hasattr(obj, "house") or obj.house is None:
+        return fallback
+    house_num = getattr(obj.house, "num", None)
+    if house_num is None:
+        try:
+            house_id = str(getattr(obj.house, "id", "")).replace("House", "")
+            house_num = int(house_id)
+        except (TypeError, ValueError):
+            return fallback
+    try:
+        house_num = int(house_num)
+    except (TypeError, ValueError):
+        return fallback
+    return house_num if 1 <= house_num <= 12 else fallback
+
+
 def calculate_chart(
     birth: BirthData,
     ayanamsa: Ayanamsa = Ayanamsa.JHORA_LAHIRI,
@@ -1003,7 +1031,14 @@ def calculate_chart(
     rahu_sign_idx = ZODIAC_SIGNS.index(rahu_sign)
     rahu_deg = get_degree_in_sign(rahu_lon)
     rahu_nak, rahu_lord, rahu_pada = get_nakshatra(rahu_lon)
+    # Whole-sign house from the sign; under quadrant systems (Placidus/Koch/
+    # ...) the nodes take their house from the chart object, exactly like
+    # the 7 grahas above — falling back to whole-sign if unavailable.
     rahu_house = ((rahu_sign_idx - asc_sign_idx) % 12) + 1
+    if house_system != HouseSystem.WHOLE_SIGN:
+        rahu_house = _house_from_chart_object(
+            chart, "North Node", rahu_house
+        )
 
     rahu = PlanetPosition(
         name="Rahu",
@@ -1027,6 +1062,10 @@ def calculate_chart(
     ketu_deg = get_degree_in_sign(ketu_lon)
     ketu_nak, ketu_lord, ketu_pada = get_nakshatra(ketu_lon)
     ketu_house = ((ketu_sign_idx - asc_sign_idx) % 12) + 1
+    if house_system != HouseSystem.WHOLE_SIGN:
+        ketu_house = _house_from_chart_object(
+            chart, "South Node", ketu_house
+        )
 
     ketu = PlanetPosition(
         name="Ketu",

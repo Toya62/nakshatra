@@ -22,6 +22,7 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field
 
+from nakshatra.compatibility import MANGLIK_HOUSES
 from nakshatra.core import (
     SIGN_LORDS,
     ZODIAC_SIGNS,
@@ -205,6 +206,14 @@ def dasha_lord_relationship(
             f"{md_lord} and {ad_lord} sit in 4th/10th Kendra angles, demanding hard work, decisive structural realignment, and professional stewardship.",
         ),
         "1/7": (
+            "Samasaptaka (Direct Opposition/Aspect)",
+            "Overt Manifestation",
+            f"{md_lord} and {ad_lord} directly aspect each other across 1st/7th axes, bringing partnerships and visible results into sharp clarity.",
+        ),
+        # Opposition also normalises to "7/7" (dist=7, comp=7): same
+        # Samasaptaka entry, kept explicit so it never falls through to
+        # the Sambandha default.
+        "7/7": (
             "Samasaptaka (Direct Opposition/Aspect)",
             "Overt Manifestation",
             f"{md_lord} and {ad_lord} directly aspect each other across 1st/7th axes, bringing partnerships and visible results into sharp clarity.",
@@ -527,9 +536,11 @@ def evaluate_relationship(
                 "Venus is debilitated in Virgo, advising against over-critical tendencies in romance."
             )
 
-    # Kuja Dosha (Manglik check from Lagna)
+    # Kuja Dosha (Manglik check from Lagna) — uses the single shared
+    # MANGLIK_HOUSES set from nakshatra.compatibility, so the relationship
+    # predictor, the compatibility engine and the remedies scan agree.
     p_mars = get_planet_by_name(chart, "Mars")
-    if p_mars and p_mars.house in (1, 4, 7, 8, 12):
+    if p_mars and p_mars.house in MANGLIK_HOUSES:
         if p_mars.dignity not in ("exalted", "own_sign"):
             score -= 1
             promise_parts.append(

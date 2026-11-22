@@ -593,7 +593,10 @@ async def convert_ad_to_bs(
     day: int = Query(..., ge=1, le=31),
 ) -> BikramSambatDate:
     """Convert Gregorian (AD) calendar date to Nepali Bikram Sambat (BS)."""
-    return ad_to_bs(year, month, day)
+    try:
+        return ad_to_bs(year, month, day)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.get("/calendar/ad", response_model=GregorianDate, tags=["Calendar"])
@@ -603,7 +606,10 @@ async def convert_bs_to_ad(
     day: int = Query(..., ge=1, le=32),
 ) -> GregorianDate:
     """Convert Nepali Bikram Sambat (BS) date to Gregorian (AD) calendar date."""
-    return bs_to_ad(year, month, day)
+    try:
+        return bs_to_ad(year, month, day)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.get("/calendar/nomenclature", tags=["Calendar"])

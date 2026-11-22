@@ -124,14 +124,24 @@ def ad_to_bs(year: int, month: int, day: int) -> BikramSambatDate:
         bs_month = bs_dt.month
         bs_day = bs_dt.day
     except (ValueError, OverflowError):
-        # Fallback approximation: BS is ~56 years, 8 months, 17 days ahead of AD
+        # Fallback approximation: BS is ~56 years, 8 months, 17 days ahead of AD.
+        # The approximation cannot know the BS month's length, so a day that
+        # would have to be clamped (day 31) is refused instead of silently
+        # returning a wrong day — exact conversion is only supported for AD
+        # dates whose BS year falls in 1975..2100.
+        if day > 30:
+            raise ValueError(
+                f"AD date {year}-{month:02d}-{day:02d} is outside the exact "
+                "BS conversion range and its day cannot be approximated "
+                "without silently clamping it"
+            ) from None
         if month < 4 or (month == 4 and day < 14):
             bs_year = year + 56
             bs_month = ((month + 8) % 12) or 12
         else:
             bs_year = year + 57
             bs_month = month - 3
-        bs_day = min(day, 30)
+        bs_day = day
 
     m_info = NEPALI_MONTHS[bs_month - 1]
 
@@ -153,7 +163,16 @@ def ad_to_bs(year: int, month: int, day: int) -> BikramSambatDate:
 def bs_to_ad(year: int, month: int, day: int) -> GregorianDate:
     """
     Convert Nepali Bikram Sambat (BS) date to Gregorian (AD) calendar date.
+
+    Raises ValueError for an invalid BS date instead of silently clamping
+    it: a day/month outside 1..12 / 1..32 is refused up front, and in the
+    out-of-range fallback (BS years outside 1975..2100) a day that would
+    have to be clamped is refused rather than returned as a wrong date.
     """
+    if not 1 <= month <= 12:
+        raise ValueError(f"Invalid BS month: {month} (must be 1..12)")
+    if not 1 <= day <= 32:
+        raise ValueError(f"Invalid BS day: {day} (must be 1..32)")
     try:
         bs_dt = nepali_datetime.date(year, month, day)
         ad_dt = bs_dt.to_datetime_date()
@@ -164,10 +183,27 @@ def bs_to_ad(year: int, month: int, day: int) -> GregorianDate:
             formatted=ad_dt.isoformat(),
         )
     except Exception:
-        # Fallback approximation: AD is ~56.7 years behind BS
+        # A failure inside the supported BS year range means the date
+        # itself is invalid for that month (e.g. day 32 in a 31-day month)
+        # — refuse it, do not approximate it into a different date.
+        if 1975 <= year <= 2100:
+            raise ValueError(
+                f"Invalid BS date {year}-{month:02d}-{day:02d} for that month"
+            ) from None
+        # Fallback approximation: AD is ~56.7 years behind BS. The
+        # approximation cannot know the AD month's length, so a day that
+        # would have to be clamped is refused instead of silently returning
+        # a wrong date — exact conversion is only supported for BS years
+        # 1975..2100.
+        if day > 28:
+            raise ValueError(
+                f"BS date {year}-{month:02d}-{day:02d} is outside the exact "
+                "AD conversion range and its day cannot be approximated "
+                "without silently clamping it"
+            ) from None
         approx_year = year - 57 if month > 8 else year - 56
         approx_month = (month + 3) if month <= 9 else (month - 9)
-        approx_day = min(day, 28)
+        approx_day = day
         ad_dt = date(approx_year, approx_month, approx_day)
         return GregorianDate(
             year=ad_dt.year,

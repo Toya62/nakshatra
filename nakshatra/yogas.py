@@ -756,9 +756,11 @@ def _detect_raja_and_dhana(chart: ChartData) -> list[YogaResult]:
             )
 
     # Kendra-Trikona Raja Yoga (Dharma-Karmadhipati / Kendra-Trikona conjunction)
-    # Check conjunction of Kendra lord (4, 7, 10) with Trikona lord (5, 9)
-    kendra_houses_check = [4, 7, 10]
-    trikona_houses_check = [5, 9]
+    # Check conjunction of Kendra lord with Trikona lord. House 1 is both a
+    # Kendra and a Trikona, so the shared KENDRA_HOUSES / TRIKONA_HOUSES
+    # constants (which include 1) are used, not a hand-written subset.
+    kendra_houses_check = sorted(KENDRA_HOUSES)
+    trikona_houses_check = sorted(TRIKONA_HOUSES)
     k_lords = {h: _get_lord_of_house(chart, h) for h in kendra_houses_check}
     t_lords = {h: _get_lord_of_house(chart, h) for h in trikona_houses_check}
 
@@ -795,6 +797,15 @@ def _detect_raja_and_dhana(chart: ChartData) -> list[YogaResult]:
     return results
 
 
+def _houses_ruled_by(chart: ChartData, planet_name: str) -> list[int]:
+    """Houses whose lord is ``planet_name`` (lordship, not placement)."""
+    return [
+        h
+        for h in range(1, 13)
+        if _get_lord_of_house(chart, h) == planet_name
+    ]
+
+
 # 9. Parivartana Yogas (Mutual Sign Exchange)
 def _detect_parivartana(chart: ChartData) -> list[YogaResult]:
     """Detect classical Parivartana Yogas (mutual sign exchange between two planet lords).
@@ -826,35 +837,47 @@ def _detect_parivartana(chart: ChartData) -> list[YogaResult]:
                 continue
             seen_pairs.add(pair_key)
 
+            # Classify by LORDSHIP, per the docstring above: which houses the
+            # exchanging planets rule — not by where they are placed. A planet
+            # may rule two houses (e.g. Mercury rules 3 and 6 for Aries
+            # Lagna), so every house either planet rules is considered;
+            # any Dusthana lordship makes it Dainya, else any 3rd lordship
+            # makes it Kahala, else Maha.
             h1 = p1.house
             h2 = p2.house
+            ruled1 = _houses_ruled_by(chart, p1_name)
+            ruled2 = _houses_ruled_by(chart, p2_name)
+            ruled = set(ruled1) | set(ruled2)
 
-            if h1 in DUSTHANA_HOUSES or h2 in DUSTHANA_HOUSES:
+            if ruled & DUSTHANA_HOUSES:
                 yoga_name = f"Dainya Parivartana Yoga ({p1_name} & {p2_name})"
                 strength = "Moderate"
                 desc = (
-                    f"Mutual sign exchange (Parivartana) involving Dusthana house(s): "
-                    f"{p1_name} (in House {h1}, sign of {p2_name}) and {p2_name} (in House {h2}, sign of {p1_name})."
+                    f"Mutual sign exchange (Parivartana) involving Dusthana lordship: "
+                    f"{p1_name} rules house(s) {sorted(ruled1)} and {p2_name} rules house(s) {sorted(ruled2)} "
+                    f"(placed in Houses {h1} and {h2})."
                 )
                 effects = (
-                    f"Karmic exchange between House {h1} and House {h2}. Generates volatile experiences, "
+                    f"Karmic exchange between ruled houses {sorted(ruled)}. Generates volatile experiences, "
                     "transformations through adversity, expenditures, or unconventional paths, "
                     "with deep potential for spiritual awakening and detachment."
                 )
-            elif h1 == 3 or h2 == 3:
+            elif 3 in ruled:
                 yoga_name = f"Kahala Parivartana Yoga ({p1_name} & {p2_name})"
                 strength = "Strong"
                 desc = (
-                    f"Mutual sign exchange involving the 3rd house of courage: "
-                    f"{p1_name} (in House {h1}) and {p2_name} (in House {h2})."
+                    f"Mutual sign exchange involving the 3rd house lord: "
+                    f"{p1_name} rules house(s) {sorted(ruled1)} and {p2_name} rules house(s) {sorted(ruled2)} "
+                    f"(placed in Houses {h1} and {h2})."
                 )
                 effects = "Endows courageous determination, entrepreneurial valor, self-made success through relentless effort."
             else:
                 yoga_name = f"Maha Parivartana Yoga ({p1_name} & {p2_name})"
                 strength = "Strong"
                 desc = (
-                    f"Auspicious mutual sign exchange between benefic houses: "
-                    f"{p1_name} (in House {h1}) and {p2_name} (in House {h2})."
+                    f"Auspicious mutual sign exchange between benefic-house lords: "
+                    f"{p1_name} rules house(s) {sorted(ruled1)} and {p2_name} rules house(s) {sorted(ruled2)} "
+                    f"(placed in Houses {h1} and {h2})."
                 )
                 effects = "Highly auspicious classical Raja-Dhana yoga. Bestows enduring leadership, prestige, wealth, and sovereign authority."
 
@@ -866,7 +889,7 @@ def _detect_parivartana(chart: ChartData) -> list[YogaResult]:
                     is_formed=True,
                     strength=strength,
                     planets_involved=[p1_name, p2_name],
-                    houses_involved=[h1, h2],
+                    houses_involved=sorted(ruled),
                     effects=effects,
                 )
             )

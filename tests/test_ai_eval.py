@@ -117,7 +117,12 @@ GOLDEN_CHARTS: dict[str, dict] = {
         "yogas": ["Malavya Yoga", "Gaja Kesari Yoga",
                   "Kemadruma Bhanga Yoga (Cancelled Kemadruma)",
                   "Neechabhanga Raja Yoga (Jupiter)", "Ubhayachari Yoga",
-                  "Harsha Yoga (Viparita Raja Yoga)"],
+                  "Harsha Yoga (Viparita Raja Yoga)",
+                  # Step 2 (Task 13) correction: Sun (10th lord, Kendra) is
+                  # conjoined with Mars (1st lord, Kendra+Trikona) in Gemini
+                  # H8. House 1 was wrongly excluded from the Kendra/Trikona
+                  # lord lists before the step-2 fix, so this yoga was missed.
+                  "Kendra-Trikona Raja Yoga (Sun & Mars)"],
         "sade_sati": {"active": False, "phase": None, "moon_sign": "Capricorn"},
     },
     "ktm-2000": {
@@ -156,7 +161,10 @@ GOLDEN_CHARTS: dict[str, dict] = {
         "yogas": ["Malavya Yoga", "Neechabhanga Raja Yoga (Mercury)", "Sunapha Yoga",
                   "Vesi Yoga", "Amala Yoga (from Lagna)",
                   "Kendra-Trikona Raja Yoga (Mercury & Venus)",
-                  "Kahala Parivartana Yoga (Sun & Saturn)",
+                  # Step 2 (Task 13) correction: Sun rules 3rd, Saturn rules
+                  # 8th + 9th, so the exchange involves a Dusthana (8th) lord
+                  # and is Dainya by lordship, not Kahala by placement (H9/H3).
+                  "Dainya Parivartana Yoga (Sun & Saturn)",
                   "Maha Parivartana Yoga (Mercury & Jupiter)"],
         "sade_sati": {"active": True, "phase": "Setting (2nd from Moon)", "moon_sign": "Aquarius"},
     },
@@ -195,7 +203,12 @@ GOLDEN_CHARTS: dict[str, dict] = {
         "pd": ("Venus", "2026-07-23", "2027-01-04"),
         "yogas": ["Malavya Yoga", "Gaja Kesari Yoga",
                   "Kemadruma Bhanga Yoga (Cancelled Kemadruma)", "Vasi Yoga",
-                  "Amala Yoga (from Moon)", "Maha Dhana Yoga (2nd & 11th Lords Conjunction)"],
+                  "Amala Yoga (from Moon)", "Maha Dhana Yoga (2nd & 11th Lords Conjunction)",
+                  # Step 2 (Task 13) correction: Venus (1st lord, Kendra) is
+                  # conjoined with Mercury (5th lord, Trikona) in Taurus H1.
+                  # House 1 was wrongly excluded from the Kendra/Trikona
+                  # lord lists before the step-2 fix, so this yoga was missed.
+                  "Kendra-Trikona Raja Yoga (Venus & Mercury)"],
         "sade_sati": {"active": False, "phase": None, "moon_sign": "Leo"},
     },
     "berlin-2003": {
@@ -232,7 +245,14 @@ GOLDEN_CHARTS: dict[str, dict] = {
         "pd": ("North Node", "2026-10-09", "2026-12-05"),
         "yogas": ["Malavya Yoga", "Kemadruma Bhanga Yoga (Cancelled Kemadruma)",
                   "Neechabhanga Raja Yoga (Saturn)", "Ubhayachari Yoga",
-                  "Kendra-Trikona Raja Yoga (Venus & Jupiter)"],
+                  "Kendra-Trikona Raja Yoga (Venus & Jupiter)",
+                  # Step 2 (Task 13) correction: Mars (1st lord, Kendra+Trikona)
+                  # is conjoined with Jupiter (9th lord) and Venus (7th lord)
+                  # in Libra H7. House 1 was wrongly excluded from the
+                  # Kendra/Trikona lord lists before the step-2 fix, so these
+                  # two yogas were missed.
+                  "Kendra-Trikona Raja Yoga (Mars & Jupiter)",
+                  "Kendra-Trikona Raja Yoga (Venus & Mars)"],
         "sade_sati": {"active": False, "phase": None, "moon_sign": "Sagittarius"},
     },
     "ktm-2010": {
