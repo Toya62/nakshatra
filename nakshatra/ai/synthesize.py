@@ -588,6 +588,12 @@ def extract_citations(answer: str, results: list[SearchResult]) -> list[Citation
     return citations
 
 
+def _clean_repeated_phrases(text: str) -> str:
+    """Detect and truncate degenerative LLM repetition loops (e.g. phrase repeated 3+ times)."""
+    pattern = re.compile(r"([^\n\r]{3,40}?)(?:\s*[:\-–]?\s*\1){2,}", re.IGNORECASE)
+    return pattern.sub(r"\1", text)
+
+
 def _strip_trailing_references(text: str) -> str:
     """Strip redundant trailing References/Citations section from LLM output.
 
@@ -595,11 +601,12 @@ def _strip_trailing_references(text: str) -> str:
     metadata, so a raw text bibliography at the bottom of the answer creates
     duplicate visual display.
     """
+    cleaned = _clean_repeated_phrases(text)
     pattern = (
         r"(?i)\n+(?:###?\s*)?(?:references|citations|classical citations|shloka citations|"
         r"सन्दर्भहरू?|उद्धरणहरू?)\s*:?\s*\n+.*$"
     )
-    return re.sub(pattern, "", text, flags=re.DOTALL).rstrip()
+    return re.sub(pattern, "", cleaned, flags=re.DOTALL).rstrip()
 
 
 class LLMSynthesizer(BaseSynthesizer):
@@ -726,7 +733,9 @@ class LLMSynthesizer(BaseSynthesizer):
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt},
             ],
-            "temperature": 0.3,
+            "temperature": 0.35,
+            "frequency_penalty": 0.3,
+            "presence_penalty": 0.2,
             "timeout": 120.0,
             "max_tokens": max_tokens,
         }
@@ -837,7 +846,9 @@ class LLMSynthesizer(BaseSynthesizer):
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt},
             ],
-            "temperature": 0.3,
+            "temperature": 0.35,
+            "frequency_penalty": 0.3,
+            "presence_penalty": 0.2,
             "stream": True,
             "timeout": 120.0,
             "max_tokens": max_tokens,
