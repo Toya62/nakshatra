@@ -18,12 +18,18 @@ import re
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from enum import Enum
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
 from nakshatra.ai.retrieval import SearchResult
 from nakshatra.ai.validate import ValidationResult, validate_answer
+
+# Task 13 step 8: the only supported consultation languages. The API
+# rejects anything else (400); get_system_prompt() accepts the legacy
+# "nepali"/"nep" aliases for back-compat but raises ValueError on any
+# other value instead of silently falling back to English.
+SupportedLanguage = Literal["en", "ne"]
 
 # Task 13 step 5: decoding controls shared by the OpenAI-compatible and
 # Google GenAI paths. OpenAI calls use temperature 0.35 and max_tokens from
@@ -525,11 +531,19 @@ SYSTEM_PROMPT_NE = SYSTEM_PROMPT_NE_PREDICTION
 
 
 def get_system_prompt(
-    language: str = "en",
+    language: SupportedLanguage = "en",
     intent: ConsultationIntent | str | None = None,
 ) -> str:
-    """Return language and intent-specific system prompt."""
+    """Return language and intent-specific system prompt.
+
+    Task 13 step 8: an unsupported language raises ValueError instead of
+    silently falling back to English. The legacy aliases "nepali"/"nep"
+    are still accepted (existing callers/tests use them); anything else
+    (e.g. "fr", "xx") is rejected.
+    """
     lang = (language or "en").lower().strip()
+    if lang not in ("en", "ne", "nepali", "nep"):
+        raise ValueError(f"Unsupported language: {language!r} (expected 'en' or 'ne')")
     is_ne = lang in ("ne", "nepali", "nep")
 
     if intent is None:
@@ -603,7 +617,7 @@ class BaseSynthesizer(ABC):
         question: str,
         results: list[SearchResult],
         birth_context: dict[str, Any] | None = None,
-        language: str = "en",
+        language: SupportedLanguage = "en",
     ) -> Answer:
         """Generate an answer from retrieved search results."""
 
@@ -612,7 +626,7 @@ class BaseSynthesizer(ABC):
         question: str,
         results: list[SearchResult],
         birth_context: dict[str, Any] | None = None,
-        language: str = "en",
+        language: SupportedLanguage = "en",
     ) -> Iterator[str]:
         """Stream answer tokens. Defaults to yielding complete synthesized text."""
         ans = self.synthesize(question, results, birth_context, language=language)
@@ -1457,6 +1471,23 @@ def build_prompt(
         )
         if summary:
             lines.append("\n" + summary)
+        # Task 13 step 8: the server used to swallow transits/predictions/
+        # remedies failures (bare `except: pass` in _attach_chart_derived_
+        # context) while telling the model the chart is complete ground
+        # truth. When any part failed, the missing part is recorded in
+        # birth_context["partial_context"] — surface it here so the model
+        # knows the context is partial and must not invent the missing data.
+        partial = birth_context.get("partial_context")
+        if isinstance(partial, list) and partial:
+            missing = ", ".join(str(part) for part in partial)
+            lines.append(
+                "PARTIAL CONTEXT WARNING: the birth chart context above is "
+                f"INCOMPLETE — the following could not be calculated: {missing}. "
+                "Treat the chart as partial ground truth only. Do NOT invent, "
+                "guess, or fill in the missing parts from general knowledge; "
+                "answer only from what is actually provided, and say plainly "
+                "which part of the answer the missing data prevents you from giving."
+            )
         lines.append("")
         lines.append(
             "CRITICAL DIRECTIVE: The seeker's birth chart, planetary placements, and exact Dasha date ranges "
@@ -1801,7 +1832,7 @@ class LLMSynthesizer(BaseSynthesizer):
         question: str,
         results: list[SearchResult],
         birth_context: dict[str, Any] | None = None,
-        language: str = "en",
+        language: SupportedLanguage = "en",
     ) -> Answer:
         intent = classify_intent(question)
         prompt = build_prompt(
@@ -1992,7 +2023,7 @@ class LLMSynthesizer(BaseSynthesizer):
         question: str,
         results: list[SearchResult],
         birth_context: dict[str, Any] | None = None,
-        language: str = "en",
+        language: SupportedLanguage = "en",
     ) -> Iterator[str]:
         intent = classify_intent(question)
         prompt = build_prompt(
@@ -2181,7 +2212,7 @@ class FallbackSynthesizer(BaseSynthesizer):
         question: str,
         results: list[SearchResult],
         birth_context: dict[str, Any] | None = None,
-        language: str = "en",
+        language: SupportedLanguage = "en",
     ) -> Answer:
         is_ne = (language or "").lower().strip() in ("ne", "nepali", "nep")
         if not results:
