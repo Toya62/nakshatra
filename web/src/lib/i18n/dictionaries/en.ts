@@ -399,6 +399,10 @@ export const en: TranslationSchema = {
     planetsCount: "planets",
     pairsCount: "pairs",
     housesCount: "houses",
+    ghatiLord: "Ghati Lord",
+    ghatchakraNote: "Weekday lords cycled from the ghatis after sunrise — these are not the sign lords.",
+    birthWeekday: "Birth weekday",
+    ghatisAfterSunrise: "ghatis after sunrise",
   },
   rashiFal: {
     title: "Rashi Fal & Transits",

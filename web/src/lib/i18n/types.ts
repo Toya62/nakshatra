@@ -331,6 +331,10 @@ export interface TranslationSchema {
     planetsCount: string;
     pairsCount: string;
     housesCount: string;
+    ghatiLord: string;
+    ghatchakraNote: string;
+    birthWeekday: string;
+    ghatisAfterSunrise: string;
   };
   rashiFal: {
     title: string;

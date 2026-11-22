@@ -399,6 +399,10 @@ export const ne: TranslationSchema = {
     planetsCount: "ग्रहहरू",
     pairsCount: "जोडीहरू",
     housesCount: "भावहरू",
+    ghatiLord: "घटी स्वामी",
+    ghatchakraNote: "वारका स्वामी सूर्योदयपछिका घटीबाट चक्रीय रूपमा आउँछन् — यी राशिका स्वामी होइनन्।",
+    birthWeekday: "जन्म वार",
+    ghatisAfterSunrise: "घटी सूर्योदयपछि",
   },
   rashiFal: {
     title: "राशि फल तथा गोचर",
