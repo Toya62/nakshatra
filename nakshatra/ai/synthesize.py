@@ -18,12 +18,18 @@ import re
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from enum import Enum
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
 from nakshatra.ai.retrieval import SearchResult
 from nakshatra.ai.validate import ValidationResult, validate_answer
+
+# Task 13 step 8: the only supported consultation languages. The API
+# rejects anything else (400); get_system_prompt() accepts the legacy
+# "nepali"/"nep" aliases for back-compat but raises ValueError on any
+# other value instead of silently falling back to English.
+SupportedLanguage = Literal["en", "ne"]
 
 # Task 13 step 5: decoding controls shared by the OpenAI-compatible and
 # Google GenAI paths. OpenAI calls use temperature 0.35 and max_tokens from
@@ -525,11 +531,19 @@ SYSTEM_PROMPT_NE = SYSTEM_PROMPT_NE_PREDICTION
 
 
 def get_system_prompt(
-    language: str = "en",
+    language: SupportedLanguage = "en",
     intent: ConsultationIntent | str | None = None,
 ) -> str:
-    """Return language and intent-specific system prompt."""
+    """Return language and intent-specific system prompt.
+
+    Task 13 step 8: an unsupported language raises ValueError instead of
+    silently falling back to English. The legacy aliases "nepali"/"nep"
+    are still accepted (existing callers/tests use them); anything else
+    (e.g. "fr", "xx") is rejected.
+    """
     lang = (language or "en").lower().strip()
+    if lang not in ("en", "ne", "nepali", "nep"):
+        raise ValueError(f"Unsupported language: {language!r} (expected 'en' or 'ne')")
     is_ne = lang in ("ne", "nepali", "nep")
 
     if intent is None:
@@ -603,7 +617,7 @@ class BaseSynthesizer(ABC):
         question: str,
         results: list[SearchResult],
         birth_context: dict[str, Any] | None = None,
-        language: str = "en",
+        language: SupportedLanguage = "en",
     ) -> Answer:
         """Generate an answer from retrieved search results."""
 
@@ -612,7 +626,7 @@ class BaseSynthesizer(ABC):
         question: str,
         results: list[SearchResult],
         birth_context: dict[str, Any] | None = None,
-        language: str = "en",
+        language: SupportedLanguage = "en",
     ) -> Iterator[str]:
         """Stream answer tokens. Defaults to yielding complete synthesized text."""
         ans = self.synthesize(question, results, birth_context, language=language)
@@ -1351,6 +1365,73 @@ def _compact_birth_context(chart: dict[str, Any]) -> dict[str, Any]:
     return compact
 
 
+# Task 13 step 7 — prompt token budget. The budget counts the whole
+# assembled prompt; when it is exceeded, the raw compact chart JSON is
+# shortened first (the formatted summary already carries the facts),
+# the summary is never cut, and references are never silently dropped.
+# Overridable with the PROMPT_TOKEN_BUDGET environment variable.
+PROMPT_TOKEN_BUDGET = 16000
+PROMPT_BUDGET_NOTE = (
+    "[Note: the raw birth chart JSON below was shortened to fit the "
+    "prompt token budget; the formatted summary below carries the full "
+    "facts. Do not treat the shortened JSON as the complete chart.]"
+)
+
+
+def _prompt_token_budget() -> int:
+    """Effective prompt token budget (env override, default 16000)."""
+    try:
+        return int(os.environ.get("PROMPT_TOKEN_BUDGET", str(PROMPT_TOKEN_BUDGET)))
+    except ValueError:
+        return PROMPT_TOKEN_BUDGET
+
+
+def estimate_prompt_tokens(text: str) -> int:
+    """Rough prompt-token estimate: ~4 characters per token.
+
+    tiktoken is not installed, so this is the standard rough heuristic
+    for English text — a soft budget that prevents gross context
+    overflow, not an exact tokenizer count. (Devanagari text tokenizes
+    denser than 4 chars/token, so the estimate is optimistic for
+    Nepali prompts; the budget still bounds the worst case.)
+    """
+    return (len(text) + 3) // 4
+
+
+def _apply_prompt_token_budget(prompt: str) -> str:
+    """Shorten the raw compact chart JSON until the prompt fits the budget.
+
+    Drops the largest top-level keys of the ``Birth chart context:``
+    JSON first, then the whole JSON if still over budget, and signals
+    the shortening in the prompt itself (note line + ``"__truncated__"``
+    marker in the JSON). The formatted summary and the numbered
+    references are left untouched. Prompts without a birth chart
+    context, and prompts already within budget, are returned as-is.
+    """
+    budget = _prompt_token_budget()
+    if estimate_prompt_tokens(prompt) <= budget:
+        return prompt
+    lines = prompt.split("\n")
+    for index, line in enumerate(lines):
+        if not line.startswith("Birth chart context: "):
+            continue
+        try:
+            ctx = json.loads(line[len("Birth chart context: ") :])
+        except json.JSONDecodeError:
+            break
+        if not isinstance(ctx, dict):
+            break
+        while ctx and estimate_prompt_tokens("\n".join(lines)) > budget:
+            largest = max(ctx, key=lambda key: len(json.dumps(ctx[key], default=str)))
+            del ctx[largest]
+            lines[index] = "Birth chart context: " + json.dumps(ctx)
+        ctx["__truncated__"] = True
+        lines[index] = "Birth chart context: " + json.dumps(ctx)
+        lines.insert(index, PROMPT_BUDGET_NOTE)
+        break
+    return "\n".join(lines)
+
+
 def build_prompt(
     question: str,
     results: list[SearchResult],
@@ -1390,6 +1471,23 @@ def build_prompt(
         )
         if summary:
             lines.append("\n" + summary)
+        # Task 13 step 8: the server used to swallow transits/predictions/
+        # remedies failures (bare `except: pass` in _attach_chart_derived_
+        # context) while telling the model the chart is complete ground
+        # truth. When any part failed, the missing part is recorded in
+        # birth_context["partial_context"] — surface it here so the model
+        # knows the context is partial and must not invent the missing data.
+        partial = birth_context.get("partial_context")
+        if isinstance(partial, list) and partial:
+            missing = ", ".join(str(part) for part in partial)
+            lines.append(
+                "PARTIAL CONTEXT WARNING: the birth chart context above is "
+                f"INCOMPLETE — the following could not be calculated: {missing}. "
+                "Treat the chart as partial ground truth only. Do NOT invent, "
+                "guess, or fill in the missing parts from general knowledge; "
+                "answer only from what is actually provided, and say plainly "
+                "which part of the answer the missing data prevents you from giving."
+            )
         lines.append("")
         lines.append(
             "CRITICAL DIRECTIVE: The seeker's birth chart, planetary placements, and exact Dasha date ranges "
@@ -1658,7 +1756,7 @@ def build_prompt(
                 "Never recite ancient mathematical calculation algorithms, table numbers, or worked-out arithmetic examples from the commentary texts. "
                 "Do NOT append a redundant 'References:' or 'Citations:' bibliography list at the end of your response, as the platform interface automatically renders dedicated interactive citation cards below your answer."
             )
-    return "\n".join(lines)
+    return _apply_prompt_token_budget("\n".join(lines))
 
 
 def extract_citations(answer: str, results: list[SearchResult]) -> list[Citation]:
@@ -1734,7 +1832,7 @@ class LLMSynthesizer(BaseSynthesizer):
         question: str,
         results: list[SearchResult],
         birth_context: dict[str, Any] | None = None,
-        language: str = "en",
+        language: SupportedLanguage = "en",
     ) -> Answer:
         intent = classify_intent(question)
         prompt = build_prompt(
@@ -1925,7 +2023,7 @@ class LLMSynthesizer(BaseSynthesizer):
         question: str,
         results: list[SearchResult],
         birth_context: dict[str, Any] | None = None,
-        language: str = "en",
+        language: SupportedLanguage = "en",
     ) -> Iterator[str]:
         intent = classify_intent(question)
         prompt = build_prompt(
@@ -2114,7 +2212,7 @@ class FallbackSynthesizer(BaseSynthesizer):
         question: str,
         results: list[SearchResult],
         birth_context: dict[str, Any] | None = None,
-        language: str = "en",
+        language: SupportedLanguage = "en",
     ) -> Answer:
         is_ne = (language or "").lower().strip() in ("ne", "nepali", "nep")
         if not results:

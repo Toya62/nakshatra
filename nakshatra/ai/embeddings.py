@@ -166,6 +166,18 @@ class EmbeddingStore:
 
     def search(self, query: np.ndarray, top_k: int = 5) -> list[SearchResult]:
         """Return the top_k most similar chunks by cosine similarity."""
+        return [result for _index, result in self.search_with_indices(query, top_k)]
+
+    def search_with_indices(
+        self, query: np.ndarray, top_k: int = 5
+    ) -> list[tuple[int, SearchResult]]:
+        """Return top_k (chunk_index, result) pairs by cosine similarity.
+
+        The index is the chunk's position in the store (insertion order,
+        matching :attr:`chunks`). Callers must use it — never match a hit
+        back to a chunk by its serialized content: two identical chunks
+        serialize identically and would collapse to one index.
+        """
         if not self._records or self._vectors.size == 0:
             return []
         query_vec = np.asarray(query, dtype=np.float32).ravel()
@@ -176,9 +188,12 @@ class EmbeddingStore:
         scores = self._vectors @ normalized_vec
         top_indices = np.argsort(-scores)[:top_k]
         return [
-            SearchResult(
-                chunk=CorpusChunk(**self._records[int(index)]),
-                score=float(scores[int(index)]),
+            (
+                int(index),
+                SearchResult(
+                    chunk=CorpusChunk(**self._records[int(index)]),
+                    score=float(scores[int(index)]),
+                ),
             )
             for index in top_indices
         ]

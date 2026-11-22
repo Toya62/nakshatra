@@ -12,17 +12,19 @@ from __future__ import annotations
 
 import json
 import os
+import tempfile
+from calendar import monthrange
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from calendar import monthrange
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Header, HTTPException, Query
+from fastapi import FastAPI, Header, HTTPException, Query, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import PlainTextResponse, Response, StreamingResponse
+from fastapi.responses import JSONResponse, PlainTextResponse, Response, StreamingResponse
 from pydantic import BaseModel, Field, field_validator
 
 from nakshatra.additional_lagnas import (
@@ -30,7 +32,7 @@ from nakshatra.additional_lagnas import (
 )
 from nakshatra.ai.corpus import IngestResult
 from nakshatra.ai.embeddings import SearchResult
-from nakshatra.ai.service import RAGService
+from nakshatra.ai.service import RAGService, validate_birth_context
 from nakshatra.ai.synthesize import Answer
 from nakshatra.calendar_bs import (
     DEVANAGARI_NAKSHATRAS,
@@ -426,7 +428,12 @@ class RAGAskRequest(BaseModel):
     birth_context: dict[str, Any] | None = Field(
         None, description="Optional precalculated chart dictionary"
     )
-    language: str = Field("en", description="Consultation response language ('en' or 'ne')")
+    # Task 13 step 8: only "en"/"ne" are accepted. Anything else is a
+    # validation error, surfaced as 400 by the handler below instead of
+    # silently falling back to English.
+    language: Literal["en", "ne"] = Field(
+        "en", description="Consultation response language ('en' or 'ne')"
+    )
 
 
 class RAGAskResponse(BaseModel):
@@ -461,6 +468,26 @@ app = FastAPI(
     terms_of_service="https://toya62-nakshatra.hf.space/privacy",
     lifespan=lifespan,
 )
+
+
+@app.exception_handler(RequestValidationError)
+async def _validation_error_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    """Map request validation errors to HTTP statuses.
+
+    Task 13 step 8: an invalid ``language`` is a client error about a
+    rejected value, so it is a 400 (not FastAPI's default 422) — the
+    value is refused instead of silently falling back to English. Every
+    other validation error keeps the default 422 with FastAPI's detail
+    shape, so existing behaviour (e.g. empty question -> 422) is unchanged.
+    """
+    errors = exc.errors()
+    if any(err.get("loc") and err["loc"][-1] == "language" for err in errors):
+        return JSONResponse(
+            status_code=400,
+            content={"detail": "Invalid language: must be 'en' or 'ne'"},
+        )
+    return JSONResponse(status_code=422, content={"detail": errors})
+
 
 cors_origins_env = os.environ.get("CORS_ORIGINS", "")
 if cors_origins_env.strip() == "*":
@@ -523,7 +550,7 @@ def _format_chart(chart: ChartData, fmt: str) -> Response:
     return Response(content=content, media_type=media_type)
 
 
-def _attach_chart_derived_context(chart: ChartData, birth_context: dict) -> None:
+def _attach_chart_derived_context(chart: ChartData, birth_context: dict) -> list[str]:
     """Attach transits, predictions, remedies, and Kuja Dosha to a chart dict.
 
     Preserves the 30-day transit window already present in
@@ -531,7 +558,14 @@ def _attach_chart_derived_context(chart: ChartData, birth_context: dict) -> None
     ``window`` key, so the fresh report is merged over the existing one
     instead of overwriting it — otherwise the transit-window events the
     prompt summary tries to read are silently dropped.
+
+    Task 13 step 8: failures are no longer swallowed silently. Each part
+    that fails is recorded in ``birth_context["partial_context"]`` and
+    returned, so ``build_prompt()`` can tell the model the context is
+    partial (naming the missing part) instead of presenting the chart as
+    complete ground truth.
     """
+    missing: list[str] = []
     transits = None
     try:
         from nakshatra.transits import calculate_transits
@@ -545,21 +579,26 @@ def _attach_chart_derived_context(chart: ChartData, birth_context: dict) -> None
                 t_dict["window"] = window
         birth_context["transits"] = t_dict
     except Exception:
-        pass
+        missing.append("transits")
     try:
         preds = chart.get_predictions(transits=transits)
         birth_context["predictions"] = {k: v.model_dump() for k, v in preds.items()}
     except Exception:
-        pass
+        missing.append("predictions")
     try:
         rem = chart.get_remedies(transits=transits)
         birth_context["remedies"] = rem.model_dump()
     except Exception:
-        pass
+        missing.append("remedies")
     try:
         birth_context["kuja_dosha"] = evaluate_chart_kuja_dosha(chart).model_dump()
     except Exception:
-        pass
+        missing.append("kuja_dosha")
+    if missing:
+        birth_context["partial_context"] = missing
+    else:
+        birth_context.pop("partial_context", None)
+    return missing
 
 
 def _build_chart(request: ChartRequest | TransitRequest | TransitWindowRequest) -> ChartData:
@@ -1401,6 +1440,55 @@ def _validate_safe_path(p: str | Path, name: str = "Path") -> Path:
     return resolved
 
 
+def _validate_index_dir(p: str | Path, name: str = "index_dir") -> Path:
+    """Allowlist for RAG index directories (Task 13 step 8).
+
+    ``_validate_safe_path`` rejects ``..`` and system roots but accepts
+    any other absolute path, so a client could point ``index_dir`` at an
+    arbitrary directory (e.g. another user's data). An index must now
+    live under one of:
+    - the server working directory (the deployed ``index`` directory),
+    - a directory listed in ``RAG_INDEX_BASE_DIRS`` (``os.pathsep``-separated),
+    - the OS temp directory (local tooling and tests ingest into tmp dirs).
+    Anything else is a 400. Relative paths resolve under the working
+    directory, so the web frontend's ``index_dir: "index"`` is unaffected.
+    """
+    resolved = _validate_safe_path(p, name)
+    bases = [Path.cwd().resolve(), Path(tempfile.gettempdir()).resolve()]
+    extra = os.environ.get("RAG_INDEX_BASE_DIRS", "")
+    for base in extra.split(os.pathsep):
+        base = base.strip()
+        if base:
+            bases.append(Path(base).resolve())
+    if any(resolved == base or base in resolved.parents for base in bases):
+        return resolved
+    raise HTTPException(
+        status_code=400,
+        detail=f"{name} must be under the working directory, RAG_INDEX_BASE_DIRS, or the temp directory",
+    )
+
+
+def _require_rag_access(x_api_key: str | None, x_admin_key: str | None) -> None:
+    """Optional API-key gate for /rag/ask and /rag/ask/stream (Task 13 step 8).
+
+    Same pattern as /rag/ingest: the gate only enforces when a key is
+    configured (``RAG_API_KEY``). When it is unset — the default today —
+    requests are allowed, because the web frontend (``ConsultationView``
+    via ``web/src/lib/api.ts``) sends no key at all: only
+    ``Content-Type: application/json``, ``birth`` (never ``birth_context``),
+    ``index_dir: "index"`` and ``language``. Enforcing a key while the
+    frontend sends none would 401 every consultation, so turning this on
+    requires shipping the frontend change first (send ``X-API-Key``) —
+    see the step-8 report. When ``RAG_API_KEY`` is set, either
+    ``X-API-Key`` or ``X-Admin-Key`` matching it is accepted.
+    """
+    required = os.environ.get("RAG_API_KEY")
+    if not required:
+        return
+    if x_api_key != required and x_admin_key != required:
+        raise HTTPException(status_code=401, detail="Unauthorized: Invalid or missing X-API-Key")
+
+
 @app.post("/rag/ingest", response_model=RAGIngestResponse, tags=["RAG"])
 async def rag_ingest(
     request: RAGIngestRequest,
@@ -1429,7 +1517,7 @@ async def rag_ingest(
         )
 
     _validate_safe_path(request.corpus_dir, "corpus_dir")
-    _validate_safe_path(request.index_dir, "index_dir")
+    _validate_index_dir(request.index_dir, "index_dir")
 
     try:
         result = _rag_service.ingest(request.corpus_dir, request.index_dir)
@@ -1448,7 +1536,11 @@ async def rag_ingest(
 
 
 @app.post("/rag/ask", response_model=RAGAskResponse, tags=["RAG"])
-async def rag_ask(request: RAGAskRequest) -> RAGAskResponse:
+async def rag_ask(
+    request: RAGAskRequest,
+    x_api_key: str | None = Header(None, alias="X-API-Key"),
+    x_admin_key: str | None = Header(None, alias="X-Admin-Key"),
+) -> RAGAskResponse:
     """
     Answer a consultation question from the indexed corpus.
 
@@ -1457,14 +1549,25 @@ async def rag_ask(request: RAGAskRequest) -> RAGAskResponse:
     synthesizes a cited answer. Provide `birth` to include natal
     chart context in the consultation.
     """
+    # Task 13 step 8: trust-boundary checks run before the try/except
+    # below so their HTTPExceptions are not converted to 500s.
+    _require_rag_access(x_api_key, x_admin_key)
+    _validate_index_dir(request.index_dir, "index_dir")
+    birth_problems = validate_birth_context(request.birth_context)
+    if birth_problems:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid birth_context: " + "; ".join(birth_problems),
+        )
     try:
         birth_context = None
+        missing_parts: list[str] = []
         if request.birth_context is not None:
             birth_context = request.birth_context
         elif request.birth is not None:
             chart = _build_chart(request.birth)
             birth_context = chart.model_dump()
-            _attach_chart_derived_context(chart, birth_context)
+            missing_parts = _attach_chart_derived_context(chart, birth_context)
         answer, references = _rag_service.ask(
             request.question,
             index_dir=request.index_dir,
@@ -1472,14 +1575,17 @@ async def rag_ask(request: RAGAskRequest) -> RAGAskResponse:
             birth_context=birth_context,
             language=request.language,
         )
+        meta: dict[str, Any] = {
+            "index_dir": request.index_dir,
+            "top_k": request.top_k,
+            "model": answer.model,
+        }
+        if missing_parts:
+            meta["partial_context"] = missing_parts
         return RAGAskResponse(
             data=answer,
             references=references,
-            meta={
-                "index_dir": request.index_dir,
-                "top_k": request.top_k,
-                "model": answer.model,
-            },
+            meta=meta,
         )
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -1490,10 +1596,24 @@ async def rag_ask(request: RAGAskRequest) -> RAGAskResponse:
 
 
 @app.post("/rag/ask/stream", tags=["RAG"])
-async def rag_ask_stream(request: RAGAskRequest) -> StreamingResponse:
+async def rag_ask_stream(
+    request: RAGAskRequest,
+    x_api_key: str | None = Header(None, alias="X-API-Key"),
+    x_admin_key: str | None = Header(None, alias="X-Admin-Key"),
+) -> StreamingResponse:
     """
     Stream consultation answer token-by-token via Server-Sent Events (SSE).
     """
+    # Task 13 step 8: same trust-boundary checks as /rag/ask, applied
+    # before the stream starts so rejections surface as HTTP errors.
+    _require_rag_access(x_api_key, x_admin_key)
+    _validate_index_dir(request.index_dir, "index_dir")
+    birth_problems = validate_birth_context(request.birth_context)
+    if birth_problems:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid birth_context: " + "; ".join(birth_problems),
+        )
     birth_context = None
     if request.birth_context is not None:
         birth_context = request.birth_context

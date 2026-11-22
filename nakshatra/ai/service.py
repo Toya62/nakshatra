@@ -13,7 +13,7 @@ import importlib.util
 import os
 from collections.abc import Iterator
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 from nakshatra.ai.corpus import CorpusChunk, IngestResult, ingest_corpus
 from nakshatra.ai.embeddings import (
@@ -28,6 +28,7 @@ from nakshatra.ai.synthesize import (
     FallbackSynthesizer,
     LLMSynthesizer,
     OllamaSynthesizer,
+    SupportedLanguage,
 )
 
 try:
@@ -39,6 +40,53 @@ except ImportError:
 
 DEFAULT_CORPUS_DIR = "corpus"
 DEFAULT_INDEX_DIR = "index"
+
+
+def validate_birth_context(birth_context: dict[str, Any] | None) -> list[str]:
+    """Validate a client-supplied raw ``birth_context`` dict.
+
+    Task 13 step 8: a client dict must never be trusted verbatim as ground
+    truth. Returns a list of problems (empty = valid). A chart built by
+    the server (``ChartData.model_dump()``) always passes: non-empty
+    ``planets`` (each with a name and house), non-empty ``houses`` (each
+    with a house number), and ``dashas`` carrying the Vimshottari ranges.
+    Missing/empty/misshapen fields are problems; the API rejects the
+    request with them (400) instead of letting the model reason over a
+    hollow chart. Internal callers that pass partial dicts (e.g. the
+    retrieval concept expansion, which only reads ``ascendant`` /
+    ``moon_sign``) do not go through this check — it guards the API
+    trust boundary only.
+    """
+    problems: list[str] = []
+    if birth_context is None:
+        return problems
+    if not isinstance(birth_context, dict):
+        return ["birth_context must be an object"]
+    planets = birth_context.get("planets")
+    if not isinstance(planets, list) or not planets:
+        problems.append("birth_context.planets is missing or empty")
+    else:
+        for planet in planets:
+            if not isinstance(planet, dict) or not planet.get("name"):
+                problems.append("birth_context.planets entries must have a 'name'")
+                break
+            if "house" not in planet:
+                problems.append("birth_context.planets entries must have a 'house'")
+                break
+    houses = birth_context.get("houses")
+    if not isinstance(houses, list) or not houses:
+        problems.append("birth_context.houses is missing or empty")
+    else:
+        for house in houses:
+            if not isinstance(house, dict) or "house" not in house:
+                problems.append("birth_context.houses entries must have a 'house' number")
+                break
+    dashas = birth_context.get("dashas")
+    if not isinstance(dashas, dict) or not dashas:
+        problems.append("birth_context.dashas is missing or empty")
+    elif "mahadashas" not in dashas and "current_md" not in dashas:
+        problems.append("birth_context.dashas must carry 'mahadashas' or 'current_md'")
+    return problems
 
 
 def _module_available(name: str) -> bool:
@@ -211,7 +259,7 @@ class RAGService:
         index_dir: str | Path = DEFAULT_INDEX_DIR,
         top_k: int = 5,
         birth_context: dict | None = None,
-        language: str = "en",
+        language: SupportedLanguage = "en",
     ) -> tuple[Answer, list[SearchResult]]:
         """Retrieve references and synthesize a cited answer."""
         retriever = self.load(index_dir)
@@ -227,7 +275,7 @@ class RAGService:
         index_dir: str | Path = DEFAULT_INDEX_DIR,
         top_k: int = 5,
         birth_context: dict | None = None,
-        language: str = "en",
+        language: SupportedLanguage = "en",
     ) -> tuple[Iterator[str], list[SearchResult], BaseSynthesizer]:
         """Retrieve references and stream synthesized answer tokens."""
         retriever = self.load(index_dir)

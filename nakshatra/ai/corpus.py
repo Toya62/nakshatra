@@ -186,53 +186,63 @@ def is_junk_ocr_word(w: str) -> bool:
     return False
 
 
-def is_corrupted_glyph_line(line_s: str) -> bool:
-    """Detect non-Unicode / legacy font Sanskrit glyph noise and scanner running headers."""
+def _corrupted_glyph_reason(line_s: str) -> str | None:
+    """Reason a line is OCR/glyph noise, or None if the line is kept.
+
+    Single source of truth for :func:`is_corrupted_glyph_line` and the
+    per-work OCR quality report (:func:`ocr_cleaning_report`): the
+    branch order and thresholds here are the heuristics, unchanged.
+    """
     if not line_s:
-        return False
+        return None
     # Numbers, punctuation, quotes, or isolated brackets only (page numbers, line numbers, verse separators)
     if re.match(r"^[\d\s\.\,\'\"\‘\’\(\)\-\—\–\|\/\\!;:\[\]\*\?#\<\>\~]+$", line_s):
-        return True
+        return "numbers_punctuation_only"
     # Book running headers
     if re.match(
         r"^(?:Brihat Parasara Hora Sastra|Hora Sastra|BPHS|Maharishi Parasara)\s*$",
         line_s,
         re.I,
     ):
-        return True
+        return "running_header"
     # Chapter with page number running headers, e.g. 'Chapter 6 83'
     if re.match(r"^(?:Chapter|Ch\.?)\s*\d+\s+\d+\s*$", line_s, re.I):
-        return True
+        return "chapter_page_header"
     # 5+ consonants in a single token (e.g. corrupted transliterations)
     if re.search(r"\b[b-df-hj-np-tv-z]{5,}\b", line_s, re.I):
-        return True
+        return "consonant_cluster"
     # Isolated control or unescaped characters
     if any(c in line_s for c in ("$", "\\", "~")):
-        return True
+        return "control_characters"
     if "^" in line_s:
         words = re.findall(r"[a-zA-Z]+", line_s.lower())
         has_english = any(w in COMMON_CORPUS_WORDS for w in words)
         if not has_english:
-            return True
+            return "caret_glyph_noise"
         if any(len(w) > 3 and not re.search(r"[aeiouy]", w) for w in words):
-            return True
+            return "caret_glyph_noise"
     # Non-letter symbol density check
     letters = len(re.findall(r"[a-zA-Z\u0900-\u097F]", line_s))
     symbols = len(re.findall(r"[^\w\s]", line_s))
     if symbols >= 3 and symbols >= letters:
-        return True
+        return "symbol_density"
     words = re.findall(r"[a-zA-Z]+", line_s.lower())
     if not words:
-        return True
+        return "no_words"
     if any(is_junk_ocr_word(w) for w in words):
-        return True
+        return "junk_ocr_word"
     has_english = any(w in COMMON_CORPUS_WORDS for w in words)
     if not has_english:
         if len(line_s) < 60 and any(len(w) > 3 and not re.search(r"[aeiouy]", w) for w in words):
-            return True
+            return "short_no_vowel_word"
         if len(words) <= 3 and not any(len(w) > 4 for w in words):
-            return True
-    return False
+            return "short_fragment"
+    return None
+
+
+def is_corrupted_glyph_line(line_s: str) -> bool:
+    """Detect non-Unicode / legacy font Sanskrit glyph noise and scanner running headers."""
+    return _corrupted_glyph_reason(line_s) is not None
 
 
 def clean_corpus_text(text: str) -> str:
@@ -258,6 +268,69 @@ def clean_corpus_text(text: str) -> str:
     text = re.sub(r"\bbt sonlessness\b", "in childlessness", text, flags=re.I)
 
     return text
+
+
+class OCRReport(BaseModel):
+    """Per-work OCR cleaning quality: how much raw text was dropped.
+
+    Task 13 step 7: cleaning used to silently drop lines. The counts
+    come from the same :func:`is_corrupted_glyph_line` / ``is_junk_ocr_word``
+    heuristics as :func:`clean_corpus_text` — thresholds unchanged — so
+    the report measures the cleaning instead of redefining it.
+    ``total_lines`` counts non-blank lines only (blank lines are kept as
+    separators, never dropped).
+    """
+
+    work: str
+    total_lines: int
+    kept_lines: int
+    dropped_lines: int
+    dropped_fraction: float
+    by_reason: dict[str, int] = Field(default_factory=dict)
+
+
+def ocr_cleaning_report(text: str, work: str = "") -> OCRReport:
+    """Count, per reason, the non-blank lines cleaning would drop."""
+    by_reason: dict[str, int] = {}
+    total = 0
+    dropped = 0
+    for line in text.splitlines():
+        line_s = line.strip()
+        if not line_s:
+            continue
+        total += 1
+        reason = _corrupted_glyph_reason(line_s)
+        if reason is not None:
+            dropped += 1
+            by_reason[reason] = by_reason.get(reason, 0) + 1
+    return OCRReport(
+        work=work,
+        total_lines=total,
+        kept_lines=total - dropped,
+        dropped_lines=dropped,
+        dropped_fraction=(dropped / total) if total else 0.0,
+        by_reason=by_reason,
+    )
+
+
+def merge_ocr_reports(reports: list[OCRReport], work: str = "") -> OCRReport:
+    """Combine per-file OCR reports into one per-work report."""
+    by_reason: dict[str, int] = {}
+    total = 0
+    dropped = 0
+    for report in reports:
+        total += report.total_lines
+        dropped += report.dropped_lines
+        for reason, count in report.by_reason.items():
+            by_reason[reason] = by_reason.get(reason, 0) + count
+    return OCRReport(
+        work=work,
+        total_lines=total,
+        kept_lines=total - dropped,
+        dropped_lines=dropped,
+        dropped_fraction=(dropped / total) if total else 0.0,
+        by_reason=by_reason,
+    )
 
 
 VERSE_HEADER_PATTERNS: list[re.Pattern[str]] = [
@@ -332,6 +405,9 @@ class IngestReport(BaseModel):
     paragraph_chunks: int
     translator: str = ""
     license: str
+    # Task 13 step 7: per-work OCR cleaning quality (None for reports
+    # built before this step). Thresholds unchanged; see OCRReport.
+    ocr: OCRReport | None = None
 
 
 class IngestResult(BaseModel):
@@ -383,25 +459,39 @@ def _split_into_pieces(
     min_chars: int = MIN_CHUNK_CHARS,
     max_chars: int = MAX_CHUNK_CHARS,
     splitter: TextSplitter | None = None,
-) -> list[str]:
+) -> list[tuple[int, int, str]]:
     """Split verse/paragraph text into pieces bounded by min/max characters.
 
     Uses TextSplitter with protected pattern preservation (tables, math, code,
     formulas) and smart word boundary splitting.
+
+    Returns (char_start, char_end, piece) triples with offsets relative
+    to the stripped body, from ``TextSplitter.split_text()`` — so a
+    citation can locate the passage (Task 13 step 7). Previously this
+    returned bare strings and every chunk from one body got the same
+    offsets.
     """
     stripped = body.strip()
     if not stripped:
         return []
     if len(stripped) <= max_chars:
-        return [stripped]
+        return [(0, len(stripped), stripped)]
 
     active_splitter = splitter or TextSplitter(
         chunk_size=max_chars,
         chunk_overlap=80,
     )
-    pieces = active_splitter.split_pieces(stripped)
-    result = [p.strip() for p in pieces if p.strip()]
-    return result if result else [stripped]
+    result: list[tuple[int, int, str]] = []
+    for start, end, piece in active_splitter.split_text(stripped):
+        clean_piece = piece.strip()
+        if not clean_piece:
+            continue
+        # Offsets are relative to the unstripped piece; shift past the
+        # leading whitespace strip so the slice locates the clean piece.
+        lead = len(piece) - len(piece.lstrip())
+        adj_start = start + lead
+        result.append((adj_start, adj_start + len(clean_piece), clean_piece))
+    return result if result else [(0, len(stripped), stripped)]
 
 
 def chunk_text(
@@ -428,12 +518,17 @@ def chunk_text(
 
     def flush(tier: str) -> None:
         nonlocal buf, buf_start, verse_ctx
-        body = "\n".join(buf).strip()
+        joined = "\n".join(buf)
+        body = joined.strip()
         buf = []
         if not body:
             return
+        # The body is stripped, so pieces start past any leading
+        # whitespace of the joined buffer; account for it so offsets
+        # stay in sanitized-text coordinates.
+        body_lead = len(joined) - len(joined.lstrip())
         pieces = _split_into_pieces(body, min_chars, max_chars, splitter=splitter)
-        for piece in pieces:
+        for start, end, piece in pieces:
             clean_piece = piece.strip()
             if len(clean_piece) < 5:
                 continue
@@ -447,8 +542,8 @@ def chunk_text(
                 text=clean_piece,
                 topics=tag_topics(clean_piece),
                 source_file=source_file,
-                char_start=buf_start,
-                char_end=buf_start + len(body),
+                char_start=buf_start + body_lead + start,
+                char_end=buf_start + body_lead + end,
                 tier=tier,
             )
             chunks.append(chunk)
@@ -474,10 +569,18 @@ def chunk_text(
             verse_ctx = groups["verse"]
             trailing = verse_match.group("text").strip()
             buf = [trailing] if trailing else []
-            buf_start = offset if trailing else offset + line_len
+            # The body starts at the trailing text itself, not at the
+            # header prefix ("Chapter 1, Verse 1: "), so offsets point
+            # at the citable text (Task 13 step 7).
+            buf_start = (
+                offset + verse_match.start("text") if trailing else offset + line_len
+            )
             offset += line_len
             continue
 
+        if not buf:
+            # First line of a new body: it starts here.
+            buf_start = offset
         buf.append(line)
         offset += line_len
 
@@ -539,9 +642,11 @@ def ingest_corpus(corpus_dir: str | Path, out_dir: str | Path) -> IngestResult:
 
         work_chunks: list[CorpusChunk] = []
         work_files = 0
+        work_ocr: list[OCRReport] = []
         text_files = sorted(list(work_dir.glob("*.txt")) + list(work_dir.glob("*.md")))
         for text_file in text_files:
             text = text_file.read_text(encoding="utf-8")
+            work_ocr.append(ocr_cleaning_report(text, work=meta.work))
             chunks, _stats = chunk_text(text, work=meta.work, source_file=text_file.name)
             work_chunks.extend(chunks)
             work_files += 1
@@ -557,6 +662,7 @@ def ingest_corpus(corpus_dir: str | Path, out_dir: str | Path) -> IngestResult:
                 paragraph_chunks=sum(1 for c in work_chunks if c.tier == "paragraph"),
                 translator=meta.translator,
                 license=meta.license,
+                ocr=merge_ocr_reports(work_ocr, work=meta.work),
             )
         )
 
