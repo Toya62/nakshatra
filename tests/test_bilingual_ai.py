@@ -27,14 +27,14 @@ def _chunk(work="BPHS", text="The Sun in Tanu Bhava"):
 
 def test_get_system_prompt_languages():
     en_prompt = get_system_prompt("en")
-    assert "You are a revered Vedic Astrologer" in en_prompt
-    assert "Maharishi Parashara" in en_prompt
+    assert "You are a master Astrologer and Jyotish Acharya" in en_prompt
+    assert "Lal Kitab" in en_prompt
+    assert "### 1. Direct Verdict & Timing" in en_prompt
 
     ne_prompt = get_system_prompt("ne")
-    assert "तपाईं एक सिद्ध, पूज्य तथा धर्मनिष्ठ वैदिक ज्योतिषाचार्य हुनुहुन्छ" in ne_prompt
-    assert "वृहत् पराशर होरा शास्त्र" in ne_prompt
-    assert "१. भाषा र आदरार्थी शैली" in ne_prompt
-    assert "स्पष्ट कालक्रम तथा फलादेश संश्लेषण" in ne_prompt
+    assert "तपाईं एक सिद्ध, प्रामाणिक ज्योतिषाचार्य हुनुहुन्छ" in ne_prompt
+    assert "लाल किताब" in ne_prompt
+    assert "### १. प्रत्यक्ष फलादेश र मुख्य निर्णय" in ne_prompt
 
     nepali_prompt = get_system_prompt("nepali")
     assert nepali_prompt == ne_prompt
