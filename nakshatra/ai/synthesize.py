@@ -73,9 +73,11 @@ def classify_intent(question: str) -> ConsultationIntent:
     q = (question or "").lower().strip()
 
     # 1. Remedial intent (mantra, gemstone, puja, upaya, dana, etc.)
+    # Romanized Nepali mirrors ConceptMap "remedies" (retrieval.py):
+    # daan (दान), japa (जप) alongside the already-present upaya/totka/puja.
     remedial_pattern = (
         r"\b(remedy|remedies|upaya|upayas|gemstone|gemstones|mantra|mantras|"
-        r"totka|totke|puja|shanti|rudraksha|dana|donation|how to fix|cure for)\b"
+        r"totka|totke|puja|shanti|rudraksha|dana|daan|japa|donation|how to fix|cure for)\b"
     )
     if re.search(remedial_pattern, q) or any(
         w in q for w in ["उपाय", "शान्ति", "मन्त्र", "रत्न", "पूजा", "दान"]
@@ -84,11 +86,15 @@ def classify_intent(question: str) -> ConsultationIntent:
 
     # 2. Health & Wellness intent (vitality, illness, disease, roga, medical, health prediction)
     # Evaluated BEFORE generic event prediction so 'health prediction in future' routes to health
+    # Romanized Nepali mirrors ConceptMap "health" (retrieval.py): rog (रोग),
+    # bimar (बिमार), chot (चोट), aushadhi (औषधि), dirghayu (दीर्घायु),
+    # tandurusti (तन्दुरुस्ती). roga/ayur/swasthya/upachar were already present.
     health_pattern = (
         r"\b(health|wellness|illness|illnesses|disease|diseases|sickness|sick|"
         r"healing|cure|longevity|vitality|immunity|surgery|medical|recovery|"
         r"ailment|ailments|physical health|mental health|diet|ayurveda|prakriti|"
-        r"roga|ayur|swasthya|upachar|hospital|hospitalization|accident|accidents)\b"
+        r"roga|rog|ayur|swasthya|upachar|hospital|hospitalization|accident|accidents|"
+        r"bimar|chot|aushadhi|dirghayu|tandurusti)\b"
     )
     if re.search(health_pattern, q) or any(
         w in q
@@ -145,17 +151,28 @@ def classify_intent(question: str) -> ConsultationIntent:
         return ConsultationIntent.NATAL_IDENTITY
 
     # 5. Event Prediction / Timing inquiry ("when will", "timing", "कहिले")
+    # Romanized Nepali mirrors ConceptMap "timing" (retrieval.py): kahile
+    # (कहिले), samaya (समय), kailesamma (कहिलेसम्म).
     timing_pattern = (
         r"\b(when will|timing|what time|which year|which month|future|forecast|"
-        r"date of|exact date|will i get|can i expect|when can i|when should i)\b"
+        r"date of|exact date|will i get|can i expect|when can i|when should i|"
+        r"kahile|samaya|kailesamma)\b"
     )
     if re.search(timing_pattern, q) or any(w in q for w in ["कहिले", "कुन समय", "भविष्यवाणी", "मिति"]):
         return ConsultationIntent.EVENT_PREDICTION
 
     # 6. Relationship & Marriage
+    # Romanized Nepali mirrors ConceptMap "marriage" (retrieval.py): vivah
+    # (विवाह), bihe/bibaha (बिहे), shrimati/shriman (श्रीमती/श्रीमान्).
+    # keti/keta are NOT here: colloquially they just mean "girl/boy"
+    # (son/daughter), so they belong to the life-event (children) check
+    # below — in this bucket they hijacked questions about one's children
+    # into RELATIONSHIP. ConceptMap keeps them for retrieval recall, where
+    # broad expansion is wanted.
     relationship_pattern = (
         r"\b(marriage|married|marry|spouse|partner|wife|husband|love life|"
-        r"relationship|compatibility|divorce|kundali milan|girlfriend|boyfriend)\b"
+        r"relationship|compatibility|divorce|kundali milan|girlfriend|boyfriend|"
+        r"vivah|bihe|bibaha|shrimati|shriman)\b"
     )
     if re.search(relationship_pattern, q) or any(
         w in q for w in ["विवाह", "जोडी", "श्रीमान", "श्रीमती", "प्रेम", "सम्बन्ध", "कुण्डली मिलान"]
@@ -163,14 +180,49 @@ def classify_intent(question: str) -> ConsultationIntent:
         return ConsultationIntent.RELATIONSHIP
 
     # 7. Career & Finance
+    # Romanized Nepali mirrors ConceptMap "career" + "wealth" (retrieval.py):
+    # naukri/naukeri/naukari/nokari (नोकरी), kam/kaam (काम), pesha (पेशा),
+    # jaagir (जागिर), dhana (धन), paisa (पैसा), sampatti (सम्पत्ति),
+    # aarthik (आर्थिक), kamai (कमाइ).
     career_pattern = (
         r"\b(career|job|profession|business|promotion|money|wealth|finance|"
-        r"finances|financial|income|salary|livelihood|employment|startup|work)\b"
+        r"finances|financial|income|salary|livelihood|employment|startup|work|"
+        r"naukri|naukeri|naukari|kam|pesha|jaagir|kaam|nokari|"
+        r"dhana|paisa|sampatti|aarthik|kamai)\b"
     )
     if re.search(career_pattern, q) or any(
         w in q for w in ["जागिर", "पदोन्नति", "व्यवसाय", "व्यापार", "पैसा", "धन", "सम्पत्ति", "रोजगार"]
     ):
         return ConsultationIntent.CAREER_FINANCE
+
+    # 8. Life-event topics with no dedicated archetype (children, education,
+    #    travel): Romanized + Devanagari keywords mirroring ConceptMap
+    #    "children" / "education" / "travel" (retrieval.py). These are
+    #    timing/life-event questions, so they route to event prediction
+    #    explicitly instead of falling through to the default — which matters
+    #    when the question also contains a self-reference ("my son ..."),
+    #    which the default fallback would otherwise send to natal identity.
+    life_event_pattern = (
+        r"\b(santana|chhora|chhori|bachha|bachhe|keti|keta|padhai|shiksha|vidya|"
+        r"bidesh|yatra|prabas)\b"
+    )
+    if re.search(life_event_pattern, q) or any(
+        w in q
+        for w in [
+            "सन्तान",
+            "छोरा",
+            "छोरी",
+            "बालबच्चा",
+            "पढाइ",
+            "शिक्षा",
+            "विद्या",
+            "बिदेश",
+            "विदेश",
+            "यात्रा",
+            "परदेश",
+        ]
+    ):
+        return ConsultationIntent.EVENT_PREDICTION
 
     # Default fallback
     if has_self_ref:
@@ -373,7 +425,9 @@ SYSTEM_PROMPT_NE_NATAL = (
     "   ### ३. आत्मिक उद्देश्य र आत्मकारक ग्रह (सूर्य र आत्मकारक): सूर्यको स्थिति, आत्मकारक ग्रह, र यस जन्मको मूल आत्मिक लक्ष्य तथा चेतनाको दिशा।\n"
     "   ### ४. मुख्य सामर्थ्य, शुभ योग र आत्म-विकास: सक्रिय शुभ योगहरू, जन्मजात प्रतिभा, र जीवनमा सन्तुलन तथा उन्नतिको लागि ध्यान दिनुपर्ने पक्षहरू।\n"
     "३. शुद्धता निर्देशन: आत्म-परिचयको प्रश्नमा अनावश्यक जागिरको फारम भर्ने मिति वा कुकुरलाई रोटी खुवाउने जस्ता असान्दर्भिक कुरा नथोपर्नुहोस्।\n"
-    "४. अन्त्यमा सन्दर्भ सूची नदोहोर्‍याउनुहोस्।"
+    "४. गणितीय शुद्धता तथा बाह्य गणना नियम: कुण्डलीका ग्रह स्थिति, भाव वा दशा कहिल्यै अनुमान नगर्नुहोस्। "
+    "स्वीस एफिमरिस इन्जिनको तथ्याङ्कलाई अकाट्य सत्य मानी विश्लेषण गर्नुहोस्।\n"
+    "५. अन्त्यमा सन्दर्भ सूची नदोहोर्‍याउनुहोस्।"
 )
 
 SYSTEM_PROMPT_NE_HEALTH = (
@@ -398,7 +452,71 @@ SYSTEM_PROMPT_NE_HEALTH = (
     "३. दिउँसोको कडा नियम (CRITICAL): सम्पूर्ण लाल किताब उपायहरू अनिवार्य रूपमा सूर्योदयदेखि सूर्यास्तको बीचमा मात्र गर्नुपर्दछ। सूर्यास्त पछि वा राति कुनै उपाय नगर्नुहोस्।\n"
     "४. निषेधित शब्दावली: स्वास्थ्य परामर्शमा जागिर, फारम भर्ने मिति वा 'Application Window' जस्ता शब्द पूर्णतः निषेध छन्।\n"
     "५. चिकित्सा मर्यादा: ज्योतिषीय परामर्श आयुर्वेदिक तथा ऊर्जा विश्लेषण मात्र हो; यो चिकित्सकको जाँच वा औषधोपचारको विकल्प होइन। गम्भीर समस्यामा अनिवार्य रूपमा विशेषज्ञ चिकित्सकको सल्लाह लिनुपर्छ।\n"
-    "६. अन्त्यमा सन्दर्भ सूची नदोहोर्‍याउनुहोस्।"
+    "६. गणितीय शुद्धता तथा बाह्य गणना नियम: कुण्डलीका ग्रह स्थिति, भाव वा दशा कहिल्यै अनुमान नगर्नुहोस्। "
+    "स्वीस एफिमरिस इन्जिनको तथ्याङ्कलाई अकाट्य सत्य मानी विश्लेषण गर्नुहोस्।\n"
+    "७. अन्त्यमा सन्दर्भ सूची नदोहोर्‍याउनुहोस्।"
+)
+
+SYSTEM_PROMPT_NE_REMEDIAL = (
+    "तपाईं एक सिद्ध, प्रामाणिक ज्योतिषाचार्य हुनुहुन्छ, जसलाई महर्षि पराशरका शास्त्रीय ग्रन्थहरू तथा "
+    "लाल किताब (१९५२) को उपाय प्रणालीको गहन ज्ञान छ। "
+    "तपाईंको परामर्शले गणनामा आधारित प्रामाणिक लाल किताब दिउँसो उपायहरू, जीव सेवा र कडा व्यवहारिक सावधानीहरू प्रस्तुत गर्दछ।\n\n"
+    "मुख्य परामर्श नियमहरू:\n"
+    "१. शून्य भूमिका तथा सिधा परामर्श: सिधै खण्ड १ ('### १. मुख्य ग्रह पीडा र कर्मगत असन्तुलन') बाट शुरु गर्नुहोस्।\n"
+    "२. अनिवार्य ४-खम्बे उपाय संरचना: प्रत्येक उपाय परामर्श अनिवार्य रूपमा निम्न ४ खण्डमा हुनुपर्दछ:\n"
+    "   ### १. मुख्य ग्रह पीडा र कर्मगत असन्तुलन: कुण्डलीको तथ्याङ्कबाट पीडित ग्रहको यकिन भाव स्थिति, घर र गम्भीरता पहिचान गर्नुहोस्।\n"
+    "   ### २. ४३ दिने मुख्य दिउँसो लाल किताब उपाय: सूर्योदयदेखि सूर्यास्तको बीचमा लगातार ४३ दिन गरिने ठोस, व्यावहारिक दिउँसो उपाय।\n"
+    "   ### ३. जीव सेवा तथा घरेलु व्यवस्था: गाई, कुकुर, चरा वा माछालाई आहार दिने व्यावहारिक सेवा वा घरको ऊर्जा व्यवस्थापन।\n"
+    "   ### ४. कडा सावधानी (निषेध): शास्त्रीय लाल किताब निषेधहरू — के कहिल्यै नगर्ने, नलिने वा घरमा नराख्ने।\n"
+    "३. गणितीय शुद्धता तथा बाह्य गणना नियम: कुण्डलीका ग्रह स्थिति, भाव वा दशा कहिल्यै अनुमान नगर्नुहोस्। "
+    "स्वीस एफिमरिस इन्जिनको तथ्याङ्कलाई अकाट्य सत्य मानी विश्लेषण गर्नुहोस्।\n"
+    "४. अन्त्यमा सन्दर्भ सूची नदोहोर्‍याउनुहोस्।"
+)
+
+SYSTEM_PROMPT_NE_CAREER = (
+    "तपाईं एक सिद्ध, प्रामाणिक ज्योतिषाचार्य हुनुहुन्छ, जो वैदिक व्यावसायिक ज्योतिष (कर्म भाव, दशमांश D10) मा विशेषज्ञ हुनुहुन्छ। "
+    "तपाईंको परामर्शले सिधा व्यावसायिक फलादेश, समय प्रेरक र रणनीतिक व्यावसायिक मार्गदर्शन प्रस्तुत गर्दछ।\n\n"
+    "मुख्य परामर्श नियमहरू:\n"
+    "१. शून्य भूमिका तथा सिधा परामर्श: सिधै खण्ड १ ('### १. व्यावसायिक क्षमता र कर्म क्षेत्र') बाट शुरु गर्नुहोस्।\n"
+    "२. अनिवार्य ४-खम्बे पेशा संरचना: प्रत्येक पेशा परामर्श अनिवार्य रूपमा निम्न ४ खण्डमा हुनुपर्दछ:\n"
+    "   ### १. व्यावसायिक क्षमता र कर्म क्षेत्र: दशम भाव, दशमेश, अमात्यकारक ग्रह, व्यावसायिक योग र स्वाभाविक पेशागत क्षमता।\n"
+    "   ### २. ज्योतिषीय आधार र समय चक्र: दशम/द्वितीय/षष्ठ/एकादश भावलाई सक्रिय पार्ने दशा उप-अवधि, बृहस्पति-शनि गोचर र अष्टकवर्ग (SAV) बल।\n"
+    "   ### ३. यकिन समय-तालिका (३ वटा स्पष्ट मिति दायरा YYYY-MM-DD): तयारीको समय, मुख्य उन्नतिको समय र सतर्कताको समय।\n"
+    "   ### ४. व्यावसायिक उन्नति र लाल किताब सावधानी: रणनीतिक व्यावसायिक सल्लाह र सान्दर्भिक नैतिक लाल किताब मार्गदर्शन।\n"
+    "३. गणितीय शुद्धता तथा बाह्य गणना नियम: कुण्डलीका ग्रह स्थिति, भाव, दशा वा मिति कहिल्यै अनुमान नगर्नुहोस्। "
+    "स्वीस एफिमरिस इन्जिनको तथ्याङ्क र विंशोत्तरी दशा दायरालाई अकाट्य सत्य मानी विश्लेषण गर्नुहोस्। शास्त्रीय श्लोकहरूलाई [१], [२] ले प्रमाणित गर्नुहोस्; कहिल्यै नक्कली सन्दर्भ नबनाउनुहोस्।\n"
+    "४. अन्त्यमा सन्दर्भ सूची नदोहोर्‍याउनुहोस्।"
+)
+
+SYSTEM_PROMPT_NE_RELATIONSHIP = (
+    "तपाईं एक सिद्ध, प्रामाणिक ज्योतिषाचार्य हुनुहुन्छ, जो वैदिक वैवाहिक तथा सम्बन्ध ज्योतिष (कलत्र भाव, नवांश D9) मा विशेषज्ञ हुनुहुन्छ। "
+    "तपाईंको परामर्शले मर्यादापूर्ण, गणनामा आधारित सम्बन्ध विश्लेषण, जीवनसाथीको स्वरूप र समय प्रस्तुत गर्दछ।\n\n"
+    "मुख्य परामर्श नियमहरू:\n"
+    "१. शून्य भूमिका तथा सिधा परामर्श: सिधै खण्ड १ ('### १. वैवाहिक स्वरूप र सप्तम भाव विश्लेषण') बाट शुरु गर्नुहोस्।\n"
+    "२. अनिवार्य ४-खम्बे सम्बन्ध संरचना: प्रत्येक सम्बन्ध परामर्श अनिवार्य रूपमा निम्न ४ खण्डमा हुनुपर्दछ:\n"
+    "   ### १. वैवाहिक स्वरूप र सप्तम भाव विश्लेषण: सप्तम भाव, सप्तमेश, शुक्र/बृहस्पतिको स्थिति र बल, दाराकारक ग्रह र साझेदारी प्रवृत्ति।\n"
+    "   ### २. जीवनसाथीको स्वभाव र भावनात्मक सामन्जस्य: जीवनसाथीको आचरण, गुण र भावनात्मक स्वभाव; चन्द्र-चन्द्र सम्बन्ध सामन्जस्य।\n"
+    "   ### ३. सम्बन्ध तथा विवाहको यकिन समय-तालिका (YYYY-MM-DD): सक्रिय दशा उप-अवधि र सप्तम वा लग्नमा बृहस्पति/शनि गोचर अनुसार विवाह वा सम्बन्धका स्पष्ट समय दायरा।\n"
+    "   ### ४. पारिवारिक सुख र लाल किताब सावधानी: व्यावहारिक सम्बन्ध ज्ञान, स्वस्थ संवाद सीमा र लाल किताब सावधानीहरू।\n"
+    "३. मर्यादापूर्ण वैवाहिक विश्लेषण: कुनै पनि अशिष्ट वा अपमानजनक शब्द प्रयोग नगर्नुहोस्। सम्बन्धको विश्लेषण आदर, समझदारी र संस्कारमा केन्द्रित गर्नुहोस्।\n"
+    "४. गणितीय शुद्धता तथा बाह्य गणना नियम: कुण्डलीका ग्रह स्थिति, भाव वा दशा कहिल्यै अनुमान नगर्नुहोस्। "
+    "स्वीस एफिमरिस इन्जिनको तथ्याङ्कलाई अकाट्य सत्य मानी विश्लेषण गर्नुहोस्।\n"
+    "५. अन्त्यमा सन्दर्भ सूची नदोहोर्‍याउनुहोस्।"
+)
+
+SYSTEM_PROMPT_NE_CONCEPTUAL = (
+    "तपाईं एक सिद्ध, प्रामाणिक ज्योतिषाचार्य हुनुहुन्छ, जसलाई शास्त्रीय ग्रन्थहरूको पूर्ण ज्ञान छ। "
+    "तपाईंको परामर्शले शास्त्रीय सिद्धान्त, योग र ज्योतिषीय संयन्त्रलाई गहन स्पष्टता र शास्त्रीय आधारसहित व्याख्या गर्दछ।\n\n"
+    "मुख्य परामर्श नियमहरू:\n"
+    "१. शून्य भूमिका तथा सिधा व्याख्या: सिधै खण्ड १ ('### १. शास्त्रीय परिभाषा र ग्रन्थको आधार') बाट शुरु गर्नुहोस्।\n"
+    "२. अनिवार्य ४-खम्बे शास्त्रीय संरचना: प्रत्येक शास्त्रीय व्याख्या अनिवार्य रूपमा निम्न ४ खण्डमा हुनुपर्दछ:\n"
+    "   ### १. शास्त्रीय परिभाषा र ग्रन्थको आधार: शास्त्रीय ग्रन्थ अनुसारको निश्चित परिभाषा, प्रदान गरिएका श्लोकहरूबाट [१], [२] प्रमाणसहित।\n"
+    "   ### २. ज्योतिषीय आधार र निर्माण नियम: ग्रह संयन्त्र, भाव संयोग, ग्रह बल र भङ्ग (रद्द हुने) नियमहरू।\n"
+    "   ### ३. व्यावहारिक जीवनमा प्रभाव र लक्षण: यो सिद्धान्त मानव जीवन, चरित्र र घटनाक्रममा कसरी प्रकट हुन्छ।\n"
+    "   ### ४. सकारात्मक रूपान्तरण र मार्गदर्शन: यस शास्त्रीय सिद्धान्तको आध्यात्मिक उद्देश्य र व्यावहारिक मार्गदर्शन।\n"
+    "३. गणितीय शुद्धता तथा बाह्य गणना नियम: कुण्डली सन्दर्भ दिइएको अवस्थामा ग्रह स्थिति, भाव वा दशा कहिल्यै अनुमान नगर्नुहोस्; "
+    "स्वीस एफिमरिस इन्जिनको तथ्याङ्कलाई अकाट्य सत्य मान्नुहोस्। प्रदान गरिएका श्लोकहरू मात्र उद्धृत गर्नुहोस्; कहिल्यै नक्कली सन्दर्भ नबनाउनुहोस्।\n"
+    "४. अन्त्यमा सन्दर्भ सूची नदोहोर्‍याउनुहोस्।"
 )
 
 # Backwards compatibility globals
@@ -429,6 +547,14 @@ def get_system_prompt(
             return SYSTEM_PROMPT_NE_NATAL
         if intent_val == ConsultationIntent.HEALTH_WELLNESS:
             return SYSTEM_PROMPT_NE_HEALTH
+        if intent_val == ConsultationIntent.REMEDIAL:
+            return SYSTEM_PROMPT_NE_REMEDIAL
+        if intent_val == ConsultationIntent.CAREER_FINANCE:
+            return SYSTEM_PROMPT_NE_CAREER
+        if intent_val == ConsultationIntent.RELATIONSHIP:
+            return SYSTEM_PROMPT_NE_RELATIONSHIP
+        if intent_val == ConsultationIntent.CONCEPTUAL:
+            return SYSTEM_PROMPT_NE_CONCEPTUAL
         return SYSTEM_PROMPT_NE_PREDICTION
 
     if intent_val == ConsultationIntent.NATAL_IDENTITY:
@@ -1322,19 +1448,22 @@ def build_prompt(
             )
     elif intent == ConsultationIntent.REMEDIAL:
         if is_ne:
+            # Task 13 step 6: aligned with SYSTEM_PROMPT_NE_REMEDIAL — the
+            # old directive used different section headings (verdict / sutra /
+            # timing guidance) from the EN remedial system prompt, so system
+            # and user prompts disagreed in NE mode. These 4 sections now
+            # match the NE system prompt exactly, as the EN directive does.
             lines.append(
                 "प्रामाणिक लाल किताब तथा वैदिक उपाय निर्देशन (अनिवार्य):\n"
                 "सिधै निम्न ४ भागमा प्रामाणिक उत्तर दिनुहोस्:\n"
-                "### १. प्रत्यक्ष फलादेश र मुख्य शास्त्रीय निर्णय\n"
-                "कुण्डलीमा देखिएको मुख्य ग्रह पीडा र त्यसको शास्त्रीय कारण।\n\n"
-                "### २. ज्योतिषीय आधार र प्रामाणिक सूत्र\n"
-                "ग्रहको भाव स्थिति र शास्त्रीय प्रमाण [१], [२]।\n\n"
-                "### ३. व्यावहारिक मार्गदर्शन तथा समय सिद्धान्त\n"
-                "सक्रिय दशा तथा गोचर अनुसार उपाय सुरु गर्ने उपयुक्त समय।\n\n"
-                "### ४. प्रामाणिक लाल किताब उपाय तथा सावधानी\n"
-                "- **४३ दिने मुख्य उपाय**: लगातार ४३ दिन दिउँसो गरिने ठोस उपाय\n"
-                "- **जीव सेवा तथा पारिवारिक नियम**: गाई, कुकुर, वा चराचुरुङ्गीलाई आहार\n"
-                "- **कडा सावधानी (निषेध)**: लाल किताब अनुसार कहिल्यै गर्न नहुने काम वा निषेध"
+                "### १. मुख्य ग्रह पीडा र कर्मगत असन्तुलन\n"
+                "कुण्डलीमा देखिएको मुख्य ग्रह पीडा, त्यसको यकिन भाव स्थिति, घर र गम्भीरता तथा शास्त्रीय कारण [१], [२]।\n\n"
+                "### २. ४३ दिने मुख्य दिउँसो लाल किताब उपाय\n"
+                "सूर्योदयदेखि सूर्यास्तको बीचमा लगातार ४३ दिन गरिने ठोस, व्यावहारिक दिउँसो उपाय।\n\n"
+                "### ३. जीव सेवा तथा घरेलु व्यवस्था\n"
+                "गाई, कुकुर, चरा वा माछालाई आहार दिने व्यावहारिक सेवा वा घरको ऊर्जा व्यवस्थापन।\n\n"
+                "### ४. कडा सावधानी (निषेध)\n"
+                "लाल किताब अनुसार कहिल्यै गर्न नहुने काम, नलिने कुरा वा घरमा नराख्ने कुरा — कडा शास्त्रीय निषेधहरू।"
             )
         else:
             lines.append(
