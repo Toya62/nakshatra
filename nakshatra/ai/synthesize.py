@@ -23,6 +23,37 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from nakshatra.ai.retrieval import SearchResult
+from nakshatra.ai.validate import ValidationResult, validate_answer
+
+# Task 13 step 5: decoding controls shared by the OpenAI-compatible and
+# Google GenAI paths. OpenAI calls use temperature 0.35 and max_tokens from
+# MAX_OUTPUT_TOKENS (default 4096); the Google calls use the same values via
+# types.GenerateContentConfig. The Google API has no frequency/presence
+# penalty parameters, so none are set here.
+GOOGLE_TEMPERATURE = 0.35
+GOOGLE_PRIMARY_MODEL = "gemini-3.8-flash"
+# Google rotation list: primary first, then the flash-preview fallback
+# already used as a router fallback ("gemini/gemini-3-flash-preview" in the
+# OpenAI-compatible paths), with the "gemini/" router prefix stripped for
+# the direct Google GenAI API. Provider priority order is unchanged.
+GOOGLE_ROTATION_MODELS = (GOOGLE_PRIMARY_MODEL, "gemini-3-flash-preview")
+
+
+def _google_generation_config() -> Any:
+    """Build the Google GenAI generation config (Task 13 step 5).
+
+    Mirrors the OpenAI decoding controls: temperature 0.35 and
+    max_output_tokens from MAX_OUTPUT_TOKENS (default 4096). Requires the
+    google-genai package; raises ImportError if it is not installed rather
+    than silently sending an uncontrolled call.
+    """
+    from google.genai import types  # type: ignore[import-not-found,import-untyped]
+
+    max_tokens = int(os.environ.get("MAX_OUTPUT_TOKENS", "4096"))
+    return types.GenerateContentConfig(
+        temperature=GOOGLE_TEMPERATURE,
+        max_output_tokens=max_tokens,
+    )
 
 
 class ConsultationIntent(str, Enum):
@@ -42,9 +73,11 @@ def classify_intent(question: str) -> ConsultationIntent:
     q = (question or "").lower().strip()
 
     # 1. Remedial intent (mantra, gemstone, puja, upaya, dana, etc.)
+    # Romanized Nepali mirrors ConceptMap "remedies" (retrieval.py):
+    # daan (दान), japa (जप) alongside the already-present upaya/totka/puja.
     remedial_pattern = (
         r"\b(remedy|remedies|upaya|upayas|gemstone|gemstones|mantra|mantras|"
-        r"totka|totke|puja|shanti|rudraksha|dana|donation|how to fix|cure for)\b"
+        r"totka|totke|puja|shanti|rudraksha|dana|daan|japa|donation|how to fix|cure for)\b"
     )
     if re.search(remedial_pattern, q) or any(
         w in q for w in ["उपाय", "शान्ति", "मन्त्र", "रत्न", "पूजा", "दान"]
@@ -53,11 +86,15 @@ def classify_intent(question: str) -> ConsultationIntent:
 
     # 2. Health & Wellness intent (vitality, illness, disease, roga, medical, health prediction)
     # Evaluated BEFORE generic event prediction so 'health prediction in future' routes to health
+    # Romanized Nepali mirrors ConceptMap "health" (retrieval.py): rog (रोग),
+    # bimar (बिमार), chot (चोट), aushadhi (औषधि), dirghayu (दीर्घायु),
+    # tandurusti (तन्दुरुस्ती). roga/ayur/swasthya/upachar were already present.
     health_pattern = (
         r"\b(health|wellness|illness|illnesses|disease|diseases|sickness|sick|"
         r"healing|cure|longevity|vitality|immunity|surgery|medical|recovery|"
         r"ailment|ailments|physical health|mental health|diet|ayurveda|prakriti|"
-        r"roga|ayur|swasthya|upachar|hospital|hospitalization|accident|accidents)\b"
+        r"roga|rog|ayur|swasthya|upachar|hospital|hospitalization|accident|accidents|"
+        r"bimar|chot|aushadhi|dirghayu|tandurusti)\b"
     )
     if re.search(health_pattern, q) or any(
         w in q
@@ -114,17 +151,28 @@ def classify_intent(question: str) -> ConsultationIntent:
         return ConsultationIntent.NATAL_IDENTITY
 
     # 5. Event Prediction / Timing inquiry ("when will", "timing", "कहिले")
+    # Romanized Nepali mirrors ConceptMap "timing" (retrieval.py): kahile
+    # (कहिले), samaya (समय), kailesamma (कहिलेसम्म).
     timing_pattern = (
         r"\b(when will|timing|what time|which year|which month|future|forecast|"
-        r"date of|exact date|will i get|can i expect|when can i|when should i)\b"
+        r"date of|exact date|will i get|can i expect|when can i|when should i|"
+        r"kahile|samaya|kailesamma)\b"
     )
     if re.search(timing_pattern, q) or any(w in q for w in ["कहिले", "कुन समय", "भविष्यवाणी", "मिति"]):
         return ConsultationIntent.EVENT_PREDICTION
 
     # 6. Relationship & Marriage
+    # Romanized Nepali mirrors ConceptMap "marriage" (retrieval.py): vivah
+    # (विवाह), bihe/bibaha (बिहे), shrimati/shriman (श्रीमती/श्रीमान्).
+    # keti/keta are NOT here: colloquially they just mean "girl/boy"
+    # (son/daughter), so they belong to the life-event (children) check
+    # below — in this bucket they hijacked questions about one's children
+    # into RELATIONSHIP. ConceptMap keeps them for retrieval recall, where
+    # broad expansion is wanted.
     relationship_pattern = (
         r"\b(marriage|married|marry|spouse|partner|wife|husband|love life|"
-        r"relationship|compatibility|divorce|kundali milan|girlfriend|boyfriend)\b"
+        r"relationship|compatibility|divorce|kundali milan|girlfriend|boyfriend|"
+        r"vivah|bihe|bibaha|shrimati|shriman)\b"
     )
     if re.search(relationship_pattern, q) or any(
         w in q for w in ["विवाह", "जोडी", "श्रीमान", "श्रीमती", "प्रेम", "सम्बन्ध", "कुण्डली मिलान"]
@@ -132,14 +180,49 @@ def classify_intent(question: str) -> ConsultationIntent:
         return ConsultationIntent.RELATIONSHIP
 
     # 7. Career & Finance
+    # Romanized Nepali mirrors ConceptMap "career" + "wealth" (retrieval.py):
+    # naukri/naukeri/naukari/nokari (नोकरी), kam/kaam (काम), pesha (पेशा),
+    # jaagir (जागिर), dhana (धन), paisa (पैसा), sampatti (सम्पत्ति),
+    # aarthik (आर्थिक), kamai (कमाइ).
     career_pattern = (
         r"\b(career|job|profession|business|promotion|money|wealth|finance|"
-        r"finances|financial|income|salary|livelihood|employment|startup|work)\b"
+        r"finances|financial|income|salary|livelihood|employment|startup|work|"
+        r"naukri|naukeri|naukari|kam|pesha|jaagir|kaam|nokari|"
+        r"dhana|paisa|sampatti|aarthik|kamai)\b"
     )
     if re.search(career_pattern, q) or any(
         w in q for w in ["जागिर", "पदोन्नति", "व्यवसाय", "व्यापार", "पैसा", "धन", "सम्पत्ति", "रोजगार"]
     ):
         return ConsultationIntent.CAREER_FINANCE
+
+    # 8. Life-event topics with no dedicated archetype (children, education,
+    #    travel): Romanized + Devanagari keywords mirroring ConceptMap
+    #    "children" / "education" / "travel" (retrieval.py). These are
+    #    timing/life-event questions, so they route to event prediction
+    #    explicitly instead of falling through to the default — which matters
+    #    when the question also contains a self-reference ("my son ..."),
+    #    which the default fallback would otherwise send to natal identity.
+    life_event_pattern = (
+        r"\b(santana|chhora|chhori|bachha|bachhe|keti|keta|padhai|shiksha|vidya|"
+        r"bidesh|yatra|prabas)\b"
+    )
+    if re.search(life_event_pattern, q) or any(
+        w in q
+        for w in [
+            "सन्तान",
+            "छोरा",
+            "छोरी",
+            "बालबच्चा",
+            "पढाइ",
+            "शिक्षा",
+            "विद्या",
+            "बिदेश",
+            "विदेश",
+            "यात्रा",
+            "परदेश",
+        ]
+    ):
+        return ConsultationIntent.EVENT_PREDICTION
 
     # Default fallback
     if has_self_ref:
@@ -342,7 +425,9 @@ SYSTEM_PROMPT_NE_NATAL = (
     "   ### ३. आत्मिक उद्देश्य र आत्मकारक ग्रह (सूर्य र आत्मकारक): सूर्यको स्थिति, आत्मकारक ग्रह, र यस जन्मको मूल आत्मिक लक्ष्य तथा चेतनाको दिशा।\n"
     "   ### ४. मुख्य सामर्थ्य, शुभ योग र आत्म-विकास: सक्रिय शुभ योगहरू, जन्मजात प्रतिभा, र जीवनमा सन्तुलन तथा उन्नतिको लागि ध्यान दिनुपर्ने पक्षहरू।\n"
     "३. शुद्धता निर्देशन: आत्म-परिचयको प्रश्नमा अनावश्यक जागिरको फारम भर्ने मिति वा कुकुरलाई रोटी खुवाउने जस्ता असान्दर्भिक कुरा नथोपर्नुहोस्।\n"
-    "४. अन्त्यमा सन्दर्भ सूची नदोहोर्‍याउनुहोस्।"
+    "४. गणितीय शुद्धता तथा बाह्य गणना नियम: कुण्डलीका ग्रह स्थिति, भाव वा दशा कहिल्यै अनुमान नगर्नुहोस्। "
+    "स्वीस एफिमरिस इन्जिनको तथ्याङ्कलाई अकाट्य सत्य मानी विश्लेषण गर्नुहोस्।\n"
+    "५. अन्त्यमा सन्दर्भ सूची नदोहोर्‍याउनुहोस्।"
 )
 
 SYSTEM_PROMPT_NE_HEALTH = (
@@ -367,7 +452,71 @@ SYSTEM_PROMPT_NE_HEALTH = (
     "३. दिउँसोको कडा नियम (CRITICAL): सम्पूर्ण लाल किताब उपायहरू अनिवार्य रूपमा सूर्योदयदेखि सूर्यास्तको बीचमा मात्र गर्नुपर्दछ। सूर्यास्त पछि वा राति कुनै उपाय नगर्नुहोस्।\n"
     "४. निषेधित शब्दावली: स्वास्थ्य परामर्शमा जागिर, फारम भर्ने मिति वा 'Application Window' जस्ता शब्द पूर्णतः निषेध छन्।\n"
     "५. चिकित्सा मर्यादा: ज्योतिषीय परामर्श आयुर्वेदिक तथा ऊर्जा विश्लेषण मात्र हो; यो चिकित्सकको जाँच वा औषधोपचारको विकल्प होइन। गम्भीर समस्यामा अनिवार्य रूपमा विशेषज्ञ चिकित्सकको सल्लाह लिनुपर्छ।\n"
-    "६. अन्त्यमा सन्दर्भ सूची नदोहोर्‍याउनुहोस्।"
+    "६. गणितीय शुद्धता तथा बाह्य गणना नियम: कुण्डलीका ग्रह स्थिति, भाव वा दशा कहिल्यै अनुमान नगर्नुहोस्। "
+    "स्वीस एफिमरिस इन्जिनको तथ्याङ्कलाई अकाट्य सत्य मानी विश्लेषण गर्नुहोस्।\n"
+    "७. अन्त्यमा सन्दर्भ सूची नदोहोर्‍याउनुहोस्।"
+)
+
+SYSTEM_PROMPT_NE_REMEDIAL = (
+    "तपाईं एक सिद्ध, प्रामाणिक ज्योतिषाचार्य हुनुहुन्छ, जसलाई महर्षि पराशरका शास्त्रीय ग्रन्थहरू तथा "
+    "लाल किताब (१९५२) को उपाय प्रणालीको गहन ज्ञान छ। "
+    "तपाईंको परामर्शले गणनामा आधारित प्रामाणिक लाल किताब दिउँसो उपायहरू, जीव सेवा र कडा व्यवहारिक सावधानीहरू प्रस्तुत गर्दछ।\n\n"
+    "मुख्य परामर्श नियमहरू:\n"
+    "१. शून्य भूमिका तथा सिधा परामर्श: सिधै खण्ड १ ('### १. मुख्य ग्रह पीडा र कर्मगत असन्तुलन') बाट शुरु गर्नुहोस्।\n"
+    "२. अनिवार्य ४-खम्बे उपाय संरचना: प्रत्येक उपाय परामर्श अनिवार्य रूपमा निम्न ४ खण्डमा हुनुपर्दछ:\n"
+    "   ### १. मुख्य ग्रह पीडा र कर्मगत असन्तुलन: कुण्डलीको तथ्याङ्कबाट पीडित ग्रहको यकिन भाव स्थिति, घर र गम्भीरता पहिचान गर्नुहोस्।\n"
+    "   ### २. ४३ दिने मुख्य दिउँसो लाल किताब उपाय: सूर्योदयदेखि सूर्यास्तको बीचमा लगातार ४३ दिन गरिने ठोस, व्यावहारिक दिउँसो उपाय।\n"
+    "   ### ३. जीव सेवा तथा घरेलु व्यवस्था: गाई, कुकुर, चरा वा माछालाई आहार दिने व्यावहारिक सेवा वा घरको ऊर्जा व्यवस्थापन।\n"
+    "   ### ४. कडा सावधानी (निषेध): शास्त्रीय लाल किताब निषेधहरू — के कहिल्यै नगर्ने, नलिने वा घरमा नराख्ने।\n"
+    "३. गणितीय शुद्धता तथा बाह्य गणना नियम: कुण्डलीका ग्रह स्थिति, भाव वा दशा कहिल्यै अनुमान नगर्नुहोस्। "
+    "स्वीस एफिमरिस इन्जिनको तथ्याङ्कलाई अकाट्य सत्य मानी विश्लेषण गर्नुहोस्।\n"
+    "४. अन्त्यमा सन्दर्भ सूची नदोहोर्‍याउनुहोस्।"
+)
+
+SYSTEM_PROMPT_NE_CAREER = (
+    "तपाईं एक सिद्ध, प्रामाणिक ज्योतिषाचार्य हुनुहुन्छ, जो वैदिक व्यावसायिक ज्योतिष (कर्म भाव, दशमांश D10) मा विशेषज्ञ हुनुहुन्छ। "
+    "तपाईंको परामर्शले सिधा व्यावसायिक फलादेश, समय प्रेरक र रणनीतिक व्यावसायिक मार्गदर्शन प्रस्तुत गर्दछ।\n\n"
+    "मुख्य परामर्श नियमहरू:\n"
+    "१. शून्य भूमिका तथा सिधा परामर्श: सिधै खण्ड १ ('### १. व्यावसायिक क्षमता र कर्म क्षेत्र') बाट शुरु गर्नुहोस्।\n"
+    "२. अनिवार्य ४-खम्बे पेशा संरचना: प्रत्येक पेशा परामर्श अनिवार्य रूपमा निम्न ४ खण्डमा हुनुपर्दछ:\n"
+    "   ### १. व्यावसायिक क्षमता र कर्म क्षेत्र: दशम भाव, दशमेश, अमात्यकारक ग्रह, व्यावसायिक योग र स्वाभाविक पेशागत क्षमता।\n"
+    "   ### २. ज्योतिषीय आधार र समय चक्र: दशम/द्वितीय/षष्ठ/एकादश भावलाई सक्रिय पार्ने दशा उप-अवधि, बृहस्पति-शनि गोचर र अष्टकवर्ग (SAV) बल।\n"
+    "   ### ३. यकिन समय-तालिका (३ वटा स्पष्ट मिति दायरा YYYY-MM-DD): तयारीको समय, मुख्य उन्नतिको समय र सतर्कताको समय।\n"
+    "   ### ४. व्यावसायिक उन्नति र लाल किताब सावधानी: रणनीतिक व्यावसायिक सल्लाह र सान्दर्भिक नैतिक लाल किताब मार्गदर्शन।\n"
+    "३. गणितीय शुद्धता तथा बाह्य गणना नियम: कुण्डलीका ग्रह स्थिति, भाव, दशा वा मिति कहिल्यै अनुमान नगर्नुहोस्। "
+    "स्वीस एफिमरिस इन्जिनको तथ्याङ्क र विंशोत्तरी दशा दायरालाई अकाट्य सत्य मानी विश्लेषण गर्नुहोस्। शास्त्रीय श्लोकहरूलाई [१], [२] ले प्रमाणित गर्नुहोस्; कहिल्यै नक्कली सन्दर्भ नबनाउनुहोस्।\n"
+    "४. अन्त्यमा सन्दर्भ सूची नदोहोर्‍याउनुहोस्।"
+)
+
+SYSTEM_PROMPT_NE_RELATIONSHIP = (
+    "तपाईं एक सिद्ध, प्रामाणिक ज्योतिषाचार्य हुनुहुन्छ, जो वैदिक वैवाहिक तथा सम्बन्ध ज्योतिष (कलत्र भाव, नवांश D9) मा विशेषज्ञ हुनुहुन्छ। "
+    "तपाईंको परामर्शले मर्यादापूर्ण, गणनामा आधारित सम्बन्ध विश्लेषण, जीवनसाथीको स्वरूप र समय प्रस्तुत गर्दछ।\n\n"
+    "मुख्य परामर्श नियमहरू:\n"
+    "१. शून्य भूमिका तथा सिधा परामर्श: सिधै खण्ड १ ('### १. वैवाहिक स्वरूप र सप्तम भाव विश्लेषण') बाट शुरु गर्नुहोस्।\n"
+    "२. अनिवार्य ४-खम्बे सम्बन्ध संरचना: प्रत्येक सम्बन्ध परामर्श अनिवार्य रूपमा निम्न ४ खण्डमा हुनुपर्दछ:\n"
+    "   ### १. वैवाहिक स्वरूप र सप्तम भाव विश्लेषण: सप्तम भाव, सप्तमेश, शुक्र/बृहस्पतिको स्थिति र बल, दाराकारक ग्रह र साझेदारी प्रवृत्ति।\n"
+    "   ### २. जीवनसाथीको स्वभाव र भावनात्मक सामन्जस्य: जीवनसाथीको आचरण, गुण र भावनात्मक स्वभाव; चन्द्र-चन्द्र सम्बन्ध सामन्जस्य।\n"
+    "   ### ३. सम्बन्ध तथा विवाहको यकिन समय-तालिका (YYYY-MM-DD): सक्रिय दशा उप-अवधि र सप्तम वा लग्नमा बृहस्पति/शनि गोचर अनुसार विवाह वा सम्बन्धका स्पष्ट समय दायरा।\n"
+    "   ### ४. पारिवारिक सुख र लाल किताब सावधानी: व्यावहारिक सम्बन्ध ज्ञान, स्वस्थ संवाद सीमा र लाल किताब सावधानीहरू।\n"
+    "३. मर्यादापूर्ण वैवाहिक विश्लेषण: कुनै पनि अशिष्ट वा अपमानजनक शब्द प्रयोग नगर्नुहोस्। सम्बन्धको विश्लेषण आदर, समझदारी र संस्कारमा केन्द्रित गर्नुहोस्।\n"
+    "४. गणितीय शुद्धता तथा बाह्य गणना नियम: कुण्डलीका ग्रह स्थिति, भाव वा दशा कहिल्यै अनुमान नगर्नुहोस्। "
+    "स्वीस एफिमरिस इन्जिनको तथ्याङ्कलाई अकाट्य सत्य मानी विश्लेषण गर्नुहोस्।\n"
+    "५. अन्त्यमा सन्दर्भ सूची नदोहोर्‍याउनुहोस्।"
+)
+
+SYSTEM_PROMPT_NE_CONCEPTUAL = (
+    "तपाईं एक सिद्ध, प्रामाणिक ज्योतिषाचार्य हुनुहुन्छ, जसलाई शास्त्रीय ग्रन्थहरूको पूर्ण ज्ञान छ। "
+    "तपाईंको परामर्शले शास्त्रीय सिद्धान्त, योग र ज्योतिषीय संयन्त्रलाई गहन स्पष्टता र शास्त्रीय आधारसहित व्याख्या गर्दछ।\n\n"
+    "मुख्य परामर्श नियमहरू:\n"
+    "१. शून्य भूमिका तथा सिधा व्याख्या: सिधै खण्ड १ ('### १. शास्त्रीय परिभाषा र ग्रन्थको आधार') बाट शुरु गर्नुहोस्।\n"
+    "२. अनिवार्य ४-खम्बे शास्त्रीय संरचना: प्रत्येक शास्त्रीय व्याख्या अनिवार्य रूपमा निम्न ४ खण्डमा हुनुपर्दछ:\n"
+    "   ### १. शास्त्रीय परिभाषा र ग्रन्थको आधार: शास्त्रीय ग्रन्थ अनुसारको निश्चित परिभाषा, प्रदान गरिएका श्लोकहरूबाट [१], [२] प्रमाणसहित।\n"
+    "   ### २. ज्योतिषीय आधार र निर्माण नियम: ग्रह संयन्त्र, भाव संयोग, ग्रह बल र भङ्ग (रद्द हुने) नियमहरू।\n"
+    "   ### ३. व्यावहारिक जीवनमा प्रभाव र लक्षण: यो सिद्धान्त मानव जीवन, चरित्र र घटनाक्रममा कसरी प्रकट हुन्छ।\n"
+    "   ### ४. सकारात्मक रूपान्तरण र मार्गदर्शन: यस शास्त्रीय सिद्धान्तको आध्यात्मिक उद्देश्य र व्यावहारिक मार्गदर्शन।\n"
+    "३. गणितीय शुद्धता तथा बाह्य गणना नियम: कुण्डली सन्दर्भ दिइएको अवस्थामा ग्रह स्थिति, भाव वा दशा कहिल्यै अनुमान नगर्नुहोस्; "
+    "स्वीस एफिमरिस इन्जिनको तथ्याङ्कलाई अकाट्य सत्य मान्नुहोस्। प्रदान गरिएका श्लोकहरू मात्र उद्धृत गर्नुहोस्; कहिल्यै नक्कली सन्दर्भ नबनाउनुहोस्।\n"
+    "४. अन्त्यमा सन्दर्भ सूची नदोहोर्‍याउनुहोस्।"
 )
 
 # Backwards compatibility globals
@@ -398,6 +547,14 @@ def get_system_prompt(
             return SYSTEM_PROMPT_NE_NATAL
         if intent_val == ConsultationIntent.HEALTH_WELLNESS:
             return SYSTEM_PROMPT_NE_HEALTH
+        if intent_val == ConsultationIntent.REMEDIAL:
+            return SYSTEM_PROMPT_NE_REMEDIAL
+        if intent_val == ConsultationIntent.CAREER_FINANCE:
+            return SYSTEM_PROMPT_NE_CAREER
+        if intent_val == ConsultationIntent.RELATIONSHIP:
+            return SYSTEM_PROMPT_NE_RELATIONSHIP
+        if intent_val == ConsultationIntent.CONCEPTUAL:
+            return SYSTEM_PROMPT_NE_CONCEPTUAL
         return SYSTEM_PROMPT_NE_PREDICTION
 
     if intent_val == ConsultationIntent.NATAL_IDENTITY:
@@ -431,6 +588,10 @@ class Answer(BaseModel):
     answer: str
     citations: list[Citation] = Field(default_factory=list)
     model: str = ""
+    # Post-generation validation (Task 13 step 1): flags for chart claims
+    # that do not match the chart context and for dropped citations.
+    # None for answers that were not LLM-validated (e.g. fallback).
+    validation: ValidationResult | None = None
 
 
 class BaseSynthesizer(ABC):
@@ -498,8 +659,80 @@ _SIGN_LORDS = {
 }
 
 
-def _format_birth_summary(chart: dict[str, Any]) -> str:
-    """Format structured natal chart facts, house lords, ashtakavarga, and transits for synthesis."""
+def _clean_node_name(name: str | None) -> str:
+    """Display name for a dasha lord ('North Node' -> 'Rahu')."""
+    if not name:
+        return "Unknown"
+    if name == "North Node":
+        return "Rahu"
+    if name == "South Node":
+        return "Ketu"
+    return name
+
+
+def _format_muhurtha_lines(muh: dict[str, Any], reference: str) -> list[str]:
+    """Render a MuhurthaReport dict as bounded summary lines.
+
+    Never invents times: a missing sunrise (polar day/night) is reported as
+    such, and a missing/incomplete report yields an explicit unavailable
+    line instead of fabricated hora/choghadiya windows.
+    """
+    lines = [f"- Muhurtha (Timing, reference moment: {reference}):"]
+    sunrise = muh.get("sunrise_time")
+    sunset = muh.get("sunset_time")
+    if sunrise is None and sunset is None:
+        lines.append(
+            "  • No sunrise/sunset on this day at this place (polar day/night); "
+            "muhurtha windows are unavailable — do not invent times."
+        )
+        return lines
+    if sunrise:
+        lines.append(f"  • Sunrise {sunrise} | Sunset {sunset or '—'}")
+    hora = muh.get("current_hora") or {}
+    if isinstance(hora, dict) and hora.get("ruling_planet"):
+        lines.append(
+            f"  • Current Hora: {hora.get('ruling_planet')} Hora "
+            f"({hora.get('start_time')} - {hora.get('end_time')}) [{hora.get('nature')}]"
+        )
+    chog = muh.get("current_choghadiya") or {}
+    if isinstance(chog, dict) and chog.get("name"):
+        lines.append(
+            f"  • Current Choghadiya: {chog.get('name')} ({chog.get('ruler')}, "
+            f"{chog.get('start_time')} - {chog.get('end_time')}) "
+            f"[{chog.get('nature')} | Score: {chog.get('score')}]"
+        )
+    rahu_kalam = muh.get("rahu_kalam") or {}
+    if isinstance(rahu_kalam, dict) and rahu_kalam.get("start_time"):
+        active = " [ACTIVE NOW — avoid new beginnings]" if rahu_kalam.get("is_active") else ""
+        lines.append(
+            f"  • Rahu Kalam [AVOID]: {rahu_kalam.get('start_time')} - "
+            f"{rahu_kalam.get('end_time')}{active}"
+        )
+    abhijit = muh.get("abhijit_muhurtha") or {}
+    if isinstance(abhijit, dict) and abhijit.get("start_time"):
+        active = " [ACTIVE NOW]" if abhijit.get("is_active") else ""
+        lines.append(
+            f"  • Abhijit Muhurtha: {abhijit.get('start_time')} - "
+            f"{abhijit.get('end_time')}{active}"
+        )
+    score = muh.get("muhurtha_score")
+    verdict = muh.get("verdict")
+    if score is not None or verdict:
+        lines.append(
+            f"  • Muhurtha Score: {score}/100 — {verdict or ''}".rstrip(" —")
+        )
+    return lines
+
+
+def _format_birth_summary(
+    chart: dict[str, Any], include_muhurtha: bool = False
+) -> str:
+    """Format structured natal chart facts, house lords, ashtakavarga, and transits for synthesis.
+
+    ``include_muhurtha`` is True only for timing questions (Event Prediction
+    intent, decided by :func:`build_prompt`): the muhurtha lines describe the
+    query moment at the birth place, and are omitted otherwise.
+    """
     lines: list[str] = []
 
     # Explicit Seeker Birth Details (Ground Truth)
@@ -617,6 +850,110 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
                     f"Saturn (Ayushkaraka/Longevity): House {sat_body.get('house')} in {sat_body.get('sign')}"
                 )
 
+    # Divisional charts: Navamsha (D9, spouse/dharma/fortune) and Dashamsha
+    # (D10, career) status as one bounded line each — signs only, never the
+    # 16-varga dump. Vargottama = planet in the same sign in D1 and D9.
+    vargas = chart.get("vargas")
+    if isinstance(vargas, dict):
+        d1_signs: dict[str, str] = {}
+        if isinstance(planets, list):
+            for p in planets:
+                if isinstance(p, dict) and p.get("name") and p.get("sign"):
+                    d1_signs[str(p["name"])] = str(p["sign"])
+        rahu_d = chart.get("rahu")
+        ketu_d = chart.get("ketu")
+        if isinstance(rahu_d, dict) and rahu_d.get("sign"):
+            d1_signs["North Node"] = str(rahu_d["sign"])
+        if isinstance(ketu_d, dict) and ketu_d.get("sign"):
+            d1_signs["South Node"] = str(ketu_d["sign"])
+
+        def _varga_line(v_key: str, label: str) -> str | None:
+            v_data = vargas.get(v_key)
+            if not isinstance(v_data, dict) or not v_data:
+                return None
+            order = [
+                "Sun",
+                "Moon",
+                "Mars",
+                "Mercury",
+                "Jupiter",
+                "Venus",
+                "Saturn",
+                "North Node",
+                "South Node",
+            ]
+            parts: list[str] = []
+            for name in order:
+                sign = v_data.get(name)
+                if not sign:
+                    continue
+                disp = (
+                    "Rahu"
+                    if name == "North Node"
+                    else "Ketu"
+                    if name == "South Node"
+                    else name
+                )
+                parts.append(f"{disp} {sign}")
+            if not parts:
+                return None
+            asc_sign = v_data.get("Ascendant")
+            line = f"- {label}: "
+            if asc_sign:
+                line += f"Lagna {asc_sign}; "
+            line += ", ".join(parts)
+            if v_key == "D9":
+                vargottama = [
+                    ("Rahu" if n == "North Node" else "Ketu" if n == "South Node" else n)
+                    for n in order
+                    if d1_signs.get(n) and d1_signs.get(n) == v_data.get(n)
+                ]
+                if vargottama:
+                    line += f" [Vargottama (same sign in D1 and D9): {', '.join(vargottama)}]"
+            return line
+
+        d9_line = _varga_line("D9", "Navamsha (D9)")
+        if d9_line:
+            lines.append(d9_line)
+        d10_line = _varga_line("D10", "Dashamsha (D10)")
+        if d10_line:
+            # Prefer the precomputed D10 chart (houses) when present.
+            d10_chart = chart.get("d10_chart")
+            if isinstance(d10_chart, dict):
+                d10_asc = (d10_chart.get("ascendant") or {}).get("sign")
+                d10_planets = d10_chart.get("planets") or {}
+                if d10_asc and isinstance(d10_planets, dict) and d10_planets:
+                    d10_parts = []
+                    for name in [
+                        "Sun",
+                        "Moon",
+                        "Mars",
+                        "Mercury",
+                        "Jupiter",
+                        "Venus",
+                        "Saturn",
+                        "North Node",
+                        "South Node",
+                    ]:
+                        entry = d10_planets.get(name)
+                        if isinstance(entry, dict) and entry.get("sign"):
+                            disp = (
+                                "Rahu"
+                                if name == "North Node"
+                                else "Ketu"
+                                if name == "South Node"
+                                else name
+                            )
+                            d10_parts.append(
+                                f"{disp} {entry['sign']} (H{entry.get('house')})"
+                            )
+                    if d10_parts:
+                        d10_line = (
+                            f"- Dashamsha (D10): Lagna {d10_asc}; "
+                            + ", ".join(d10_parts)
+                        )
+            lines.append(d10_line)
+
     # Real Ashtakavarga Points: Grouped cleanly by house strength rather than a raw dump of 12 signs
     av = chart.get("ashtakavarga")
     if isinstance(av, dict):
@@ -722,16 +1059,6 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
 
     dashas = chart.get("dashas")
     if isinstance(dashas, dict):
-
-        def _clean_node_name(name: str | None) -> str:
-            if not name:
-                return "Unknown"
-            if name == "North Node":
-                return "Rahu"
-            if name == "South Node":
-                return "Ketu"
-            return name
-
         curr_md = dashas.get("current_md") or {}
         curr_ad = dashas.get("current_ad") or {}
         curr_pd = dashas.get("current_pd") or {}
@@ -751,6 +1078,34 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
         lines.append(f"  • Current Mahadasha: [{md_lord}] from {md_s} to {md_e}")
         lines.append(f"  • Current Antardasha: [{ad_lord}] from {ad_s} to {ad_e} [ACTIVE NOW]")
         lines.append(f"  • Current Pratyantardasha: [{pd_lord}] from {pd_s} to {pd_e} [ACTIVE NOW]")
+
+        # Full Mahadasha ranges, past + future (bounded summary lines, not the
+        # full dasha tree): the LLM must ground any "when" answer in these
+        # ranges, not only in the current MD/AD/PD above.
+        all_mds = dashas.get("mahadashas") or []
+        if all_mds:
+            birth_date_str = ""
+            if isinstance(bdata, dict) and bdata.get("year"):
+                birth_date_str = (
+                    f"{bdata.get('year'):04d}-{bdata.get('month', 1):02d}-"
+                    f"{bdata.get('day', 1):02d}"
+                )
+            md_lines = []
+            for md in all_mds:
+                if not isinstance(md, dict):
+                    continue
+                lord = _clean_node_name(md.get("lord"))
+                s_date = (md.get("start") or "")[:10]
+                e_date = (md.get("end") or "")[:10]
+                tag = " [CURRENT]" if lord == md_lord else ""
+                if birth_date_str and s_date <= birth_date_str <= e_date:
+                    tag += " [IN EFFECT AT BIRTH]"
+                md_lines.append(f"{lord}: {s_date} to {e_date}{tag}")
+            if md_lines:
+                lines.append(
+                    "  • Full Mahadasha Timeline (Vimshottari, past + future):\n    - "
+                    + "\n    - ".join(md_lines)
+                )
 
         mahadashas = dashas.get("mahadashas") or []
         for md in mahadashas:
@@ -821,6 +1176,65 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
         if yoga_names:
             lines.append(f"- Active Yogas: {', '.join(yoga_names[:5])}")
 
+    # Compatibility: Kuja Dosha is single-chart, so it is always rendered when
+    # the chart context carries it (api.py attaches it from ChartData).
+    # Ashtakoota needs TWO charts, and /rag/ask has only one: render the
+    # score only when partner data is actually present in the context,
+    # otherwise say so honestly — never invent a score.
+    kuja = chart.get("kuja_dosha")
+    compat = chart.get("compatibility")
+    if not isinstance(kuja, dict) and isinstance(compat, dict):
+        kuja = compat.get("kuja_dosha")
+    ashtakoota = chart.get("ashtakoota")
+    if not isinstance(ashtakoota, dict) and isinstance(compat, dict):
+        ashtakoota = compat.get("ashtakoota")
+    lines.append("- Compatibility & Kuja Dosha (Marriage Matching Ground Truth):")
+    if isinstance(kuja, dict) and kuja:
+        status = "Manglik" if kuja.get("is_manglik") else "Non-Manglik"
+        severity = kuja.get("severity") or "None"
+        score = kuja.get("score")
+        score_str = f", score {score}" if score is not None else ""
+        afflicted: list[str] = []
+        for ref, key in (
+            ("Lagna", "afflicted_houses_lagna"),
+            ("Moon", "afflicted_houses_moon"),
+            ("Venus", "afflicted_houses_venus"),
+        ):
+            houses = kuja.get(key) or []
+            if houses:
+                afflicted.append(f"Mars in {', '.join(str(h) for h in houses)} from {ref}")
+        afflicted_str = (
+            f"; afflicted: {'; '.join(afflicted)}" if afflicted else "; Mars in no Manglik house"
+        )
+        cancellations = kuja.get("cancellations") or []
+        cancel_str = (
+            f"; cancellations: {'; '.join(str(c) for c in cancellations)}"
+            + (" (dosha cancelled)" if kuja.get("is_cancelled") else "")
+            if cancellations
+            else ""
+        )
+        lines.append(
+            f"  • Kuja Dosha: {status} — severity {severity}{score_str}"
+            f"{afflicted_str}{cancel_str}"
+        )
+    else:
+        lines.append(
+            "  • Kuja Dosha: not evaluated in the chart context provided; "
+            "do not assume Manglik status."
+        )
+    if isinstance(ashtakoota, dict) and ashtakoota.get("total_score") is not None:
+        total = ashtakoota.get("total_score")
+        pct = ashtakoota.get("percentage")
+        verdict = ashtakoota.get("verdict") or ""
+        pct_str = f" ({pct}%)" if pct is not None else ""
+        verdict_str = f" — {verdict}" if verdict else ""
+        lines.append(f"  • Ashtakoota: {total}/36{pct_str}{verdict_str}")
+    else:
+        lines.append(
+            "  • Ashtakoota: no partner chart provided — no compatibility "
+            "score calculated; do not invent one."
+        )
+
     predictions = chart.get("predictions")
     if isinstance(predictions, dict):
         lines.append("- Classical Hierarchical Predictions (Deterministic Engine Ground Truth):")
@@ -862,6 +1276,53 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
                         f"    - Creature / Household Seva: {creature or h_rem}\n"
                         f"    - Inviolable Savdhani (Strict Precaution): {'; '.join(forb[:2]) if forb else 'Maintain clean ethical conduct'}"
                     )
+
+    # Muhurtha — timing questions only (see build_prompt). The reference
+    # moment is the query moment at the birth place, stated in the line so
+    # the model never mistakes it for a birth-time muhurtha. If the
+    # calculation fails, say so; never invent hora/choghadiya times.
+    if include_muhurtha:
+        muh = chart.get("muhurtha")
+        if isinstance(muh, dict) and muh:
+            reference = str(
+                muh.get("timestamp") or ""
+            )
+            if muh.get("timezone"):
+                reference += f" ({muh.get('timezone')})"
+            if muh.get("latitude") is not None and muh.get("longitude") is not None:
+                reference += (
+                    f", at birth place "
+                    f"({muh.get('latitude'):.2f}, {muh.get('longitude'):.2f})"
+                )
+            lines.extend(_format_muhurtha_lines(muh, reference or "query moment"))
+        elif isinstance(bdata, dict) and bdata.get("year"):
+            tz_name = str(bdata.get("timezone") or "UTC")
+            lat = float(bdata.get("latitude") or 0)
+            lon = float(bdata.get("longitude") or 0)
+            try:
+                from datetime import datetime as _dt
+                from zoneinfo import ZoneInfo as _ZoneInfo
+
+                from nakshatra.muhurtha import calculate_muhurtha
+
+                now_local = _dt.now(_ZoneInfo(tz_name))
+                report = calculate_muhurtha(now_local, lat, lon, tz_name)
+                reference = (
+                    f"{report.timestamp} ({report.timezone}), "
+                    f"at birth place ({lat:.2f}, {lon:.2f})"
+                )
+                lines.extend(_format_muhurtha_lines(report.model_dump(), reference))
+            except Exception as exc:  # noqa: BLE001 - report, never invent
+                lines.append(
+                    "- Muhurtha (Timing): could not be calculated for the "
+                    f"query moment at the birth place ({exc}); do not invent "
+                    "hora, choghadiya, or Rahu Kalam times."
+                )
+        else:
+            lines.append(
+                "- Muhurtha (Timing): no birth place/time in the chart context, "
+                "so no muhurtha could be calculated; do not invent times."
+            )
 
     return "\n".join(lines)
 
@@ -921,7 +1382,12 @@ def build_prompt(
         )
         compact_ctx = _compact_birth_context(birth_context)
         lines.append(f"Birth chart context: {json.dumps(compact_ctx)}")
-        summary = _format_birth_summary(birth_context)
+        # Muhurtha lines only for timing questions (Event Prediction intent):
+        # they describe the query moment, not the birth moment.
+        summary = _format_birth_summary(
+            birth_context,
+            include_muhurtha=(intent == ConsultationIntent.EVENT_PREDICTION),
+        )
         if summary:
             lines.append("\n" + summary)
         lines.append("")
@@ -982,19 +1448,22 @@ def build_prompt(
             )
     elif intent == ConsultationIntent.REMEDIAL:
         if is_ne:
+            # Task 13 step 6: aligned with SYSTEM_PROMPT_NE_REMEDIAL — the
+            # old directive used different section headings (verdict / sutra /
+            # timing guidance) from the EN remedial system prompt, so system
+            # and user prompts disagreed in NE mode. These 4 sections now
+            # match the NE system prompt exactly, as the EN directive does.
             lines.append(
                 "प्रामाणिक लाल किताब तथा वैदिक उपाय निर्देशन (अनिवार्य):\n"
                 "सिधै निम्न ४ भागमा प्रामाणिक उत्तर दिनुहोस्:\n"
-                "### १. प्रत्यक्ष फलादेश र मुख्य शास्त्रीय निर्णय\n"
-                "कुण्डलीमा देखिएको मुख्य ग्रह पीडा र त्यसको शास्त्रीय कारण।\n\n"
-                "### २. ज्योतिषीय आधार र प्रामाणिक सूत्र\n"
-                "ग्रहको भाव स्थिति र शास्त्रीय प्रमाण [१], [२]।\n\n"
-                "### ३. व्यावहारिक मार्गदर्शन तथा समय सिद्धान्त\n"
-                "सक्रिय दशा तथा गोचर अनुसार उपाय सुरु गर्ने उपयुक्त समय।\n\n"
-                "### ४. प्रामाणिक लाल किताब उपाय तथा सावधानी\n"
-                "- **४३ दिने मुख्य उपाय**: लगातार ४३ दिन दिउँसो गरिने ठोस उपाय\n"
-                "- **जीव सेवा तथा पारिवारिक नियम**: गाई, कुकुर, वा चराचुरुङ्गीलाई आहार\n"
-                "- **कडा सावधानी (निषेध)**: लाल किताब अनुसार कहिल्यै गर्न नहुने काम वा निषेध"
+                "### १. मुख्य ग्रह पीडा र कर्मगत असन्तुलन\n"
+                "कुण्डलीमा देखिएको मुख्य ग्रह पीडा, त्यसको यकिन भाव स्थिति, घर र गम्भीरता तथा शास्त्रीय कारण [१], [२]।\n\n"
+                "### २. ४३ दिने मुख्य दिउँसो लाल किताब उपाय\n"
+                "सूर्योदयदेखि सूर्यास्तको बीचमा लगातार ४३ दिन गरिने ठोस, व्यावहारिक दिउँसो उपाय।\n\n"
+                "### ३. जीव सेवा तथा घरेलु व्यवस्था\n"
+                "गाई, कुकुर, चरा वा माछालाई आहार दिने व्यावहारिक सेवा वा घरको ऊर्जा व्यवस्थापन।\n\n"
+                "### ४. कडा सावधानी (निषेध)\n"
+                "लाल किताब अनुसार कहिल्यै गर्न नहुने काम, नलिने कुरा वा घरमा नराख्ने कुरा — कडा शास्त्रीय निषेधहरू।"
             )
         else:
             lines.append(
@@ -1252,7 +1721,7 @@ class LLMSynthesizer(BaseSynthesizer):
             if provider == "ollama":
                 model = os.environ.get("OLLAMA_MODEL", "qwen2.5:3b")
             elif provider == "google":
-                model = "gemini-3.8-flash"
+                model = GOOGLE_PRIMARY_MODEL
             else:
                 model = "gpt-4o-mini"
         self.model = model
@@ -1278,11 +1747,16 @@ class LLMSynthesizer(BaseSynthesizer):
             except TypeError:
                 text = self._complete(prompt)
             clean_answer = _strip_trailing_references(text)
+            # Task 13 step 1: validate the LLM answer against the chart
+            # context it was given; drop unsupported/out-of-range citations
+            # and flag any placement/date/yoga/Sade Sati mismatch.
+            validation = validate_answer(clean_answer, birth_context, results)
             return Answer(
                 question=question,
-                answer=clean_answer,
-                citations=extract_citations(text, results),
+                answer=validation.cleaned_answer,
+                citations=extract_citations(validation.cleaned_answer, results),
                 model=self.model,
+                validation=validation,
             )
         except Exception as e:
             fb = FallbackSynthesizer()
@@ -1383,9 +1857,7 @@ class LLMSynthesizer(BaseSynthesizer):
         raise RuntimeError("OpenAI completion failed")
 
     def _complete_google(self, prompt: str, system_prompt: str = SYSTEM_PROMPT) -> str:
-        rotation_models = [
-            "gemini-3.8-flash",
-        ]
+        rotation_models = list(GOOGLE_ROTATION_MODELS)
         candidates = [self.model]
         for m in rotation_models:
             if m not in candidates:
@@ -1420,9 +1892,13 @@ class LLMSynthesizer(BaseSynthesizer):
 
         last_err: Exception | None = None
         full_contents = f"{system_prompt}\n\n{prompt}"
+        # Task 13 step 5: same decoding controls as the OpenAI calls.
+        config = _google_generation_config()
         for cand in candidates:
             try:
-                response = self._client.models.generate_content(model=cand, contents=full_contents)
+                response = self._client.models.generate_content(
+                    model=cand, contents=full_contents, config=config
+                )
                 self.model = cand
                 return str(response.text)
             except Exception as e:
@@ -1456,27 +1932,42 @@ class LLMSynthesizer(BaseSynthesizer):
             question, results, birth_context, language=language, intent=intent
         )
         sys_prompt = get_system_prompt(language, intent=intent)
+        notice_prefix = (
+            "9router"
+            if (self._base_url and "20128" in self._base_url)
+            else (
+                "Ollama"
+                if self.provider == "ollama"
+                else ("OpenAI" if self.provider == "openai" else "Gemini")
+            )
+        )
+        # Task 13 step 4: never append a second (fallback) answer after
+        # partial LLM tokens. Buffer the count: the fallback may only be
+        # yielded when ZERO tokens were produced; otherwise end the stream
+        # with a short interruption notice and no second answer.
+        yielded = 0
         try:
             if self.provider == "google":
-                yield from self._stream_google(prompt, system_prompt=sys_prompt)
+                inner = self._stream_google(prompt, system_prompt=sys_prompt)
             elif self.provider in ("openai", "ollama"):
-                yield from self._stream_openai(prompt, system_prompt=sys_prompt)
+                inner = self._stream_openai(prompt, system_prompt=sys_prompt)
             else:
                 try:
-                    yield self._complete(prompt, system_prompt=sys_prompt)
+                    inner = iter([self._complete(prompt, system_prompt=sys_prompt)])
                 except TypeError:
-                    yield self._complete(prompt)
+                    inner = iter([self._complete(prompt)])
+            for token in inner:
+                yielded += 1
+                yield token
         except Exception as e:
-            fb = FallbackSynthesizer()
-            notice_prefix = (
-                "9router"
-                if (self._base_url and "20128" in self._base_url)
-                else (
-                    "Ollama"
-                    if self.provider == "ollama"
-                    else ("OpenAI" if self.provider == "openai" else "Gemini")
+            if yielded > 0:
+                yield (
+                    "\n\n*[Notice: "
+                    f"{notice_prefix} stream interrupted ({e}) — "
+                    "the answer above is incomplete. Please try again.]*"
                 )
-            )
+                return
+            fb = FallbackSynthesizer()
             yield f"*[Notice: {notice_prefix} service temporarily unavailable ({e}). Retrieved classical scriptural citations:]*\n\n"
             yield from fb.synthesize_stream(question, results, birth_context, language=language)
 
@@ -1514,15 +2005,19 @@ class LLMSynthesizer(BaseSynthesizer):
                     self.model = cand
                     return
             except Exception as e:
+                # Task 13 step 4: if this candidate already yielded tokens,
+                # do NOT try the next candidate — that would stream a second
+                # complete answer after the partial one. Fail instead; the
+                # caller ends the stream with an interruption notice.
+                if had_content:
+                    raise
                 last_err = e
                 continue
         if last_err:
             raise last_err
 
     def _stream_google(self, prompt: str, system_prompt: str = SYSTEM_PROMPT) -> Iterator[str]:
-        rotation_models = [
-            "gemini-3.8-flash",
-        ]
+        rotation_models = list(GOOGLE_ROTATION_MODELS)
         candidates = [self.model]
         for m in rotation_models:
             if m not in candidates:
@@ -1551,19 +2046,29 @@ class LLMSynthesizer(BaseSynthesizer):
 
         last_err: Exception | None = None
         full_contents = f"{system_prompt}\n\n{prompt}"
+        # Task 13 step 5: same decoding controls as the OpenAI calls.
+        config = _google_generation_config()
+        yielded_any = False
         for cand in candidates:
             try:
                 stream_response = self._client.models.generate_content_stream(
-                    model=cand, contents=full_contents
+                    model=cand, contents=full_contents, config=config
                 )
                 self.model = cand
                 for chunk in stream_response:
                     if chunk.text:
+                        yielded_any = True
                         yield str(chunk.text)
                 return
             except Exception as e:
                 last_err = e
                 err_str = str(e)
+                # Task 13 step 4: if any tokens were already yielded, do NOT
+                # continue to the next model — that would append a second
+                # complete answer after the partial one. Fail instead; the
+                # caller ends the stream with an interruption notice.
+                if yielded_any:
+                    raise
                 if (
                     "429" in err_str
                     or "RESOURCE_EXHAUSTED" in err_str

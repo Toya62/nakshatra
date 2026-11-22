@@ -310,8 +310,13 @@ def calculate_panchanga(
         hsys="Whole Sign",
     )
 
-    sun_lon = (chart.get("Sun").lon - ayan_offset) % 360.0
-    moon_lon = (chart.get("Moon").lon - ayan_offset) % 360.0
+    # JHora Lahiri is 56.5318" SMALLER than standard Lahiri, so a sidereal
+    # longitude under JHora is the standard-Lahiri longitude PLUS the offset
+    # — same convention as core.py (which adds jhora_offset_deg). The old
+    # code subtracted it here, putting panchanga ~113" away from the natal
+    # chart for JHora charts.
+    sun_lon = (chart.get("Sun").lon + ayan_offset) % 360.0
+    moon_lon = (chart.get("Moon").lon + ayan_offset) % 360.0
 
     # 1. Sunrise / Sunset calculation via Swiss Ephemeris
     swe.set_ephe_path("")

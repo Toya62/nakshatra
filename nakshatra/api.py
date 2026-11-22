@@ -46,6 +46,7 @@ from nakshatra.chakra import (
 from nakshatra.compatibility import (
     CompatibilityReport,
     calculate_compatibility,
+    evaluate_chart_kuja_dosha,
 )
 from nakshatra.config import settings
 from nakshatra.core import (
@@ -521,6 +522,45 @@ def _format_chart(chart: ChartData, fmt: str) -> Response:
     return Response(content=content, media_type=media_type)
 
 
+def _attach_chart_derived_context(chart: ChartData, birth_context: dict) -> None:
+    """Attach transits, predictions, remedies, and Kuja Dosha to a chart dict.
+
+    Preserves the 30-day transit window already present in
+    ``chart.model_dump()``: a fresh ``calculate_transits()`` report has no
+    ``window`` key, so the fresh report is merged over the existing one
+    instead of overwriting it — otherwise the transit-window events the
+    prompt summary tries to read are silently dropped.
+    """
+    transits = None
+    try:
+        from nakshatra.transits import calculate_transits
+
+        transits = calculate_transits(chart)
+        t_dict = transits.model_dump()
+        existing = birth_context.get("transits")
+        if isinstance(existing, dict):
+            window = existing.get("window")
+            if isinstance(window, dict) and "window" not in t_dict:
+                t_dict["window"] = window
+        birth_context["transits"] = t_dict
+    except Exception:
+        pass
+    try:
+        preds = chart.get_predictions(transits=transits)
+        birth_context["predictions"] = {k: v.model_dump() for k, v in preds.items()}
+    except Exception:
+        pass
+    try:
+        rem = chart.get_remedies(transits=transits)
+        birth_context["remedies"] = rem.model_dump()
+    except Exception:
+        pass
+    try:
+        birth_context["kuja_dosha"] = evaluate_chart_kuja_dosha(chart).model_dump()
+    except Exception:
+        pass
+
+
 def _build_chart(request: ChartRequest | TransitRequest | TransitWindowRequest) -> ChartData:
     """Calculate a natal chart from a ChartRequest or TransitRequest."""
     birth = BirthData(
@@ -593,7 +633,10 @@ async def convert_ad_to_bs(
     day: int = Query(..., ge=1, le=31),
 ) -> BikramSambatDate:
     """Convert Gregorian (AD) calendar date to Nepali Bikram Sambat (BS)."""
-    return ad_to_bs(year, month, day)
+    try:
+        return ad_to_bs(year, month, day)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.get("/calendar/ad", response_model=GregorianDate, tags=["Calendar"])
@@ -603,7 +646,10 @@ async def convert_bs_to_ad(
     day: int = Query(..., ge=1, le=32),
 ) -> GregorianDate:
     """Convert Nepali Bikram Sambat (BS) date to Gregorian (AD) calendar date."""
-    return bs_to_ad(year, month, day)
+    try:
+        return bs_to_ad(year, month, day)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.get("/calendar/nomenclature", tags=["Calendar"])
@@ -1403,24 +1449,7 @@ async def rag_ask(request: RAGAskRequest) -> RAGAskResponse:
         elif request.birth is not None:
             chart = _build_chart(request.birth)
             birth_context = chart.model_dump()
-            transits = None
-            try:
-                from nakshatra.transits import calculate_transits
-
-                transits = calculate_transits(chart)
-                birth_context["transits"] = transits.model_dump()
-            except Exception:
-                pass
-            try:
-                preds = chart.get_predictions(transits=transits)
-                birth_context["predictions"] = {k: v.model_dump() for k, v in preds.items()}
-            except Exception:
-                pass
-            try:
-                rem = chart.get_remedies(transits=transits)
-                birth_context["remedies"] = rem.model_dump()
-            except Exception:
-                pass
+            _attach_chart_derived_context(chart, birth_context)
         answer, references = _rag_service.ask(
             request.question,
             index_dir=request.index_dir,
@@ -1456,24 +1485,7 @@ async def rag_ask_stream(request: RAGAskRequest) -> StreamingResponse:
     elif request.birth is not None:
         chart = _build_chart(request.birth)
         birth_context = chart.model_dump()
-        transits = None
-        try:
-            from nakshatra.transits import calculate_transits
-
-            transits = calculate_transits(chart)
-            birth_context["transits"] = transits.model_dump()
-        except Exception:
-            pass
-        try:
-            preds = chart.get_predictions(transits=transits)
-            birth_context["predictions"] = {k: v.model_dump() for k, v in preds.items()}
-        except Exception:
-            pass
-        try:
-            rem = chart.get_remedies(transits=transits)
-            birth_context["remedies"] = rem.model_dump()
-        except Exception:
-            pass
+        _attach_chart_derived_context(chart, birth_context)
 
     async def event_generator() -> AsyncIterator[str]:
         try:

@@ -24,7 +24,9 @@ Calculations:
 
 from __future__ import annotations
 
+import warnings
 from datetime import datetime, timedelta
+from typing import NoReturn
 from zoneinfo import ZoneInfo
 
 import swisseph as swe
@@ -251,9 +253,11 @@ class MuhurthaReport(BaseModel):
     timezone: str
     latitude: float
     longitude: float
-    sunrise_time: str
-    sunset_time: str
-    next_sunrise_time: str
+    # None when there is no sunrise/sunset on the day (polar day/night),
+    # like PanchangaData.sunrise_time — never an invented 06:00/18:00.
+    sunrise_time: str | None
+    sunset_time: str | None
+    next_sunrise_time: str | None
     panchanga: PanchangaData
     current_hora: HoraItem
     current_choghadiya: ChoghadiyaItem
@@ -281,7 +285,7 @@ class MuhurthaReport(BaseModel):
         lines.append("=" * 80)
         lines.append(f" Observation Time   : {self.timestamp} ({self.timezone})")
         lines.append(
-            f" Solar Day Bounds   : Sunrise {self.sunrise_time} | Sunset {self.sunset_time}"
+            f" Solar Day Bounds   : Sunrise {self.sunrise_time or '— (no sunrise)'} | Sunset {self.sunset_time or '— (no sunset)'}"
         )
         lines.append("-" * 80)
         lines.append(
@@ -374,7 +378,21 @@ def calculate_muhurtha(
     offset_sec = utcoffset.total_seconds() if utcoffset is not None else 0.0
     t_tz_str = format_tz_offset(offset_sec)
 
-    # Calculate Sunrise, Sunset, and Next Sunrise exact JDs
+    def _fail_no_solar_day(which: str) -> NoReturn:
+        # Horas/Choghadiyas are fractions of the sunrise→sunset solar day;
+        # without a real sunrise/sunset there is nothing honest to divide,
+        # so fail loudly instead of inventing 06:00/18:00 times.
+        msg = (
+            f"No {which} at latitude {latitude} on {local_dt.date()} "
+            "(polar day/night): Muhurtha horas require a solar day and "
+            "cannot be computed from invented times."
+        )
+        warnings.warn(msg, UserWarning, stacklevel=2)
+        raise ValueError(msg)
+
+    # Calculate Sunrise, Sunset, and Next Sunrise exact JDs.
+    # A failed rise_trans (e.g. polar latitudes) yields None — like
+    # panchanga.py — never a fabricated 06:00/18:00 (midnight JD + 0.25/0.75).
     midnight_dt = Datetime([local_dt.year, local_dt.month, local_dt.day], 0.0, t_tz_str)
     flag_rise = swe.CALC_RISE | swe.BIT_DISC_CENTER
     flag_set = swe.CALC_SET | swe.BIT_DISC_CENTER
@@ -382,8 +400,10 @@ def calculate_muhurtha(
     t_rise_res = swe.rise_trans(midnight_dt.jd, swe.SUN, flag_rise, geopos_tuple, 0.0, 0.0)
     t_set_res = swe.rise_trans(midnight_dt.jd, swe.SUN, flag_set, geopos_tuple, 0.0, 0.0)
 
-    sunrise_jd = t_rise_res[1][0] if t_rise_res[0] == 0 else midnight_dt.jd + 0.25
-    sunset_jd = t_set_res[1][0] if t_set_res[0] == 0 else midnight_dt.jd + 0.75
+    sunrise_jd = t_rise_res[1][0] if t_rise_res[0] == 0 else None
+    sunset_jd = t_set_res[1][0] if t_set_res[0] == 0 else None
+    if sunrise_jd is None or sunset_jd is None:
+        _fail_no_solar_day("sunrise/sunset")
 
     # Check if observation time is before today's sunrise
     obs_jd = Datetime(
@@ -399,14 +419,18 @@ def calculate_muhurtha(
         p_rise = swe.rise_trans(prev_midnight_dt.jd, swe.SUN, flag_rise, geopos_tuple, 0.0, 0.0)
         p_set = swe.rise_trans(prev_midnight_dt.jd, swe.SUN, flag_set, geopos_tuple, 0.0, 0.0)
         next_sunrise_jd = sunrise_jd
-        sunrise_jd = p_rise[1][0] if p_rise[0] == 0 else prev_midnight_dt.jd + 0.25
-        sunset_jd = p_set[1][0] if p_set[0] == 0 else prev_midnight_dt.jd + 0.75
+        sunrise_jd = p_rise[1][0] if p_rise[0] == 0 else None
+        sunset_jd = p_set[1][0] if p_set[0] == 0 else None
+        if sunrise_jd is None or sunset_jd is None:
+            _fail_no_solar_day("sunrise/sunset on the previous day")
     else:
         # Normal daytime or night after sunset: next sunrise is tomorrow's sunrise
         next_day = local_dt.date() + timedelta(days=1)
         next_midnight_dt = Datetime([next_day.year, next_day.month, next_day.day], 0.0, t_tz_str)
         n_rise = swe.rise_trans(next_midnight_dt.jd, swe.SUN, flag_rise, geopos_tuple, 0.0, 0.0)
-        next_sunrise_jd = n_rise[1][0] if n_rise[0] == 0 else next_midnight_dt.jd + 0.25
+        next_sunrise_jd = n_rise[1][0] if n_rise[0] == 0 else None
+        if next_sunrise_jd is None:
+            _fail_no_solar_day("sunrise on the next day")
 
     day_duration_sec = (sunset_jd - sunrise_jd) * 86400.0
     night_duration_sec = (next_sunrise_jd - sunset_jd) * 86400.0

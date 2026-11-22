@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import mayaastrolib.vedic.ashtakavarga as vav
+import mayaastrolib.vedic.ayanamsa as vaya
 import swisseph as swe
 from mayaastrolib.chart import Chart
 from mayaastrolib.datetime import Datetime
@@ -339,7 +340,9 @@ def calculate_transits(
 
     for name in ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"]:
         raw = m_chart.get(name)
-        lon = (raw.lon - ayan_offset) % 360.0
+        # JHora offset is ADDED, as in core.py (JHora Lahiri is smaller than
+        # standard Lahiri); subtracting put transits ~113" from the natal chart.
+        lon = (raw.lon + ayan_offset) % 360.0
         sign = get_sign(lon)
         sign_idx = ZODIAC_SIGNS.index(sign)
         transiting_signs_by_planet[name] = sign_idx
@@ -416,7 +419,7 @@ def calculate_transits(
 
     # Rahu & Ketu
     rahu_raw = m_chart.get("North Node")
-    rahu_lon = (rahu_raw.lon - ayan_offset) % 360.0
+    rahu_lon = (rahu_raw.lon + ayan_offset) % 360.0
     rahu_sign = get_sign(rahu_lon)
     rahu_sign_idx = ZODIAC_SIGNS.index(rahu_sign)
     transiting_signs_by_planet["Rahu"] = rahu_sign_idx
@@ -535,6 +538,27 @@ def calculate_transits(
     )
 
 
+# Reference JD used only to snapshot/restore the process-global sidereal
+# mode: pyswisseph exposes no get_sid_mode, but the mode is observable
+# through the ayanamsa value, which differs per supported mode at any JD.
+_SIDEREAL_MODE_REF_JD = 2451545.0  # J2000.0
+
+
+def _restore_sidereal_mode(prev_ayanamsa: float) -> None:
+    """Restore the sidereal mode that produced ``prev_ayanamsa``.
+
+    Tries each supported mode and keeps the one whose ayanamsa value at the
+    reference JD matches; if none matches (e.g. a user-defined mode was
+    active), falls back to the pyswisseph process default, Fagan-Bradley.
+    """
+    with vaya._AYANAMSA_LOCK:
+        for mode in vaya._AYANAMSA_TO_SWE_MODE.values():
+            swe.set_sid_mode(mode)
+            if abs(swe.get_ayanamsa_ut(_SIDEREAL_MODE_REF_JD) - prev_ayanamsa) < 1e-6:
+                return
+        swe.set_sid_mode(swe.SIDM_FAGAN_BRADLEY)
+
+
 def scan_transit_window(
     natal_chart: ChartData,
     start_date: datetime | None = None,
@@ -549,7 +573,32 @@ def scan_transit_window(
 
     Returns:
         TransitWindowReport containing list of events, Chandrashtama periods, and summary.
+
+    The scan uses the natal chart's ayanamsa (not a hardcoded Lahiri) and
+    restores the process-global sidereal mode afterwards.
     """
+    base_ayanamsa = (
+        "lahiri"
+        if natal_chart.ayanamsa == Ayanamsa.JHORA_LAHIRI
+        else natal_chart.ayanamsa.value
+    )
+    natal_mode = vaya._swe_mode_for(base_ayanamsa)
+    with vaya._AYANAMSA_LOCK:
+        prev_ayanamsa = swe.get_ayanamsa_ut(_SIDEREAL_MODE_REF_JD)
+        swe.set_sid_mode(natal_mode)
+    try:
+        return _scan_transit_window_impl(natal_chart, start_date, days)
+    finally:
+        _restore_sidereal_mode(prev_ayanamsa)
+
+
+def _scan_transit_window_impl(
+    natal_chart: ChartData,
+    start_date: datetime | None = None,
+    days: int = 30,
+) -> TransitWindowReport:
+    """Scan implementation; assumes the natal sidereal mode is already set
+    by scan_transit_window (which also restores it afterwards)."""
     b = natal_chart.birth_data
     if start_date is None:
         start_dt = datetime.now(ZoneInfo(b.timezone))
@@ -560,8 +609,9 @@ def scan_transit_window(
 
     end_dt = start_dt + timedelta(days=days)
 
-    # Use natal ayanamsa (e.g. JHora Lahiri)
-    swe.set_sid_mode(swe.SIDM_LAHIRI)
+    # JHora offset for longitudes, matching the core.py convention
+    # (JHora Lahiri is 56.5318" smaller than standard Lahiri).
+    ayan_offset = (56.5318 / 3600.0) if natal_chart.ayanamsa == Ayanamsa.JHORA_LAHIRI else 0.0
 
     # Initial JD at start date 12:00 UTC
     t_start_utc = start_dt.astimezone(ZoneInfo("UTC"))
@@ -592,7 +642,7 @@ def scan_transit_window(
     prev_states: dict[str, tuple[int, bool]] = {}
     for name, p_id in swe_bodies.items():
         res, _ = swe.calc_ut(jd_0, p_id, swe.FLG_SIDEREAL | swe.FLG_SWIEPH | swe.FLG_SPEED)
-        lon = res[0] % 360.0
+        lon = (res[0] + ayan_offset) % 360.0
         s_idx = int(lon // 30)
         speed = res[3]
         prev_states[name] = (s_idx, speed < 0)
@@ -607,7 +657,7 @@ def scan_transit_window(
 
         for name, p_id in swe_bodies.items():
             res, _ = swe.calc_ut(jd_d, p_id, swe.FLG_SIDEREAL | swe.FLG_SWIEPH | swe.FLG_SPEED)
-            lon = res[0] % 360.0
+            lon = (res[0] + ayan_offset) % 360.0
             s_idx = int(lon // 30)
             speed = res[3]
             is_retro = speed < 0
@@ -691,7 +741,7 @@ def scan_transit_window(
         jd_s = jd_0 + (s * 0.125)
         dt_s = start_dt + timedelta(hours=s * 3)
         res_m, _ = swe.calc_ut(jd_s, swe.MOON, swe.FLG_SIDEREAL | swe.FLG_SWIEPH)
-        m_s_idx = int((res_m[0] % 360.0) // 30)
+        m_s_idx = int(((res_m[0] + ayan_offset) % 360.0) // 30)
 
         if m_s_idx == chandrashtama_sign_idx:
             if not in_c:
