@@ -25,6 +25,36 @@ from pydantic import BaseModel, Field
 from nakshatra.ai.retrieval import SearchResult
 from nakshatra.ai.validate import ValidationResult, validate_answer
 
+# Task 13 step 5: decoding controls shared by the OpenAI-compatible and
+# Google GenAI paths. OpenAI calls use temperature 0.35 and max_tokens from
+# MAX_OUTPUT_TOKENS (default 4096); the Google calls use the same values via
+# types.GenerateContentConfig. The Google API has no frequency/presence
+# penalty parameters, so none are set here.
+GOOGLE_TEMPERATURE = 0.35
+GOOGLE_PRIMARY_MODEL = "gemini-3.8-flash"
+# Google rotation list: primary first, then the flash-preview fallback
+# already used as a router fallback ("gemini/gemini-3-flash-preview" in the
+# OpenAI-compatible paths), with the "gemini/" router prefix stripped for
+# the direct Google GenAI API. Provider priority order is unchanged.
+GOOGLE_ROTATION_MODELS = (GOOGLE_PRIMARY_MODEL, "gemini-3-flash-preview")
+
+
+def _google_generation_config() -> Any:
+    """Build the Google GenAI generation config (Task 13 step 5).
+
+    Mirrors the OpenAI decoding controls: temperature 0.35 and
+    max_output_tokens from MAX_OUTPUT_TOKENS (default 4096). Requires the
+    google-genai package; raises ImportError if it is not installed rather
+    than silently sending an uncontrolled call.
+    """
+    from google.genai import types  # type: ignore[import-not-found,import-untyped]
+
+    max_tokens = int(os.environ.get("MAX_OUTPUT_TOKENS", "4096"))
+    return types.GenerateContentConfig(
+        temperature=GOOGLE_TEMPERATURE,
+        max_output_tokens=max_tokens,
+    )
+
 
 class ConsultationIntent(str, Enum):
     """Astrological consultation archetypes for adaptive consultation routing."""
@@ -1562,7 +1592,7 @@ class LLMSynthesizer(BaseSynthesizer):
             if provider == "ollama":
                 model = os.environ.get("OLLAMA_MODEL", "qwen2.5:3b")
             elif provider == "google":
-                model = "gemini-3.8-flash"
+                model = GOOGLE_PRIMARY_MODEL
             else:
                 model = "gpt-4o-mini"
         self.model = model
@@ -1698,9 +1728,7 @@ class LLMSynthesizer(BaseSynthesizer):
         raise RuntimeError("OpenAI completion failed")
 
     def _complete_google(self, prompt: str, system_prompt: str = SYSTEM_PROMPT) -> str:
-        rotation_models = [
-            "gemini-3.8-flash",
-        ]
+        rotation_models = list(GOOGLE_ROTATION_MODELS)
         candidates = [self.model]
         for m in rotation_models:
             if m not in candidates:
@@ -1735,9 +1763,13 @@ class LLMSynthesizer(BaseSynthesizer):
 
         last_err: Exception | None = None
         full_contents = f"{system_prompt}\n\n{prompt}"
+        # Task 13 step 5: same decoding controls as the OpenAI calls.
+        config = _google_generation_config()
         for cand in candidates:
             try:
-                response = self._client.models.generate_content(model=cand, contents=full_contents)
+                response = self._client.models.generate_content(
+                    model=cand, contents=full_contents, config=config
+                )
                 self.model = cand
                 return str(response.text)
             except Exception as e:
@@ -1856,9 +1888,7 @@ class LLMSynthesizer(BaseSynthesizer):
             raise last_err
 
     def _stream_google(self, prompt: str, system_prompt: str = SYSTEM_PROMPT) -> Iterator[str]:
-        rotation_models = [
-            "gemini-3.8-flash",
-        ]
+        rotation_models = list(GOOGLE_ROTATION_MODELS)
         candidates = [self.model]
         for m in rotation_models:
             if m not in candidates:
@@ -1887,11 +1917,13 @@ class LLMSynthesizer(BaseSynthesizer):
 
         last_err: Exception | None = None
         full_contents = f"{system_prompt}\n\n{prompt}"
+        # Task 13 step 5: same decoding controls as the OpenAI calls.
+        config = _google_generation_config()
         yielded_any = False
         for cand in candidates:
             try:
                 stream_response = self._client.models.generate_content_stream(
-                    model=cand, contents=full_contents
+                    model=cand, contents=full_contents, config=config
                 )
                 self.model = cand
                 for chunk in stream_response:

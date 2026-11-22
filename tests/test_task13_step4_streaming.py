@@ -171,7 +171,7 @@ def test_google_429_after_partial_tokens_no_second_answer(
     synth = _google_synth(model="gemini-3.5-flash-lite")
     calls: list[str] = []
 
-    def _generate_content_stream(model, contents):
+    def _generate_content_stream(model, contents, config=None):
         calls.append(model)
         if len(calls) == 1:
             yield SimpleNamespace(text="Partial answer about Jupiter. ")
@@ -203,7 +203,7 @@ def test_google_429_zero_tokens_retries_next_model(sample_results, fallback_spy)
     synth = _google_synth(model="gemini-3.5-flash-lite")
     calls: list[str] = []
 
-    def _generate_content_stream(model, contents):
+    def _generate_content_stream(model, contents, config=None):
         calls.append(model)
         if len(calls) == 1:
             raise Exception("429 RESOURCE_EXHAUSTED")
