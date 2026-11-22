@@ -49,6 +49,16 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
   const dashas = chart?.dashas;
   const mahadashas = dashas?.mahadashas || [];
 
+  // The selection defaults to current_md, which older API payloads shipped
+  // without subdivisions (subs: null) — the Breakdown card then rendered
+  // its header over a blank grid. Resolve the selection against the full
+  // mahadasha tree (and the antardasha against its parent's subs) so the
+  // card always has its bhuktis; fall back to the selection itself.
+  const resolvedMd =
+    mahadashas.find((m) => selectedMd && m.lord === selectedMd.lord && m.start === selectedMd.start) ?? selectedMd;
+  const resolvedAd =
+    resolvedMd?.subs?.find((s) => selectedAd && s.lord === selectedAd.lord && s.start === selectedAd.start) ?? selectedAd;
+
   // Default selected Mahadasha to current active one or first
   useEffect(() => {
     if (dashas?.current_md) {
@@ -440,11 +450,20 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
             </div>
 
             <div className="badge badge-gold" style={{ fontSize: "var(--type-micro)" }}>
-              {lang === "ne" ? "९ अन्तर्दशा चक्र (भुक्ति)" : "9 Sub-Antardasha Cycles (Bhuktis)"}
+              {lang === "ne"
+                ? `${num(resolvedMd?.subs?.length ?? 0)} अन्तर्दशा चक्र (भुक्ति)`
+                : `${resolvedMd?.subs?.length ?? 0} Sub-Antardasha Cycles (Bhuktis)`}
             </div>
           </div>
 
           {/* Antardashas Cards Grid - Balanced responsive cards */}
+          {(resolvedMd?.subs?.length ?? 0) === 0 ? (
+            <p style={{ color: "var(--text-muted)", fontSize: "var(--type-small)", margin: 0 }}>
+              {lang === "ne"
+                ? "यस महादशाका अन्तर्दशा विवरण उपलब्ध छैन।"
+                : "No bhukti (antardasha) data available for this Mahadasha."}
+            </p>
+          ) : (
           <div
             style={{
               display: "grid",
@@ -452,7 +471,7 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
               gap: "var(--space-3)",
             }}
           >
-            {(selectedMd.subs || []).map((ad, idx) => {
+            {(resolvedMd?.subs || []).map((ad, idx) => {
               const adName = translateGraha(ad.lord);
               const adStyle = GRAHA_COLORS[ad.lord] || GRAHA_COLORS[adName] || { bg: "var(--bg-subtle)", border: "var(--border-subtle)", text: "var(--text-high)" };
               const isSelectedAd = selectedAd?.lord === ad.lord && selectedAd?.start === ad.start;
@@ -524,17 +543,18 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
               );
             })}
           </div>
+          )}
 
           {/* Selected Antardasha Pratyantar Inspector */}
-          {selectedAd && selectedAd.subs && selectedAd.subs.length > 0 && (
+          {resolvedAd && resolvedAd.subs && resolvedAd.subs.length > 0 && (
             <div style={{ marginTop: "var(--space-5)", paddingTop: "var(--space-4)", borderTop: "1px solid var(--border-subtle)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-3)", flexWrap: "wrap", gap: "var(--space-2)" }}>
                 <h4 style={{ fontSize: "var(--type-heading)", color: "var(--cyan-vivid)", display: "flex", alignItems: "center", gap: "var(--space-2)", fontWeight: 700 }}>
                   <Eye size={16} aria-hidden="true" />
-                  Pratyantardasha (PD) Micro-Periods for {translateGraha(selectedMd.lord)} - {translateGraha(selectedAd.lord)}
+                  Pratyantardasha (PD) Micro-Periods for {translateGraha(resolvedMd?.lord ?? selectedMd.lord)} - {translateGraha(resolvedAd.lord)}
                 </h4>
                 <span style={{ fontSize: "var(--type-micro)", color: "var(--text-mid)" }}>
-                  9 Sub-Sub Cycles (Sookshma)
+                  {num(resolvedAd.subs.length)} Sub-Sub Cycles (Sookshma)
                 </span>
               </div>
 
@@ -545,12 +565,12 @@ export const TimelineView: React.FC<Props> = ({ birth, chart }) => {
                   gap: "var(--space-2)",
                 }}
               >
-                {selectedAd.subs.map((pd, pidx) => {
+                {resolvedAd.subs.map((pd, pidx) => {
                   const pdName = translateGraha(pd.lord);
                   const pdStyle = GRAHA_COLORS[pd.lord] || GRAHA_COLORS[pdName] || { bg: "var(--bg-subtle)", border: "var(--border-subtle)", text: "var(--text-high)" };
                   const isCurrentPd =
-                    dashas?.current_md?.lord === selectedMd.lord &&
-                    dashas?.current_ad?.lord === selectedAd.lord &&
+                    dashas?.current_md?.lord === resolvedMd?.lord &&
+                    dashas?.current_ad?.lord === resolvedAd.lord &&
                     dashas?.current_pd?.lord === pd.lord;
 
                   return (

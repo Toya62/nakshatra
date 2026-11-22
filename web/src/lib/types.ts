@@ -109,7 +109,7 @@ export interface TransitPlanet {
   name: string;
   sign: string;
   degree_in_sign: number;
-  house_from_asc: number;
+  house_from_lagna: number;
   house_from_moon: number;
   retrograde: boolean;
 }
@@ -622,6 +622,8 @@ export interface ChakraReport {
   janma_nakshatra: string;
   janma_tara_lord_planet: string | null;
   summary: string;
+  ghati_count?: number;
+  birth_weekday?: string;
 }
 
 export interface ChakraInput {
@@ -647,6 +649,7 @@ export interface GrahaResult {
   retrograde: boolean;
   favourable: boolean;
   verdict: string;
+  verdict_key: string;
 }
 
 export interface RashiFalReport {

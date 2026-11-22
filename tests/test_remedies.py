@@ -109,6 +109,58 @@ class TestRemediesEngine:
                 assert upaya.duration_days == 43
 
 
+    def test_no_after_sunset_in_lal_kitab_actions(self):
+        """Lal Kitab ACTION fields must never prescribe evening/night acts.
+
+        The page's own Golden Rule says all Lal Kitab upayas are daytime
+        only, yet the data used to prescribe "after sunset" and "Saturday
+        evening" feedings. Prohibitions in ``forbidden`` lists are exempt —
+        forbidding a night act does not prescribe one.
+        """
+        from nakshatra.lal_kitab_data import LAL_KITAB_108_UPAYAS
+
+        assert len(LAL_KITAB_108_UPAYAS) == 108
+        for (planet, house), entry in LAL_KITAB_108_UPAYAS.items():
+            for field in ("household", "symbolic", "creature"):
+                text = entry[field].lower()
+                assert "after sunset" not in text, f"{planet} H{house} {field}: {entry[field]}"
+                assert "saturday evening" not in text, f"{planet} H{house} {field}: {entry[field]}"
+
+    def test_exalted_planet_keeps_transit_remedy_but_no_gemstone(self):
+        """Live example: exalted Saturn in Libra H7 gets a High remedy only
+        because of Ashtama Shani transit pressure — and no gemstone.
+
+        The old Golden Rule ("Never Remedy Exalted Grahas") was absolute
+        while the engine prescribed the card anyway. The rule now covers
+        strengthening only: the card stays (transit propitiation is
+        legitimate) but the gemstone is withheld.
+        """
+        birth = BirthData(
+            year=1984,
+            month=2,
+            day=17,
+            hour=9,
+            minute=31,
+            latitude=27.7172,
+            longitude=85.3240,
+            timezone="Asia/Kathmandu",
+        )
+        report = calculate_remedies(calculate_chart(birth))
+        saturn = next(p for p in report.afflicted_planets if p.planet == "Saturn")
+        assert saturn.dignity == "exalted"
+        assert saturn.severity == AfflictionSeverity.HIGH
+        assert saturn.affliction_reasons == [
+            "Saturn Gochar pressure: ASHTAMA SHANI ACTIVE - Saturn in 8th from Moon (Pisces)"
+        ]
+        assert "Not prescribed" in saturn.parashari.gemstone
+        assert "Blue Sapphire" in saturn.parashari.gemstone
+        assert "Not prescribed" in saturn.parashari.substitute_gem
+        # And the creature service is daytime now.
+        assert saturn.lal_kitab.creature_service == (
+            "Feed black crows and street dogs on Saturday mornings."
+        )
+
+
 class TestRemediesAPIEndpoint:
     """Test POST /remedies endpoint."""
 

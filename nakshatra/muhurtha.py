@@ -761,6 +761,18 @@ def calculate_muhurtha(
 
     score = max(5, min(100, score))
 
+    # A malefic hora governs the hour itself: however good the choghadiya
+    # or the day's Siddhi yogas are, the hour cannot be "Highly Auspicious"
+    # for general undertakings. Cap at the Madhyama ceiling (79) so the
+    # headline verdict can never contradict the hora-gated suitability
+    # checklist (business / finance / travel / marriage all require a
+    # benefic hora planet). Reported case: 2026-11-22 18:22 Kathmandu scored
+    # 95 Shubha during a Mars hora while the checklist said Avoid for all
+    # four activities (90 Shubh choghadiya - 10 malefic hora + 15 Sarvartha
+    # Siddhi swamped the hora penalty).
+    if current_hora.nature == "Malefic":
+        score = min(score, 79)
+
     # Verdict & Enterprise Suitability
     if score >= 80:
         verdict = "Shubha (Highly Auspicious)"

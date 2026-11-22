@@ -25,30 +25,12 @@ import { fetchChart, checkApiHealth } from "@/lib/api";
 import { Sparkles, Layers } from "lucide-react";
 import { DEFAULT_AYANAMSA, DEFAULT_HOUSE_SYSTEM } from "@/config/defaults";
 import { getRandomBirthData, NEUTRAL_SSR_BIRTH_DATA, isPersonalDob } from "@/lib/randomBirth";
+import { VARGA_NAMES } from "@/lib/varga";
 
 const VARGAS = [
   "D1", "D2", "D3", "D4", "D7", "D9", "D10",
   "D12", "D16", "D20", "D24", "D27", "D30", "D40", "D45", "D60"
 ];
-
-const VARGA_NAMES: Record<string, string> = {
-  D1: "Rasi (Root)",
-  D2: "Hora (Wealth)",
-  D3: "Drekkana (Siblings & Courage)",
-  D4: "Chaturthamsa (Fortune & Home)",
-  D7: "Saptamsa (Children & Lineage)",
-  D9: "Navamsha (Dharma & Spouse)",
-  D10: "Dasamsa (Career & Stature)",
-  D12: "Dwadasamsa (Parents & Ancestry)",
-  D16: "Shodasamsa (Vehicles & Happiness)",
-  D20: "Vimsamsa (Spiritual Progress)",
-  D24: "Chaturvimsamsa (Higher Learning)",
-  D27: "Saptavimsamsa (Strengths & Weaknesses)",
-  D30: "Trimsamsa (Arishta & Misfortune)",
-  D40: "Khavedamsa (Auspicious Effects)",
-  D45: "Akshavedamsa (All General Matters)",
-  D60: "Shastiamsa (Karma & Past Lives)",
-};
 
 const DEFAULT_BIRTH_DATA: BirthDataInput = NEUTRAL_SSR_BIRTH_DATA;
 
@@ -287,11 +269,6 @@ export default function Home() {
             {chartData && (
               <>
                 <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "minmax(0, 1.3fr) minmax(0, 1fr)",
-                    gap: "var(--space-6)",
-                  }}
                   className="chart-grid"
                 >
                   {/* Visual Chart Card */}
@@ -329,7 +306,7 @@ export default function Home() {
 
                   {/* Data Rail */}
                   <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
-                    <PlanetsTable chart={chartData} />
+                    <PlanetsTable chart={chartData} varga={selectedVarga} />
                     <YogasView birth={birthData} />
                   </div>
                 </div>

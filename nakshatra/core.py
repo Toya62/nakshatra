@@ -666,10 +666,16 @@ def _format_datetime(dt: Datetime) -> str:
 
 
 def _active_period(period: vdasha.DashaPeriod | None) -> DashaPeriod | None:
-    """Convert an optionally-None DashaPeriod without subdivisions."""
+    """Convert an optionally-None DashaPeriod, including its subdivisions.
+
+    The subdivisions matter: the Timeline view defaults to the current
+    Mahadasha and renders its bhuktis from ``current_md.subs`` — with
+    ``include_subs=False`` the Breakdown card rendered its header over a
+    blank grid. Same for ``current_ad.subs`` (pratyantardashas).
+    """
     if period is None:
         return None
-    return _convert_dasha_period(period, include_subs=False)
+    return _convert_dasha_period(period, include_subs=True)
 
 
 def _convert_dasha_period(period: vdasha.DashaPeriod, include_subs: bool = True) -> DashaPeriod:
@@ -703,6 +709,19 @@ def _convert_dasha_period(period: vdasha.DashaPeriod, include_subs: bool = True)
                     subs=pd_models,
                 )
             )
+    elif include_subs and period.level == 2:
+        # Pratyantardashas of an Antardasha (used for current_ad, whose
+        # subdivisions the Timeline's PD panel renders).
+        pds = vdasha.pratyantar_dashas(period)
+        subs_models = [
+            DashaPeriod(
+                lord=pd.lord,
+                start=_format_datetime(pd.start),
+                end=_format_datetime(pd.end),
+                level=3,
+            )
+            for pd in pds
+        ]
 
     has_jd = hasattr(period.start, "jd") and hasattr(period.end, "jd")
     dur = round((period.end.jd - period.start.jd) / 365.25, 3) if has_jd else None

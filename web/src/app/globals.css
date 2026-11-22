@@ -665,6 +665,10 @@ html.theme-transitioning *::after {
 .badge {
   display: inline-flex;
   align-items: center;
+  /* Gap between the badge's children. Without this, whitespace-only text
+     nodes between flex items are dropped and values concatenate
+     ("6found", "Aries6.5°"). See also .chip, which already has a gap. */
+  gap: 0.3em;
   padding: 3px 9px;
   border-radius: 20px;
   font-size: var(--type-micro);
@@ -958,10 +962,22 @@ button:focus-visible {
   }
 }
 
+/* ─── Kundali chart grid: wheel + data rail ─────────────────────────────── */
+.chart-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: var(--space-6);
+}
+
 /* ─── Tablet utilities (1024px) ─────────────────────────────────────────── */
 @media (max-width: 1024px) {
   :root {
     --sidebar-w: 210px;
+  }
+
+  /* Kundali: stack wheel above the data rail instead of squeezing both. */
+  .chart-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

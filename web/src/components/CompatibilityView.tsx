@@ -288,6 +288,35 @@ Recommendation: ${report.recommendation}
         </button>
       </form>
 
+      {/* Empty state — what the report will contain once both charts are
+          cast. No score is shown or implied before calculation. */}
+      {!report && !loading && !error && (
+        <div className="card" style={{ padding: "var(--space-5)" }}>
+          <h3 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", marginBottom: "var(--space-2)" }}>
+            {t.compatibility.emptyTitle}
+          </h3>
+          <p style={{ fontSize: "var(--type-small)", color: "var(--text-mid)", lineHeight: 1.6, marginBottom: "var(--space-3)" }}>
+            {t.compatibility.emptyDesc}
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "var(--space-2)" }}>
+            {Object.values(t.compatibility.kootas).map((label) => (
+              <div key={label} style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", fontSize: "var(--type-small)", color: "var(--text-high)" }}>
+                <Heart size={12} color="var(--gold-vivid)" aria-hidden="true" />
+                {label}
+              </div>
+            ))}
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", fontSize: "var(--type-small)", color: "var(--text-high)" }}>
+              <Heart size={12} color="var(--gold-vivid)" aria-hidden="true" />
+              {t.compatibility.manglikCheck}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", fontSize: "var(--type-small)", color: "var(--text-high)" }}>
+              <Heart size={12} color="var(--gold-vivid)" aria-hidden="true" />
+              {t.compatibility.verdictTitle}
+            </div>
+          </div>
+        </div>
+      )}
+
       {error && (
         <div className="card" style={{ padding: "16px", color: "var(--accent-rose)", borderColor: "var(--accent-rose)" }}>
           {error}

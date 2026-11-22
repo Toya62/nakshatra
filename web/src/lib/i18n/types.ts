@@ -181,6 +181,7 @@ export interface TranslationSchema {
       shukla: string;
       krishna: string;
     };
+    tomorrowPreview: string;
   };
   dasha: {
     title: string;
@@ -331,6 +332,10 @@ export interface TranslationSchema {
     planetsCount: string;
     pairsCount: string;
     housesCount: string;
+    ghatiLord: string;
+    ghatchakraNote: string;
+    birthWeekday: string;
+    ghatisAfterSunrise: string;
   };
   rashiFal: {
     title: string;
@@ -352,6 +357,10 @@ export interface TranslationSchema {
     mastersSynthesis: string;
     grahaResults: string;
     calculationError: string;
+    statusFavourable: string;
+    statusMixed: string;
+    statusChallenging: string;
+    statusDifficult: string;
   };
   muhurtha: {
     title: string;
@@ -391,6 +400,8 @@ export interface TranslationSchema {
       "varna" | "vashya" | "tara" | "yoni" | "graha_maitri" | "gana" | "bhakoot" | "nadi",
       string
     >;
+    emptyTitle: string;
+    emptyDesc: string;
   };
   remedies: {
     title: string;

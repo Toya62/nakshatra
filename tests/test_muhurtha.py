@@ -104,6 +104,41 @@ def test_special_timing_windows():
     assert rep.yamaganda.nature == "Inauspicious"
 
 
+def test_malefic_hora_cannot_be_shubha():
+    """Regression: 2026-11-22 18:22 Kathmandu scored 95 Shubha during a Mars
+    hora while the suitability checklist said Avoid for business, finance,
+    travel and marriage. A malefic hora must cap the moment at Madhyama."""
+    dt = datetime(2026, 11, 22, 18, 22, 0)
+    rep = calculate_muhurtha(dt, 27.7172, 85.3240, "Asia/Kathmandu")
+
+    assert rep.current_hora.ruling_planet == "Mars"
+    assert rep.current_hora.nature == "Malefic"
+    # The inputs that used to push it to 95 are still there: Shubh
+    # choghadiya (90) plus Sarvartha Siddhi Yoga.
+    assert rep.current_choghadiya.score >= 90
+    assert rep.special_yogas.sarvartha_siddhi
+    # ...but the verdict must no longer contradict the checklist.
+    assert rep.muhurtha_score <= 79
+    assert rep.verdict == "Madhyama (Moderate / Usable)"
+    assert not rep.suitability.business_contract
+    assert not rep.suitability.financial_investment
+    assert not rep.suitability.travel
+    assert not rep.suitability.marriage
+
+
+def test_benefic_hora_can_still_be_shubha():
+    """Positive control for the malefic-hora cap: a benefic hora with an
+    Amrit choghadiya can still reach Shubha."""
+    dt = datetime(2026, 11, 22, 11, 0, 0)
+    rep = calculate_muhurtha(dt, 27.7172, 85.3240, "Asia/Kathmandu")
+
+    assert rep.current_hora.ruling_planet == "Jupiter"
+    assert rep.current_hora.nature == "Benefic"
+    assert rep.current_choghadiya.name == "Amrit"
+    assert rep.muhurtha_score >= 80
+    assert rep.verdict == "Shubha (Highly Auspicious)"
+
+
 def test_muhurtha_table_formatting():
     """Verify ASCII table rendering."""
     dt = datetime(2026, 10, 14, 12, 0, 0)

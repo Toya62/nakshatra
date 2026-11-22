@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, forwardRef } from "react";
 import { ChartData } from "@/lib/types";
+import { getVargaAscendant, getVargaMoon } from "@/lib/varga";
 import { useLanguage } from "@/context/LanguageContext";
 
 interface Props {
@@ -334,6 +335,10 @@ export const NorthIndianChart = forwardRef<SVGSVGElement, Props>(({ chart, varga
 
   const activeHouseData = hoveredHouse ? houseData[hoveredHouse - 1] : null;
   const activeBhavaMeta = hoveredHouse ? BHAVA_METADATA[hoveredHouse] : null;
+
+  // Footer strip values follow the selected divisional, like the wheel.
+  const vargaAsc = useMemo(() => getVargaAscendant(chart, varga), [chart, varga]);
+  const vargaMoon = useMemo(() => getVargaMoon(chart, varga), [chart, varga]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
@@ -802,17 +807,12 @@ export const NorthIndianChart = forwardRef<SVGSVGElement, Props>(({ chart, varga
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", gap: "var(--space-2)", flexWrap: "wrap" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap" }}>
               <span style={{ color: "var(--text-low)", fontSize: "0.82rem" }}>
-                {lang === "ne" ? "लग्न" : "Lagna"}: <strong style={{ color: "var(--gold-bright)", fontFamily: "var(--font-mono)" }}>{lang === "ne" ? (t.zodiac.signs[chart.ascendant.sign as keyof typeof t.zodiac.signs] || chart.ascendant.sign) : chart.ascendant.sign} {num(chart.ascendant.degree_in_sign.toFixed(1))}°</strong>
+                {lang === "ne" ? "लग्न" : "Lagna"}: <strong style={{ color: "var(--gold-bright)", fontFamily: "var(--font-mono)" }}>{lang === "ne" ? (t.zodiac.signs[vargaAsc.sign as keyof typeof t.zodiac.signs] || vargaAsc.sign) : vargaAsc.sign} {num(vargaAsc.degreeInSign.toFixed(1))}°</strong>
               </span>
               <span style={{ color: "var(--border-subtle)" }}>|</span>
-              {(() => {
-                const moon = chart.planets.find(p => p.name === "Moon");
-                return (
-                  <span style={{ color: "var(--text-low)", fontSize: "0.82rem" }}>
-                    {lang === "ne" ? "चन्द्र" : "Moon"}: <strong style={{ color: "var(--text-high)", fontFamily: "var(--font-mono)" }}>{moon ? `${lang === "ne" ? (t.zodiac.signs[moon.sign as keyof typeof t.zodiac.signs] || moon.sign) : moon.sign} ${num(moon.degree_in_sign.toFixed(1))}°` : "Moon"}</strong>
-                  </span>
-                );
-              })()}
+              <span style={{ color: "var(--text-low)", fontSize: "0.82rem" }}>
+                {lang === "ne" ? "चन्द्र" : "Moon"}: <strong style={{ color: "var(--text-high)", fontFamily: "var(--font-mono)" }}>{vargaMoon ? `${lang === "ne" ? (t.zodiac.signs[vargaMoon.sign as keyof typeof t.zodiac.signs] || vargaMoon.sign) : vargaMoon.sign} ${num(vargaMoon.degreeInSign.toFixed(1))}°` : "Moon"}</strong>
+              </span>
             </div>
             <span style={{ color: "var(--text-mid)", fontSize: "0.76rem" }}>
               {lang === "ne" ? "भाव विवरण हेर्न कुण्डलीमा छुनुहोस्" : "Tap or hover house chamber to inspect"}

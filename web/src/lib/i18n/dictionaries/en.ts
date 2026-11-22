@@ -220,6 +220,7 @@ export const en: TranslationSchema = {
       shukla: "Shukla Paksha (Waxing)",
       krishna: "Krishna Paksha (Waning)",
     },
+    tomorrowPreview: "Tomorrow's Panchanga",
   },
   dasha: {
     title: "Vimshottari Dasha",
@@ -399,6 +400,10 @@ export const en: TranslationSchema = {
     planetsCount: "planets",
     pairsCount: "pairs",
     housesCount: "houses",
+    ghatiLord: "Ghati Lord",
+    ghatchakraNote: "Weekday lords cycled from the ghatis after sunrise — these are not the sign lords.",
+    birthWeekday: "Birth weekday",
+    ghatisAfterSunrise: "ghatis after sunrise",
   },
   rashiFal: {
     title: "Rashi Fal & Transits",
@@ -420,6 +425,10 @@ export const en: TranslationSchema = {
     mastersSynthesis: "Master's Period Synthesis",
     grahaResults: "Graha-wise Transit Analysis",
     calculationError: "Rashi Fal Calculation Error",
+    statusFavourable: "Favourable",
+    statusMixed: "Mixed",
+    statusChallenging: "Challenging",
+    statusDifficult: "Difficult",
   },
   muhurtha: {
     title: "Shuba Muhurtha Timing",
@@ -465,6 +474,9 @@ export const en: TranslationSchema = {
       bhakoot: "Bhakoot (Health, Family & Prosperity - 7 Pts)",
       nadi: "Nadi (Genetic & Physiological Longevity - 8 Pts)",
     },
+    emptyTitle: "What the match will show",
+    emptyDesc:
+      "Enter both birth details and calculate. No score is shown until both charts are cast — the eight kootas below are the checks the report runs, each with its point weight, followed by the Manglik Dosha analysis and the union recommendation.",
   },
   remedies: {
     title: "Lal Kitab Remedial Measures",
@@ -487,8 +499,8 @@ export const en: TranslationSchema = {
     daytimeRuleDesc: "All Lal Kitab Upayas must be performed between sunrise and sunset; night-time remedies are forbidden and can trigger reverse affliction.",
     count43Title: "⏳ 43-Day Uninterrupted Count:",
     count43Desc: "Perform only one planetary remedy at a time for 40 to 43 consecutive days without missing a single day. If broken, restart from day 1.",
-    exaltedRuleTitle: "🚫 Never Remedy Exalted Grahas:",
-    exaltedRuleDesc: "Never perform remedies or donate articles for a planet in its own sign or exalted sign; doing so destroys its auspicious protection.",
+    exaltedRuleTitle: "🚫 Never Strengthen Exalted Grahas:",
+    exaltedRuleDesc: "Never wear the gemstone of, or donate to strengthen, a planet in its own sign or exalted sign — it is already strong. Mantra, charity and seva to propitiate it during a difficult transit (such as Sade Sati) are still prescribed, which is why an exalted planet can still appear below.",
     cleanRooftopsTitle: "🧹 Clean Rooftops (Rahu Shanti):",
     cleanRooftopsDesc: "Never keep unserviceable electrical scrap, fused bulbs, rusted iron, or broken furniture on the roof or under staircases.",
     filterAll: "All Afflicted Grahas",

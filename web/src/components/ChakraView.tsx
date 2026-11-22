@@ -244,6 +244,18 @@ export const ChakraView: React.FC<Props> = ({ birth }: Props) => {
           <h4 style={{ fontSize: "var(--type-body)", fontWeight: 700, color: "var(--gold-vivid)", textTransform: "uppercase", margin: 0 }}>{t.chakras.ghatchakraTitle}</h4>
           <span style={{ fontSize: "var(--type-label)", color: "var(--text-low)" }}>{num(report.ghatchakra.length)} {t.chakras.housesCount}</span>
         </div>
+        {/* The rulers are weekday lords cycled from the Ghati Lagna, not the
+            sign lords — say so plainly, and show the inputs the wheel was
+            derived from so the user can verify them. */}
+        <p style={{ color: "var(--text-muted)", fontSize: "var(--type-label)", lineHeight: 1.5, margin: "0 0 var(--space-3)" }}>
+          {t.chakras.ghatchakraNote}
+          {report.birth_weekday && report.ghati_count !== undefined && (
+            <>
+              {" "}
+              {t.chakras.birthWeekday}: {report.birth_weekday} · {num(report.ghati_count)} {t.chakras.ghatisAfterSunrise}
+            </>
+          )}
+        </p>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "var(--space-2)" }}>
           {report.ghatchakra.map((g: GhatiHouse, idx: number) => (
             <div
@@ -252,7 +264,7 @@ export const ChakraView: React.FC<Props> = ({ birth }: Props) => {
             >
               <div style={{ fontWeight: 600, color: "var(--text-low)", fontSize: "var(--type-label)", textTransform: "uppercase" }}>{t.common.house} {num(g.house)}</div>
               <div style={{ color: "var(--gold-vivid)", fontWeight: 700 }}>{lang === "ne" ? (t.zodiac.signs[g.sign as keyof typeof t.zodiac.signs] || g.sign) : g.sign}</div>
-              <div style={{ color: "var(--text-mid)", fontSize: "var(--type-label)" }}>{t.common.lord}: {lang === "ne" ? (t.planets.names[g.ruler as keyof typeof t.planets.names] || g.ruler) : g.ruler}</div>
+              <div style={{ color: "var(--text-mid)", fontSize: "var(--type-label)" }}>{t.chakras.ghatiLord}: {lang === "ne" ? (t.planets.names[g.ruler as keyof typeof t.planets.names] || g.ruler) : g.ruler}</div>
             </div>
           ))}
         </div>

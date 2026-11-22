@@ -381,7 +381,9 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
               <span style={{ fontSize: "var(--type-micro)", color: "var(--text-low)" }}>{lang === "ne" ? "योग तथा गोचर गणना गरिँदैछ..." : "Calculating yogas & transits..."}</span>
             )}
           </div>
-          <div style={{ display: "flex", gap: "var(--space-2)", overflowX: "auto", paddingBottom: "2px", scrollbarWidth: "thin", maxWidth: "100%", width: "100%", minWidth: 0, WebkitOverflowScrolling: "touch" }}>
+          {/* Pills wrap instead of scrolling sideways: every domain is
+              visible without horizontal scrolling. */}
+          <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap", maxWidth: "100%", width: "100%", minWidth: 0 }}>
             {[
               { id: "all", label: lang === "ne" ? "समग्र सारांश" : "Overview", icon: "🌌" },
               { id: "career", label: lang === "ne" ? "करियर तथा पदप्रतिष्ठा" : "Career & Status", icon: "👑" },
@@ -534,21 +536,19 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
         </div>
       )}
 
-      {/* Suggested Questions Carousel / Horizontal Scroll */}
+      {/* Suggested Questions — wrapped grid, not a horizontal scroll carousel,
+          so every suggestion is visible without sideways scrolling. */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
           gap: "var(--space-2)",
-          overflowX: "auto",
+          flexWrap: "wrap",
           paddingBottom: "var(--space-1)",
-          scrollbarWidth: "thin",
           maxWidth: "100%",
           width: "100%",
           minWidth: 0,
-          WebkitOverflowScrolling: "touch",
         }}
-        tabIndex={0}
         aria-label="Suggested classical questions"
       >
         <span style={{ fontSize: "var(--type-micro)", color: "var(--text-low)", textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "4px" }}>
@@ -576,7 +576,9 @@ export const ConsultationView: React.FC<Props> = ({ birth }) => {
         className="card"
         style={{
           position: "relative",
-          minHeight: "280px",
+          // Tall enough to fill the viewport instead of leaving half the
+          // page blank below a short conversation.
+          minHeight: "min(52vh, 520px)",
           maxHeight: "min(60vh, 620px)",
           overflowY: "auto",
           padding: "var(--space-5)",
