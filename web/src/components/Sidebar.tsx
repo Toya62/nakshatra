@@ -250,8 +250,6 @@ export const Sidebar: React.FC<Props> = ({
         aria-label="Primary navigation"
         style={{
           background: "var(--bg-base)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
           borderRight: "1px solid var(--border-subtle)",
           display: "flex",
           flexDirection: "column",

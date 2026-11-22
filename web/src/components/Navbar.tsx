@@ -38,8 +38,6 @@ export const Navbar: React.FC<Props> = ({
         position: "sticky",
         top: 0,
         zIndex: 100,
-        backdropFilter: "blur(18px)",
-        WebkitBackdropFilter: "blur(18px)",
         gap: "var(--space-3)",
       }}
     >
