@@ -48,14 +48,14 @@ export const CalendarView: React.FC<Props> = ({
     const last = bsDays[bsDays.length - 1];
     const firstName = lang === "ne" ? first.month_name_ne : first.month_name_en;
     const lastName = lang === "ne" ? last.month_name_ne : last.month_name_en;
-    if (first.month === last.month && first.year === last.year) {
-      return lang === "ne"
-        ? `${firstName} ${num(first.year)}`
-        : `${firstName} ${first.year}`;
+    const yearSpan =
+      first.year === last.year
+        ? (lang === "ne" ? num(first.year) : String(first.year))
+        : (lang === "ne" ? `${num(first.year)}–${num(last.year)}` : `${first.year}–${last.year}`);
+    if (first.month === last.month) {
+      return `${firstName} ${yearSpan}`;
     }
-    return lang === "ne"
-      ? `${firstName} – ${lastName} ${num(first.year)}–${num(last.year)}`
-      : `${firstName} – ${lastName} ${first.year}–${last.year}`;
+    return `${firstName} – ${lastName} ${yearSpan}`;
   })();
 
   const loadDay = useCallback(
