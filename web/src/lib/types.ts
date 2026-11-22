@@ -109,7 +109,7 @@ export interface TransitPlanet {
   name: string;
   sign: string;
   degree_in_sign: number;
-  house_from_asc: number;
+  house_from_lagna: number;
   house_from_moon: number;
   retrograde: boolean;
 }

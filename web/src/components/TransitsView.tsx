@@ -197,7 +197,7 @@ export const TransitsView: React.FC<Props> = ({ birth }) => {
                         {deg(p.degree_in_sign)}
                       </td>
                       <td style={{ padding: "var(--space-3) var(--space-2)" }}>
-                        {lang === "ne" ? `भाव ${num(p.house_from_asc)}` : `House ${p.house_from_asc}`}
+                        {lang === "ne" ? `भाव ${num(p.house_from_lagna)}` : `House ${p.house_from_lagna}`}
                       </td>
                       <td style={{ padding: "var(--space-3) var(--space-2)", color: "var(--gold-bright)", fontWeight: 500 }}>
                         {lang === "ne" ? `भाव ${num(p.house_from_moon)}` : `House ${p.house_from_moon}`}
