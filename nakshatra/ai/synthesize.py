@@ -720,27 +720,42 @@ class LLMSynthesizer(BaseSynthesizer):
             self._client = OpenAI(
                 api_key=api_key,
                 base_url=base_url,
-                timeout=120.0,
+                timeout=30.0,
             )
         return self._client
 
     def _complete_openai(self, prompt: str, system_prompt: str = SYSTEM_PROMPT) -> str:
         client = self._openai_client()
         max_tokens = int(os.environ.get("MAX_OUTPUT_TOKENS", "4096"))
-        kwargs: dict[str, Any] = {
-            "model": self.model,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt},
-            ],
-            "temperature": 0.35,
-            "frequency_penalty": 0.3,
-            "presence_penalty": 0.2,
-            "timeout": 120.0,
-            "max_tokens": max_tokens,
-        }
-        response = client.chat.completions.create(**kwargs)
-        return str(response.choices[0].message.content)
+        candidates = [self.model]
+        for fallback in ("gemini/gemini-3.5-flash-lite", "gemini/gemini-3-flash-preview"):
+            if fallback not in candidates:
+                candidates.append(fallback)
+
+        last_err: Exception | None = None
+        for cand in candidates:
+            try:
+                kwargs: dict[str, Any] = {
+                    "model": cand,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt},
+                    ],
+                    "temperature": 0.35,
+                    "frequency_penalty": 0.3,
+                    "presence_penalty": 0.2,
+                    "timeout": 30.0,
+                    "max_tokens": max_tokens,
+                }
+                response = client.chat.completions.create(**kwargs)
+                self.model = cand
+                return str(response.choices[0].message.content)
+            except Exception as e:
+                last_err = e
+                continue
+        if last_err:
+            raise last_err
+        raise RuntimeError("OpenAI completion failed")
 
     def _complete_google(self, prompt: str, system_prompt: str = SYSTEM_PROMPT) -> str:
         rotation_models = [
@@ -840,23 +855,41 @@ class LLMSynthesizer(BaseSynthesizer):
     def _stream_openai(self, prompt: str, system_prompt: str = SYSTEM_PROMPT) -> Iterator[str]:
         client = self._openai_client()
         max_tokens = int(os.environ.get("MAX_OUTPUT_TOKENS", "4096"))
-        kwargs: dict[str, Any] = {
-            "model": self.model,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt},
-            ],
-            "temperature": 0.35,
-            "frequency_penalty": 0.3,
-            "presence_penalty": 0.2,
-            "stream": True,
-            "timeout": 120.0,
-            "max_tokens": max_tokens,
-        }
-        response = client.chat.completions.create(**kwargs)
-        for chunk in response:
-            if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
-                yield str(chunk.choices[0].delta.content)
+        candidates = [self.model]
+        for fallback in ("gemini/gemini-3.5-flash-lite", "gemini/gemini-3-flash-preview"):
+            if fallback not in candidates:
+                candidates.append(fallback)
+
+        last_err: Exception | None = None
+        for cand in candidates:
+            try:
+                kwargs: dict[str, Any] = {
+                    "model": cand,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt},
+                    ],
+                    "temperature": 0.35,
+                    "frequency_penalty": 0.3,
+                    "presence_penalty": 0.2,
+                    "stream": True,
+                    "timeout": 30.0,
+                    "max_tokens": max_tokens,
+                }
+                response = client.chat.completions.create(**kwargs)
+                had_content = False
+                for chunk in response:
+                    if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
+                        had_content = True
+                        yield str(chunk.choices[0].delta.content)
+                if had_content:
+                    self.model = cand
+                    return
+            except Exception as e:
+                last_err = e
+                continue
+        if last_err:
+            raise last_err
 
     def _stream_google(self, prompt: str, system_prompt: str = SYSTEM_PROMPT) -> Iterator[str]:
         rotation_models = [
@@ -961,13 +994,31 @@ class FallbackSynthesizer(BaseSynthesizer):
                 ),
                 model="fallback",
             )
+        top_ref = results[0]
         lines = [
             f"तपाईंको प्रश्न '{question}' सम्बन्धी शास्त्रीय सन्दर्भहरू:"
             if is_ne
             else f"Regarding your question '{question}':"
         ]
-        for index, result in enumerate(results, start=1):
-            lines.append(f"{_citation_label(index, result)}: {result.chunk.text}")
+        if is_ne:
+            top_text = top_ref.chunk.text.splitlines()[0] if top_ref.chunk.text else ""
+            lines.append(f"\n### १. प्रत्यक्ष फलादेश र मुख्य शास्त्रीय निर्णय\nशास्त्रीय ग्रन्थ ({top_ref.chunk.work}) अनुसार: {top_text} [१]")
+            lines.append("\n### २. ज्योतिषीय आधार र प्रामाणिक सूत्र")
+            for index, result in enumerate(results[:3], start=1):
+                clean_t = result.chunk.text.replace("\n", " ").strip()
+                lines.append(f"- **[{index}] {result.chunk.work}** (अध्याय {result.chunk.chapter or 'सामान्य'}, श्लोक {result.chunk.verse or 'सूत्र'}): {clean_t}")
+            lines.append("\n### ३. व्यावहारिक मार्गदर्शन तथा समय सिद्धान्त\nविंशोत्तरी महादशा, अन्तर्दशा तथा चन्द्र राशिका आधारमा सक्रिय गोचर प्रभाव अनुसार समय निर्धारण गरिन्छ।")
+            lines.append("\n### ४. प्रामाणिक वैदिक तथा लाल किताब उपाय\n- **नित्य नियम**: सम्बन्धित ग्रहको वैदिक वा बीज मन्त्र जप गर्नुहोस्।\n- **सावधानी**: नकारात्मक आचरण, अनुचित लेनदेन तथा लाल किताब अनुसार निषेधित कार्यहरूबाट टाढा रहनुहोस्।")
+        else:
+            first_sentence = top_ref.chunk.text.split(".")[0] if "." in top_ref.chunk.text else top_ref.chunk.text[:140]
+            lines.append(f"\n### 1. Direct Verdict & Classical Principle\nAccording to classical Jyotish authority ({top_ref.chunk.work}), {first_sentence.strip()} [1].")
+            lines.append("\n### 2. Astrological Mechanism & Scriptural Grounding")
+            for index, result in enumerate(results[:3], start=1):
+                clean_t = result.chunk.text.replace("\n", " ").strip()
+                lines.append(f"- **{_citation_label(index, result)}**: {clean_t}")
+            lines.append("\n### 3. Concrete Guidelines & Timing Principles\nTiming and manifestation are governed by the active Vimshottari Dasha sub-periods and key planetary transits relative to the natal Moon.")
+            lines.append("\n### 4. Classical Remediation & Dharmic Alignment\n- **Primary Upaya**: Recite the designated Beeja Mantra of the relevant planetary lord.\n- **Savdhani (Precaution)**: Maintain ethical conduct, support daytime charitable seva, and avoid classical planetary taboos.")
+
         return Answer(
             question=question,
             answer="\n".join(lines),

@@ -156,16 +156,42 @@ COMMON_CORPUS_WORDS = {
 }
 
 
+KNOWN_LOW_VOWEL_WORDS = {
+    "strength",
+    "strengths",
+    "through",
+    "throughout",
+    "twelfth",
+    "length",
+    "lengths",
+    "rhythm",
+    "rhythms",
+    "bright",
+    "flight",
+}
+
+
+def is_junk_ocr_word(w: str) -> bool:
+    """Detect typical OCR scanner junk tokens (e.g. 'wtwfircl', 'wbravttk', 'qtn')."""
+    w_low = w.lower()
+    if w_low in KNOWN_LOW_VOWEL_WORDS or w_low in COMMON_CORPUS_WORDS:
+        return False
+    if any(w_low.startswith(p) for p in ("wtw", "wbr", "qtn", "vjqu", "stwn", "tjv", "xjk", "zxc", "htjn", "rsfif", "pl^")):
+        return True
+    vowels = len(re.findall(r"[aeiouy]", w_low))
+    if len(w_low) >= 5 and vowels == 0:
+        return True
+    if len(w_low) >= 7 and (vowels / len(w_low)) < 0.15:
+        return True
+    return False
+
+
 def is_corrupted_glyph_line(line_s: str) -> bool:
     """Detect non-Unicode / legacy font Sanskrit glyph noise and scanner running headers."""
     if not line_s:
         return False
-    # Standalone line numbers, page numbers, or legacy sloka markers like 'ii^ii', 'll^u', '|| 1 ||'
-    if re.match(
-        r"^(?:[0-9]{1,4}|[ivxlcdm]{1,6}|ii\^?ii|ll\^?[u\d]|\|\|.*\|\||\*.*\*|!\s*[I|])$",
-        line_s,
-        re.I,
-    ):
+    # Numbers, punctuation, quotes, or isolated brackets only (page numbers, line numbers, verse separators)
+    if re.match(r"^[\d\s\.\,\'\"\‘\’\(\)\-\—\–\|\/\\!;:\[\]\*\?#\<\>\~]+$", line_s):
         return True
     # Book running headers
     if re.match(
@@ -177,32 +203,40 @@ def is_corrupted_glyph_line(line_s: str) -> bool:
     # Chapter with page number running headers, e.g. 'Chapter 6 83'
     if re.match(r"^(?:Chapter|Ch\.?)\s*\d+\s+\d+\s*$", line_s, re.I):
         return True
-    if "^" in line_s or "~" in line_s:
+    # 5+ consonants in a single token (e.g. corrupted transliterations)
+    if re.search(r"\b[b-df-hj-np-tv-z]{5,}\b", line_s, re.I):
+        return True
+    # Isolated control or unescaped characters
+    if any(c in line_s for c in ("$", "\\", "~")):
+        return True
+    if "^" in line_s:
         words = re.findall(r"[a-zA-Z]+", line_s.lower())
         has_english = any(w in COMMON_CORPUS_WORDS for w in words)
         if not has_english:
             return True
         if any(len(w) > 3 and not re.search(r"[aeiouy]", w) for w in words):
             return True
+    # Non-letter symbol density check
+    letters = len(re.findall(r"[a-zA-Z\u0900-\u097F]", line_s))
+    symbols = len(re.findall(r"[^\w\s]", line_s))
+    if symbols >= 3 and symbols >= letters:
+        return True
     words = re.findall(r"[a-zA-Z]+", line_s.lower())
     if not words:
         return True
+    if any(is_junk_ocr_word(w) for w in words):
+        return True
     has_english = any(w in COMMON_CORPUS_WORDS for w in words)
     if not has_english:
-        if re.search(r"[\*?|\\#~:]", line_s):
-            return True
         if len(line_s) < 60 and any(len(w) > 3 and not re.search(r"[aeiouy]", w) for w in words):
+            return True
+        if len(words) <= 3 and not any(len(w) > 4 for w in words):
             return True
     return False
 
 
 def clean_corpus_text(text: str) -> str:
-    """Sanitize scanned astrological texts: strip font glyph noise and re-join hyphenated words."""
-    # 1. Reconnect hyphenated words split across lines (e.g. ex- \n altation -> exaltation)
-    text = re.sub(r"([a-zA-Z]{2,})-\s*\n\s*([a-zA-Z]{2,})", r"\1\2\n", text)
-    # 2. Fix carets embedded inside words (e.g. the^situations -> the situations)
-    text = re.sub(r"([a-zA-Z]+)\^([a-zA-Z]+)", r"\1 \2", text)
-
+    """Sanitize scanned astrological texts: strip font glyph noise, typos, and re-join hyphenated words."""
     cleaned_lines: list[str] = []
     for line in text.splitlines():
         line_s = line.strip()
@@ -212,7 +246,18 @@ def clean_corpus_text(text: str) -> str:
         if is_corrupted_glyph_line(line_s):
             continue
         cleaned_lines.append(line)
-    return "\n".join(cleaned_lines)
+    text = "\n".join(cleaned_lines)
+
+    # 1. Reconnect hyphenated words split across lines (e.g. ex- \n altation -> exaltation)
+    text = re.sub(r"([a-zA-Z]{2,})-\s*\n\s*([a-zA-Z]{2,})", r"\1\2", text)
+    # 2. Fix carets embedded inside words (e.g. the^situations -> the situations)
+    text = re.sub(r"([a-zA-Z]+)\^([a-zA-Z]+)", r"\1 \2", text)
+    text = text.replace("^", " ")
+    # 3. Fix pervasive historical OCR scan errors
+    text = re.sub(r"\bcorses\b", "curses", text, flags=re.I)
+    text = re.sub(r"\bbt sonlessness\b", "in childlessness", text, flags=re.I)
+
+    return text
 
 
 VERSE_HEADER_PATTERNS: list[re.Pattern[str]] = [
@@ -389,12 +434,18 @@ def chunk_text(
             return
         pieces = _split_into_pieces(body, min_chars, max_chars, splitter=splitter)
         for piece in pieces:
+            clean_piece = piece.strip()
+            if len(clean_piece) < 5:
+                continue
+            words = re.findall(r"[a-zA-Z]+", clean_piece.lower())
+            if not words or (len(words) <= 2 and not any(w in COMMON_CORPUS_WORDS for w in words)):
+                continue
             chunk = CorpusChunk(
                 work=work,
                 chapter=chapter_ctx,
                 verse=verse_ctx,
-                text=piece,
-                topics=tag_topics(piece),
+                text=clean_piece,
+                topics=tag_topics(clean_piece),
                 source_file=source_file,
                 char_start=buf_start,
                 char_end=buf_start + len(body),

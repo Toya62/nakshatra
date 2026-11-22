@@ -3,8 +3,8 @@
     {
       "work": "BPHS",
       "files": 2,
-      "chunks": 3623,
-      "verse_chunks": 3620,
+      "chunks": 3363,
+      "verse_chunks": 3360,
       "paragraph_chunks": 3,
       "translator": "R. Santhanam",
       "license": "Sanskrit original public domain; English translation (R. Santhanam, 1984) freely distributed via Internet Archive"
@@ -12,8 +12,8 @@
     {
       "work": "Ancient Hindu Astrology",
       "files": 1,
-      "chunks": 11,
-      "verse_chunks": 10,
+      "chunks": 7,
+      "verse_chunks": 6,
       "paragraph_chunks": 1,
       "translator": "James T. Braha",
       "license": "Educational excerpt / Modern synthesis reference"
@@ -21,17 +21,17 @@
     {
       "work": "Hindu Science of the Future",
       "files": 1,
-      "chunks": 15,
-      "verse_chunks": 14,
-      "paragraph_chunks": 1,
+      "chunks": 11,
+      "verse_chunks": 11,
+      "paragraph_chunks": 0,
       "translator": "Harihar Majumdar",
       "license": "Public reference / Classical commentary excerpt"
     },
     {
       "work": "Jaimini Upadesha Sutras",
       "files": 1,
-      "chunks": 13,
-      "verse_chunks": 13,
+      "chunks": 10,
+      "verse_chunks": 10,
       "paragraph_chunks": 0,
       "translator": "Classical Translation based on Maharshi Jaimini / B. Suryanarain Rao",
       "license": "Public domain classical Sanskrit aphorisms (Maharshi Jaimini); classical commentary freely distributed"
@@ -39,8 +39,8 @@
     {
       "work": "Lal Kitab",
       "files": 2,
-      "chunks": 3576,
-      "verse_chunks": 3574,
+      "chunks": 3200,
+      "verse_chunks": 3198,
       "paragraph_chunks": 2,
       "translator": "Pt. Beni Madhav Goswami & Pt. Laxmi Kant Vashisth / Pt. Roop Chand Joshi (1952 Edition)",
       "license": "Public domain classical treatise; educational compilation of traditional household Upayas and precautions"
@@ -48,8 +48,8 @@
     {
       "work": "Phaladeepika",
       "files": 1,
-      "chunks": 58,
-      "verse_chunks": 58,
+      "chunks": 29,
+      "verse_chunks": 29,
       "paragraph_chunks": 0,
       "translator": "V. Subrahmanya Sastri (Classical 1937 Translation)",
       "license": "Public domain classical Sanskrit treatise (Mantreswara); English translation published 1937 public domain"
@@ -57,8 +57,8 @@
     {
       "work": "Saravali",
       "files": 1,
-      "chunks": 26,
-      "verse_chunks": 26,
+      "chunks": 22,
+      "verse_chunks": 22,
       "paragraph_chunks": 0,
       "translator": "R. Santhanam (Classical English Translation)",
       "license": "Public domain classical Sanskrit treatise (Kalyana Varma); English translation published 1983 freely distributed"
@@ -66,13 +66,22 @@
     {
       "work": "Uttara Kalamrita",
       "files": 1,
-      "chunks": 9,
-      "verse_chunks": 9,
+      "chunks": 4,
+      "verse_chunks": 4,
       "paragraph_chunks": 0,
       "translator": "Classical Translation based on Mahakavi Kalidasa",
       "license": "Public domain classical Sanskrit treatise (Kalidasa); classical commentary freely distributed"
+    },
+    {
+      "work": "Vedic Classical Rules",
+      "files": 1,
+      "chunks": 44,
+      "verse_chunks": 43,
+      "paragraph_chunks": 1,
+      "translator": "Classical Compilation (BPHS, Phaladeepika, Saravali, Jaimini Upadesha Sutras)",
+      "license": "Public domain classical scriptures; curated canon of deterministic predictive aphorisms"
     }
   ],
-  "total_chunks": 7331,
-  "total_files": 10
+  "total_chunks": 6690,
+  "total_files": 11
 }
