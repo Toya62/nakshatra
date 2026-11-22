@@ -152,6 +152,28 @@ class TestBuildPrompt:
         assert "### ३. आत्मिक उद्देश्य र आत्मकारक ग्रह" in prompt
         assert "### ४. मुख्य सामर्थ्य, शुभ योग र आत्म-विकास" in prompt
 
+    def test_health_wellness_architecture_in_prompt(self):
+        prompt = build_prompt("tell me about health prediction in future", [_result()])
+        assert "HEALTH & WELLNESS CONSULTATION DIRECTIVE" in prompt
+        assert "### 1. Vitality Constitution & Physical Health Verdict" in prompt
+        assert "### 2. Astrological Mechanism & Vulnerability Mapping" in prompt
+        assert "### 3. Chronobiological & Health Sensitivity Windows" in prompt
+        assert "### 4. Classical Ayurvedic & Lal Kitab Health Regimen" in prompt
+        assert "Window 1: Vitality Consolidation & Preventative Window" in prompt
+        assert "Window 2: Peak Energy & Wellness Recovery Window" in prompt
+        assert "Window 3: Sensitivity & Rest Phase" in prompt
+        assert "Preparation & Application Window" not in prompt
+        assert "sunrise and sunset" in prompt
+        assert "medical diagnosis" in prompt or "licensed physicians" in prompt
+
+    def test_nepali_health_wellness_architecture_in_prompt(self):
+        prompt = build_prompt("मेरो स्वास्थ्य कस्तो रहला?", [_result()], language="ne")
+        assert "### १. शारीरिक प्रकृति, रोग प्रतिरोधात्मक क्षमता र मुख्य फलादेश" in prompt
+        assert "### २. ज्योतिषीय आधार र संवेदनशील अङ्ग विश्लेषण" in prompt
+        assert "### ३. स्वास्थ्य समय-तालिका" in prompt
+        assert "### ४. शास्त्रीय आयुर्वेदिक दिनचर्या र लाल किताब उपाय" in prompt
+        assert "Preparation & Application Window" not in prompt
+
 
 class TestIntentClassification:
     """Astrological consultation intent classification."""
@@ -193,6 +215,19 @@ class TestIntentClassification:
         for q in queries:
             assert classify_intent(q) == ConsultationIntent.REMEDIAL, f"Failed for '{q}'"
 
+    def test_health_wellness_intents(self):
+        queries = [
+            "tell me about health prediction in future",
+            "how is my physical health and wellness?",
+            "what does my chart say about illness or disease?",
+            "will I recover from sickness soon?",
+            "tell me about my vitality and immunity",
+            "मेरो स्वास्थ्य र दीर्घायु कस्तो रहला?",
+            "रोग र उपचारको समय कहिले छ?",
+        ]
+        for q in queries:
+            assert classify_intent(q) == ConsultationIntent.HEALTH_WELLNESS, f"Failed for '{q}'"
+
     def test_conceptual_intents(self):
         queries = [
             "what is Sade Sati?",
@@ -225,9 +260,14 @@ class TestBirthSummaryEnrichment:
         }
         summary = _format_birth_summary(chart_data)
         assert "Lagna Lord Placement: Saturn sits in House 2 in Aquarius" in summary
+        assert "Vitality & Health Signposts: Tanu Bhava (1st House - Constitution/Immunity): Capricorn" in summary
+        assert "Roga Bhava (6th House - Acute Ailments/Agni): Gemini" in summary
+        assert "Ayur Bhava (8th House - Longevity/Chronic Vulnerabilities): Leo" in summary
         assert "Jaimini Chara Karakas: Atmakaraka (Soul): Sun (27.70°)" in summary
         assert "Amatyakaraka (Career/Action): Saturn (25.40°)" in summary
         assert "Darakaraka (Spouse/Partnership): Mars (2.30°)" in summary
+        assert "Vitality & Longevity Karakas: Sun (Prana/Vitality): House 9 in Virgo" in summary
+        assert "Saturn (Ayushkaraka/Longevity): House 2 in Aquarius" in summary
         assert "Sarvashtakavarga (SAV Points by House from Lagna):" in summary
         assert "High Strength Houses (SAV >= 30 bindus):" in summary
         assert "Do NOT recite all 12 signs or scores in a raw list" in summary
@@ -299,6 +339,15 @@ class TestFallbackSynthesizer:
         assert "### 2. Primary 43-Day Daytime Lal Kitab Upaya" in answer.answer
         assert "### 3. Creature & Household Seva" in answer.answer
         assert "### 4. Inviolable Savdhani (Strict Behavioral Precautions)" in answer.answer
+
+    def test_formats_health_wellness_results(self):
+        results = [_result(verse="1")]
+        answer = FallbackSynthesizer().synthesize("tell me about health prediction in future", results)
+        assert "### 1. Vitality Constitution & Physical Health Verdict" in answer.answer
+        assert "### 2. Astrological Mechanism & Vulnerability Mapping" in answer.answer
+        assert "### 3. Chronobiological & Health Sensitivity Windows" in answer.answer
+        assert "### 4. Classical Ayurvedic & Lal Kitab Health Regimen" in answer.answer
+        assert "sunrise and sunset" in answer.answer
 
 
 class TestLLMSynthesizer:

@@ -32,6 +32,7 @@ class ConsultationIntent(str, Enum):
     EVENT_PREDICTION = "event_prediction"
     CAREER_FINANCE = "career_finance"
     RELATIONSHIP = "relationship"
+    HEALTH_WELLNESS = "health_wellness"
     REMEDIAL = "remedial"
     CONCEPTUAL = "conceptual"
 
@@ -50,7 +51,34 @@ def classify_intent(question: str) -> ConsultationIntent:
     ):
         return ConsultationIntent.REMEDIAL
 
-    # 2. Conceptual / Educational (definitions, shastra mechanics, not about the self)
+    # 2. Health & Wellness intent (vitality, illness, disease, roga, medical, health prediction)
+    # Evaluated BEFORE generic event prediction so 'health prediction in future' routes to health
+    health_pattern = (
+        r"\b(health|wellness|illness|illnesses|disease|diseases|sickness|sick|"
+        r"healing|cure|longevity|vitality|immunity|surgery|medical|recovery|"
+        r"ailment|ailments|physical health|mental health|diet|ayurveda|prakriti|"
+        r"roga|ayur|swasthya|upachar|hospital|hospitalization|accident|accidents)\b"
+    )
+    if re.search(health_pattern, q) or any(
+        w in q
+        for w in [
+            "स्वास्थ्य",
+            "रोग",
+            "बिमार",
+            "औषधि",
+            "उपचार",
+            "आयु",
+            "दीर्घायु",
+            "तन्दुरुस्ती",
+            "निरोगी",
+            "अस्पताल",
+            "चोटपटक",
+            "दुर्घटना",
+        ]
+    ):
+        return ConsultationIntent.HEALTH_WELLNESS
+
+    # 3. Conceptual / Educational (definitions, shastra mechanics, not about the self)
     conceptual_prefix = r"^(what is|what are|explain|define|meaning of|what does|how does)\b"
     has_self_ref = bool(re.search(r"\b(my|i|myself|me|mine)\b", q))
     if (re.search(conceptual_prefix, q) and not has_self_ref) or any(
@@ -58,7 +86,7 @@ def classify_intent(question: str) -> ConsultationIntent:
     ):
         return ConsultationIntent.CONCEPTUAL
 
-    # 3. Natal Identity & Character Profile (personality, nature, soul purpose, who am I)
+    # 4. Natal Identity & Character Profile (personality, nature, soul purpose, who am I)
     natal_pattern = (
         r"\b(about myself|about me|who am i|who i am|my personality|my nature|"
         r"my characteristics|my temperament|my character|my strengths|my weaknesses|"
@@ -85,7 +113,7 @@ def classify_intent(question: str) -> ConsultationIntent:
     ):
         return ConsultationIntent.NATAL_IDENTITY
 
-    # 4. Event Prediction / Timing inquiry ("when will", "timing", "कहिले")
+    # 5. Event Prediction / Timing inquiry ("when will", "timing", "कहिले")
     timing_pattern = (
         r"\b(when will|timing|what time|which year|which month|future|forecast|"
         r"date of|exact date|will i get|can i expect|when can i|when should i)\b"
@@ -93,7 +121,7 @@ def classify_intent(question: str) -> ConsultationIntent:
     if re.search(timing_pattern, q) or any(w in q for w in ["कहिले", "कुन समय", "भविष्यवाणी", "मिति"]):
         return ConsultationIntent.EVENT_PREDICTION
 
-    # 5. Relationship & Marriage
+    # 6. Relationship & Marriage
     relationship_pattern = (
         r"\b(marriage|married|marry|spouse|partner|wife|husband|love life|"
         r"relationship|compatibility|divorce|kundali milan|girlfriend|boyfriend)\b"
@@ -103,7 +131,7 @@ def classify_intent(question: str) -> ConsultationIntent:
     ):
         return ConsultationIntent.RELATIONSHIP
 
-    # 6. Career & Finance
+    # 7. Career & Finance
     career_pattern = (
         r"\b(career|job|profession|business|promotion|money|wealth|finance|"
         r"finances|financial|income|salary|livelihood|employment|startup|work)\b"
@@ -135,7 +163,7 @@ SYSTEM_PROMPT_PREDICTION = (
     "transit triggers (Jupiter/Saturn double transit, Rahu/Ketu axis), and Sarvashtakavarga (SAV) bindu scores. "
     "Anchor astrological principles in the provided classical verses with bracketed citations like [1] or [2]. Never invent citations.\n"
     "   ### 3. Concrete Timeline Windows: Provide 3 distinct, complete date ranges in ISO format (YYYY-MM-DD to YYYY-MM-DD):\n"
-    "       - **Window 1: Preparation & Application Window (YYYY-MM-DD to YYYY-MM-DD)**: Actionable seed-planting or application window under active dasha sub-period.\n"
+    "       - **Window 1: Preparation & Foundation Window (YYYY-MM-DD to YYYY-MM-DD)**: Actionable seed-planting or preparation window under active dasha sub-period.\n"
     "       - **Window 2: Peak Favorable Window (YYYY-MM-DD to YYYY-MM-DD)**: Highest probability breakthrough, offer, or milestone event.\n"
     "       - **Window 3: Caution & Delay Factor (YYYY-MM-DD to YYYY-MM-DD)**: Chandrashtama, retrograde friction, or sub-period requiring patience.\n"
     "   ### 4. Classical Lal Kitab Prescription: Provide concrete, actionable Lal Kitab remedies strictly for daytime (sunrise to sunset):\n"
@@ -234,6 +262,41 @@ SYSTEM_PROMPT_CONCEPTUAL = (
     "### 4. Dharmic Synthesis & Constructive Perspective: Evolutionary spiritual purpose and practical guidance."
 )
 
+SYSTEM_PROMPT_HEALTH = (
+    "You are a master Vedic Astrologer and Medical Jyotish Acharya with absolute mastery of classical scriptures "
+    "(Brihat Parashara Hora Shastra, Phaladeepika, Saravali) and the classical Lal Kitab (1952) health remediation principles. "
+    "Your consultation delivers direct, calculation-backed constitutional analysis, chronobiological vulnerability windows, "
+    "and authentic daytime Lal Kitab & Ayurvedic regimens—never vague AI boilerplate or irrelevant financial terms.\n\n"
+    "Core Astrological & Consultation Guardrails:\n"
+    "1. Strict Directness & Zero Fluff (CRITICAL): Never use conversational greetings, pleasantries, or preamble. "
+    "NEVER say 'Dear seeker', 'I sense your health concerns', 'Greetings', 'Welcome', 'In this reading', or 'I am happy to guide you'. "
+    "Begin immediately with Section 1 ('### 1. Vitality Constitution & Physical Health Verdict'). Every single sentence must carry astrological weight.\n"
+    "2. Mandatory 4-Pillar Health Architecture: Every health consultation MUST strictly follow this 4-section layout:\n"
+    "   ### 1. Vitality Constitution & Physical Health Verdict: Immediate, definitive verdict on overall physical vitality, "
+    "innate immunity, constitutional temperament (Ayurvedic Prakriti: Vata/Pitta/Kapha), Lagna strength, and Sun's Prana vitality in 1-2 direct sentences.\n"
+    "   ### 2. Astrological Mechanism & Vulnerability Mapping: Ground your analysis strictly in the ground truth birth data: "
+    "1st house (Tanu Bhava / immunity), 6th house (Roga Bhava / acute illnesses, digestive fire/Jatharagni), 8th house (Ayur Bhava / longevity, chronic conditions), "
+    "and 12th house (rest/hospitalization/recuperation). Cite 6th/8th house lords, placements, active Vimshottari Mahadasha/Antardasha/Pratyantardasha, "
+    "transit triggers (Saturn/Rahu transits, Chandrashtama), and SAV scores of Houses 1, 6, and 8. "
+    "Map potential physiological sensitivities to classical anatomical rulerships of zodiac signs and planets. "
+    "Cite provided classical verses with [1], [2]. Never invent citations or discuss unrelated career/financial yogas (like Dhana karaka or 10th lord)!\n"
+    "   ### 3. Chronobiological & Health Sensitivity Windows: Provide 3 distinct date ranges in YYYY-MM-DD format (YYYY-MM-DD to YYYY-MM-DD):\n"
+    "       - **Window 1: Vitality Consolidation & Preventative Window (YYYY-MM-DD to YYYY-MM-DD)**: Optimal phase for lifestyle stabilization, preventive care, diet tuning, and building bodily reserves under active dasha.\n"
+    "       - **Window 2: Peak Energy & Wellness Recovery Window (YYYY-MM-DD to YYYY-MM-DD)**: Highest vitality, strong immune resilience, and accelerated physical or mental recovery.\n"
+    "       - **Window 3: Sensitivity & Rest Phase (YYYY-MM-DD to YYYY-MM-DD)**: Low biorhythm or vulnerable transit phase (e.g. 6th/8th lord activation, Chandrashtama) requiring disciplined rest, gentle diet, and stress mitigation.\n"
+    "   ### 4. Classical Ayurvedic & Lal Kitab Health Regimen:\n"
+    "       - **43-Day Daytime Health Upaya**: Concrete, practical daytime action to be performed consecutively for 43 days strictly between sunrise and sunset.\n"
+    "       - **Dietary & Lifestyle Dharma**: Ayurvedic dietary alignment (balancing Vata/Pitta/Kapha), Dinacharya (circadian routine), and creature seva.\n"
+    "       - **Inviolable Savdhani (Strict Precaution)**: Mandatory classical behavioral taboos: what to NEVER consume, do, or neglect based on classical Lal Kitab and Ayurvedic rules.\n"
+    "3. Inviolable Daytime Rule (CRITICAL): ALL Lal Kitab remedies MUST be performed strictly between sunrise and sunset in natural daylight. "
+    "NEVER prescribe remedies 'after sunset', 'at night', or 'on Saturday evening'!\n"
+    "4. Negative Phrasing Ban (CRITICAL): NEVER use vocational phrasing such as 'Application Window', 'Job Application', 'Career Breakthrough', or 'Preparation & Application Window' in health consultations!\n"
+    "5. Responsible Medical Boundary Directive: Vedic astrology provides chronobiological, energetic, and Ayurvedic wellness perspectives only. "
+    "It is NOT a medical diagnosis, clinical prognosis, or substitute for licensed medical practitioners. Explicitly reinforce consulting qualified healthcare professionals for all medical conditions.\n"
+    "6. Calculation Outsource Rule: NEVER guess coordinates, dashas, or house numbers. ALL chart data is calculated by the Swiss Ephemeris engine.\n"
+    "7. Formatting Purity: Do NOT append a redundant 'References:' or 'Citations:' bibliography list at the end of the text."
+)
+
 SYSTEM_PROMPT_NE_PREDICTION = (
     "तपाईं एक सिद्ध, प्रामाणिक ज्योतिषाचार्य हुनुहुन्छ, जसलाई महर्षि पराशर, मन्त्रेश्वर, "
     "कल्याणवर्माका शास्त्रीय ग्रन्थहरू तथा लाल किताब (१९५२) को गहन ज्ञान छ। "
@@ -282,6 +345,31 @@ SYSTEM_PROMPT_NE_NATAL = (
     "४. अन्त्यमा सन्दर्भ सूची नदोहोर्‍याउनुहोस्।"
 )
 
+SYSTEM_PROMPT_NE_HEALTH = (
+    "तपाईं एक सिद्ध, प्रामाणिक वैदिक तथा मेडिकल ज्योतिषाचार्य हुनुहुन्छ, जसलाई महर्षि पराशर, "
+    "चरक संहिता, सुश्रुत संहिता तथा लाल किताब (१९५२) को स्वास्थ्य तथा आयुर्वेद फलादेशको पूर्ण ज्ञान छ। "
+    "तपाईंको फलादेश कुनै च्याटबटको जस्तो अस्पष्ट वा भूमिका बाँधिएको हुँदैन; एक निष्णात ज्योतिषीको जस्तै सिधै "
+    "शारीरिक धातु-प्रकृति, रोग भाव (६औं भाव), आयु भाव (८औं भाव), यकिन स्वास्थ्य समय-तालिका र प्रामाणिक दिउँसो गरिने लाल किताब उपाय प्रस्तुत गर्नुहुन्छ।\n\n"
+    "मुख्य स्वास्थ्य परामर्श नियमहरू:\n"
+    "१. शून्य भूमिका तथा सिधा फलादेश (CRITICAL): कुनै पनि अभिवादन वा अनावश्यक भूमिका नबाँध्नुहोस्। "
+    "उत्तरको पहिलो शब्द नै खण्ड १ ('### १. शारीरिक प्रकृति, रोग प्रतिरोधात्मक क्षमता र मुख्य फलादेश') बाट शुरु हुनुपर्दछ।\n"
+    "२. अनिवार्य ४-खम्बे स्वास्थ्य संरचना:\n"
+    "   ### १. शारीरिक प्रकृति, रोग प्रतिरोधात्मक क्षमता र मुख्य फलादेश: १-२ वाक्यमा सिधै शारीरिक स्वास्थ्य, त्रिदोष (वात/पित्त/कफ) धातु सन्तुलन, लग्न र सूर्यको जीवनी शक्ति (प्राण) को स्पष्ट निर्णय।\n"
+    "   ### २. ज्योतिषीय आधार र संवेदनशील अङ्ग विश्लेषण: लग्न (तनु भाव), ६औं (रोग भाव), र ८औं (आयु भाव) का स्वामी, ग्रह स्थिति, विंशोत्तरी दशा, गोचर (शनि/राहु/चन्द्राष्टम), र अष्टकवर्ग (SAV)। धन वा जागिरका असान्दर्भिक योग नल्याउनुहोस्। ग्रन्थका सन्दर्भहरूलाई [१], [२] ले प्रमाणित गर्नुहोस्।\n"
+    "   ### ३. स्वास्थ्य समय-तालिका (३ वटा स्पष्ट मिति दायरा YYYY-MM-DD):\n"
+    "       - **पहिलो समय: स्वास्थ्य संरक्षण तथा पूर्वतयारी (YYYY-MM-DD देखि YYYY-MM-DD सम्म)**: जीवनशैली सुधार, आहार सन्तुलन र रोग प्रतिरोधात्मक क्षमता बढाउने समय\n"
+    "       - **दोस्रो समय: उच्च ऊर्जा तथा स्वास्थ्य लाभ (YYYY-MM-DD देखि YYYY-MM-DD सम्म)**: शारीरिक तन्दुरुस्ती, ऊर्जा र छिटो स्वास्थ्य लाभ हुने समय\n"
+    "       - **तेस्रो समय: संवेदनशीलता, विश्राम र सावधानी (YYYY-MM-DD देखि YYYY-MM-DD सम्म)**: न्यून ऊर्जा वा संवेदनशील गोचर (जस्तै चन्द्राष्टम), जसमा खानपान, तनाव र आराममा विशेष ध्यान दिनुपर्ने समय\n"
+    "   ### ४. शास्त्रीय आयुर्वेदिक दिनचर्या र लाल किताब उपाय:\n"
+    "       - **४३ दिने मुख्य स्वास्थ्य उपाय**: लगातार ४३ दिन दिउँसो घामको प्रकाशमा गरिने ठोस व्यावहारिक उपाय (सूर्यास्त पछि कहिल्यै होइन)\n"
+    "       - **आयुर्वेदिक आहार तथा जीव सेवा**: त्रिदोष सन्तुलन गर्ने आहार, दिनचर्या, र चराचुरुङ्गी वा गाईलाई आहार\n"
+    "       - **कडा सावधानी (निषेध)**: स्वास्थ्य रक्षाका लागि लाल किताब र आयुर्वेद अनुसार कहिल्यै गर्न नहुने कुरा वा खानपानको परहेज\n"
+    "३. दिउँसोको कडा नियम (CRITICAL): सम्पूर्ण लाल किताब उपायहरू अनिवार्य रूपमा सूर्योदयदेखि सूर्यास्तको बीचमा मात्र गर्नुपर्दछ। सूर्यास्त पछि वा राति कुनै उपाय नगर्नुहोस्।\n"
+    "४. निषेधित शब्दावली: स्वास्थ्य परामर्शमा जागिर, फारम भर्ने मिति वा 'Application Window' जस्ता शब्द पूर्णतः निषेध छन्।\n"
+    "५. चिकित्सा मर्यादा: ज्योतिषीय परामर्श आयुर्वेदिक तथा ऊर्जा विश्लेषण मात्र हो; यो चिकित्सकको जाँच वा औषधोपचारको विकल्प होइन। गम्भीर समस्यामा अनिवार्य रूपमा विशेषज्ञ चिकित्सकको सल्लाह लिनुपर्छ।\n"
+    "६. अन्त्यमा सन्दर्भ सूची नदोहोर्‍याउनुहोस्।"
+)
+
 # Backwards compatibility globals
 SYSTEM_PROMPT = SYSTEM_PROMPT_PREDICTION
 SYSTEM_PROMPT_NE = SYSTEM_PROMPT_NE_PREDICTION
@@ -308,10 +396,14 @@ def get_system_prompt(
     if is_ne:
         if intent_val == ConsultationIntent.NATAL_IDENTITY:
             return SYSTEM_PROMPT_NE_NATAL
+        if intent_val == ConsultationIntent.HEALTH_WELLNESS:
+            return SYSTEM_PROMPT_NE_HEALTH
         return SYSTEM_PROMPT_NE_PREDICTION
 
     if intent_val == ConsultationIntent.NATAL_IDENTITY:
         return SYSTEM_PROMPT_NATAL
+    if intent_val == ConsultationIntent.HEALTH_WELLNESS:
+        return SYSTEM_PROMPT_HEALTH
     if intent_val == ConsultationIntent.REMEDIAL:
         return SYSTEM_PROMPT_REMEDIAL
     if intent_val == ConsultationIntent.CAREER_FINANCE:
@@ -444,6 +536,19 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
             house_lord_parts.append(f"H{h} ({h_sign}) lord: {h_lord}")
         lines.append("- Exact House Rulerships (Bhaveshas): " + " | ".join(house_lord_parts))
 
+        # Health & Vitality Significators (Tanu, Roga, Ayur Bhavas)
+        h1_sign = _ZODIAC_SIGNS[lagna_idx]
+        h6_sign = _ZODIAC_SIGNS[(lagna_idx + 5) % 12]
+        h8_sign = _ZODIAC_SIGNS[(lagna_idx + 7) % 12]
+        h1_lord = _SIGN_LORDS[h1_sign]
+        h6_lord = _SIGN_LORDS[h6_sign]
+        h8_lord = _SIGN_LORDS[h8_sign]
+        lines.append(
+            f"- Vitality & Health Signposts: Tanu Bhava (1st House - Constitution/Immunity): {h1_sign} (Lord: {h1_lord}) | "
+            f"Roga Bhava (6th House - Acute Ailments/Agni): {h6_sign} (Lord: {h6_lord}) | "
+            f"Ayur Bhava (8th House - Longevity/Chronic Vulnerabilities): {h8_sign} (Lord: {h8_lord})"
+        )
+
     planets = chart.get("planets")
     if isinstance(planets, list):
         rahu = chart.get("rahu")
@@ -501,6 +606,15 @@ def _format_birth_summary(chart: dict[str, Any]) -> str:
                     f"- Jaimini Chara Karakas: Atmakaraka (Soul): {ak.get('name')} ({ak.get('degree_in_sign', 0):.2f}°), "
                     f"Amatyakaraka (Career/Action): {amk.get('name')} ({amk.get('degree_in_sign', 0):.2f}°), "
                     f"Darakaraka (Spouse/Partnership): {dk.get('name')} ({dk.get('degree_in_sign', 0):.2f}°)"
+                )
+
+            # Health & Longevity Karakas (Surya Vitality, Shani Longevity)
+            sun_body = next((b for b in all_bodies if b.get("name") == "Sun"), None)
+            sat_body = next((b for b in all_bodies if b.get("name") == "Saturn"), None)
+            if sun_body and sat_body:
+                lines.append(
+                    f"- Vitality & Longevity Karakas: Sun (Prana/Vitality): House {sun_body.get('house')} in {sun_body.get('sign')} | "
+                    f"Saturn (Ayushkaraka/Longevity): House {sat_body.get('house')} in {sat_body.get('sign')}"
                 )
 
     # Real Ashtakavarga Points: Grouped cleanly by house strength rather than a raw dump of 12 signs
@@ -952,6 +1066,59 @@ def build_prompt(
                 "### 4. Relational Harmony Practices & Lal Kitab Savdhani\n"
                 "Actionable relationship wisdom, healthy communication boundaries, and Lal Kitab precautions."
             )
+    elif intent == ConsultationIntent.HEALTH_WELLNESS:
+        if is_ne:
+            lines.append(
+                "स्वास्थ्य तथा कल्याण परामर्श निर्देशन (अनिवार्य):\n"
+                "कुनै पनि भूमिका वा अनावश्यक सम्बोधन नगरी सिधै निम्न ४ भागमा प्रामाणिक उत्तर दिनुहोस्:\n"
+                "### १. शारीरिक प्रकृति, रोग प्रतिरोधात्मक क्षमता र मुख्य फलादेश\n"
+                "शारीरिक स्वास्थ्य, त्रिदोष (वात/पित्त/कफ) धातु सन्तुलन, लग्न र सूर्यको जीवनी शक्ति (प्राण) को स्पष्ट निर्णय।\n\n"
+                "### २. ज्योतिषीय आधार र संवेदनशील अङ्ग विश्लेषण\n"
+                "लग्न (तनु भाव), ६औं (रोग भाव), र ८औं (आयु भाव) का स्वामी, ग्रह स्थिति, विंशोत्तरी दशा, गोचर (शनि/राहु/चन्द्राष्टम), र अष्टकवर्ग (SAV)। ग्रन्थका सन्दर्भहरूलाई [१], [२] ले प्रमाणित गर्नुहोस्।\n\n"
+                "### ३. स्वास्थ्य समय-तालिका (३ वटा स्पष्ट मिति दायरा YYYY-MM-DD)\n"
+                "- **पहिलो समय: स्वास्थ्य संरक्षण तथा पूर्वतयारी (YYYY-MM-DD देखि YYYY-MM-DD सम्म)**\n"
+                "- **दोस्रो समय: उच्च ऊर्जा तथा स्वास्थ्य लाभ (YYYY-MM-DD देखि YYYY-MM-DD सम्म)**\n"
+                "- **तेस्रो समय: संवेदनशीलता, विश्राम र सावधानी (YYYY-MM-DD देखि YYYY-MM-DD सम्म)**\n\n"
+                "### ४. शास्त्रीय आयुर्वेदिक दिनचर्या र लाल किताब उपाय\n"
+                "- **४३ दिने मुख्य स्वास्थ्य उपाय**: [लगातार ४३ दिन दिउँसो घामको प्रकाशमा गरिने उपाय - सूर्यास्त पछि कहिल्यै होइन]\n"
+                "- **आयुर्वेदिक आहार तथा जीव सेवा**: [त्रिदोष सन्तुलन गर्ने आहार, दिनचर्या, र जीव सेवा]\n"
+                "- **कडा सावधानी (निषेध)**: [स्वास्थ्य रक्षाका लागि लाल किताब र आयुर्वेद अनुसार निषेध]\n\n"
+                "कडा सावधानी:\n"
+                "- स्वास्थ्य परामर्शमा जागिर वा 'Application Window' जस्ता असान्दर्भिक शब्द कहिल्यै प्रयोग नगर्नुहोस्।\n"
+                "- लाल किताबका सम्पूर्ण उपायहरू सूर्योदय र सूर्यास्तको बीचमा मात्र गरिनुपर्छ (सूर्यास्त पछि कहिल्यै होइन)।\n"
+                "- ज्योतिषीय परामर्श चिकित्सा उपचारको विकल्प होइन; चिकित्सकको सल्लाह लिन स्पष्ट निर्देशन दिनुहोस्।\n"
+                "- अन्त्यमा सन्दर्भ सूची नदोहोर्‍याउनुहोस्।"
+            )
+        else:
+            lines.append(
+                "HEALTH & WELLNESS CONSULTATION DIRECTIVE (MANDATORY):\n"
+                "Deliver a direct, calculation-backed health, vitality, and chronobiological analysis like a master Medical Jyotishi. "
+                "Zero conversational fluff, zero greetings (NO 'Dear seeker', NO pleasantries). "
+                "Synthesize your classical mastery with the provided scriptural excerpts, citing them with bracketed numbers like [1] or [2]. "
+                "Structure your response strictly into these 4 sections:\n"
+                "### 1. Vitality Constitution & Physical Health Verdict\n"
+                "Immediate, definitive verdict on physical vitality, constitutional temperament (Ayurvedic Prakriti: Vata/Pitta/Kapha), "
+                "Lagna immunity, and Sun's Prana in 1-2 definitive sentences.\n\n"
+                "### 2. Astrological Mechanism & Vulnerability Mapping\n"
+                "Ground your analysis in the calculated 1st house (Tanu/vitality), 6th house (Roga/acute ailments & digestive fire), "
+                "8th house (Ayur/chronic vulnerabilities & longevity), their lords, operating Dasha periods, and transits (Saturn/Rahu/Chandrashtama). "
+                "Map physiological vulnerabilities to classical sign/planet rulerships. Cite classical verses with [1], [2]. "
+                "Do NOT mention unrelated financial significators (such as 2nd lord or Dhana karaka)!\n\n"
+                "### 3. Chronobiological & Health Sensitivity Windows\n"
+                "Provide 3 distinct date ranges in YYYY-MM-DD format:\n"
+                "- **Window 1: Vitality Consolidation & Preventative Window (YYYY-MM-DD to YYYY-MM-DD)**\n"
+                "- **Window 2: Peak Energy & Wellness Recovery Window (YYYY-MM-DD to YYYY-MM-DD)**\n"
+                "- **Window 3: Sensitivity & Rest Phase (YYYY-MM-DD to YYYY-MM-DD)**\n\n"
+                "### 4. Classical Ayurvedic & Lal Kitab Health Regimen\n"
+                "- **43-Day Daytime Health Upaya**: [Continuous daytime action performed strictly between sunrise and sunset]\n"
+                "- **Dietary & Lifestyle Dharma**: [Ayurvedic dietary balance for Vata/Pitta/Kapha, circadian routine, creature seva]\n"
+                "- **Inviolable Savdhani (Strict Precaution)**: [Mandatory taboo: what to NEVER consume, do, or neglect]\n\n"
+                "CRITICAL GUARDRAILS:\n"
+                "- NEVER use vocational phrasing such as 'Application Window', 'Job Application', or 'Career' in a health consultation!\n"
+                "- INVIOLABLE DAYTIME RULE: ALL Lal Kitab remedies MUST be performed strictly between sunrise and sunset in natural daylight. NEVER prescribe remedies 'after sunset', 'at night', or 'on Saturday evening'!\n"
+                "- RESPONSIBLE MEDICAL BOUNDARY: Explicitly note that astrological wellness analysis does not replace professional medical diagnosis or treatment from licensed physicians.\n"
+                "- Do NOT append a redundant 'References:' or 'Citations:' bibliography list at the end of your response."
+            )
     elif intent == ConsultationIntent.CONCEPTUAL:
         if is_ne:
             lines.append(
@@ -1011,7 +1178,7 @@ def build_prompt(
                 "transits, and Sarvashtakavarga (SAV) bindu scores from the context. Cite relevant classical verses with [1], [2].\n\n"
                 "### 3. Concrete Timeline Windows\n"
                 "Provide 3 distinct date ranges in YYYY-MM-DD format:\n"
-                "- **Window 1: Preparation & Application Window (YYYY-MM-DD to YYYY-MM-DD)**\n"
+                "- **Window 1: Preparation & Foundation Window (YYYY-MM-DD to YYYY-MM-DD)**\n"
                 "- **Window 2: Peak Favorable Window (YYYY-MM-DD to YYYY-MM-DD)**\n"
                 "- **Window 3: Caution & Delay Factor (YYYY-MM-DD to YYYY-MM-DD)**\n\n"
                 "### 4. Classical Lal Kitab Prescription\n"
@@ -1501,6 +1668,46 @@ class FallbackSynthesizer(BaseSynthesizer):
                 )
                 lines.append(
                     "\n### 4. Key Strengths, Yogas & Karmic Evolution\nActive planetary dignities and auspicious Yogas grant distinct natural superpowers to develop throughout life."
+                )
+        elif intent == ConsultationIntent.HEALTH_WELLNESS:
+            if is_ne:
+                lines.append(
+                    f"\n### १. शारीरिक प्रकृति, रोग प्रतिरोधात्मक क्षमता र मुख्य फलादेश\nशास्त्रीय ग्रन्थ ({top_ref.chunk.work}) अनुसार: {top_text} [१]"
+                )
+                lines.append("\n### २. ज्योतिषीय आधार र संवेदनशील अङ्ग विश्लेषण")
+                for index, result in enumerate(results[:3], start=1):
+                    clean_t = result.chunk.text.replace("\n", " ").strip()
+                    lines.append(
+                        f"- **[{index}] {result.chunk.work}** (अध्याय {result.chunk.chapter or 'सामान्य'}, श्लोक {result.chunk.verse or 'सूत्र'}): {clean_t}"
+                    )
+                lines.append(
+                    "\n### ३. स्वास्थ्य समय-तालिका (३ वटा स्पष्ट मिति दायरा YYYY-MM-DD)\n"
+                    "विंशोत्तरी दशा तथा गोचर अनुसार स्वास्थ्य संरक्षण, उच्च ऊर्जा र संवेदनशीलता अवधिको निर्धारण गरिन्छ।"
+                )
+                lines.append(
+                    "\n### ४. शास्त्रीय आयुर्वेदिक दिनचर्या र लाल किताब उपाय\n"
+                    "- **४३ दिने मुख्य स्वास्थ्य उपाय**: लगातार ४३ दिन दिउँसो घामको प्रकाशमा गरिने ठोस व्यावहारिक उपाय (सूर्यास्त पछि कहिल्यै होइन)\n"
+                    "- **आयुर्वेदिक आहार तथा जीव सेवा**: त्रिदोष सन्तुलन गर्ने आहार तथा गाई वा पशुपन्छीको सेवा\n"
+                    "- **कडा सावधानी (निषेध)**: स्वास्थ्य रक्षाका लागि खानपान तथा आचरणमा पूर्ण संयम। [चिकित्सा सम्बन्धी परामर्शका लागि योग्य चिकित्सकको सल्लाह लिनुहोस्]"
+                )
+            else:
+                lines.append(
+                    f"\n### 1. Vitality Constitution & Physical Health Verdict\nAccording to classical Jyotish authority ({top_ref.chunk.work}), {first_sentence.strip()} [1]."
+                )
+                lines.append(
+                    "\n### 2. Astrological Mechanism & Vulnerability Mapping\nNatal Lagna (vitality), 6th house (Roga Bhava), and 8th house (Ayur Bhava) govern physical constitution and biological resilience:"
+                )
+                for index, result in enumerate(results[:3], start=1):
+                    clean_t = result.chunk.text.replace("\n", " ").strip()
+                    lines.append(f"- **{_citation_label(index, result)}**: {clean_t}")
+                lines.append(
+                    "\n### 3. Chronobiological & Health Sensitivity Windows\nBiological vitality and immunity fluctuate according to active Vimshottari dasha sub-periods and key planetary transits affecting Tanu and Roga Bhavas."
+                )
+                lines.append(
+                    "\n### 4. Classical Ayurvedic & Lal Kitab Health Regimen\n"
+                    "- **43-Day Daytime Health Upaya**: Perform classical daytime remedies strictly between sunrise and sunset (never after sunset).\n"
+                    "- **Dietary & Lifestyle Dharma**: Cultivate doshic balance through seasonal Ayurvedic nutrition, hydration, and creature seva.\n"
+                    "- **Inviolable Savdhani (Strict Precaution)**: Avoid irregular sleep cycles, maintain dietary discipline, and observe classical health taboos. [Note: Astrological wellness insights do not replace professional medical care.]"
                 )
         elif intent == ConsultationIntent.REMEDIAL:
             if is_ne:
