@@ -76,3 +76,34 @@ def test_calendar_api_endpoints():
     assert data_nom["planets"]["Sun"] == "सूर्य"
     assert "Aries" in data_nom["signs"]
     assert len(data_nom["nakshatras"]) == 27
+
+
+def test_calendar_bs_month_endpoint():
+    """GET /calendar/bs/month returns one BS date per AD day, in order."""
+    client = TestClient(app)
+    resp = client.get("/calendar/bs/month", params={"year": 2026, "month": 11})
+    assert resp.status_code == 200
+    days = resp.json()
+    assert len(days) == 30
+    # Anchors verified against nepali_datetime via ad_to_bs.
+    assert days[0]["formatted"] == "2083 Kartik 15"
+    assert days[21]["formatted"] == "2083 Mangsir 06"
+    assert days[-1]["formatted"] == "2083 Mangsir 14"
+    # Every entry matches the single-day converter exactly.
+    for i, entry in enumerate(days):
+        assert entry == ad_to_bs(2026, 11, i + 1).model_dump()
+
+
+def test_calendar_bs_month_february_leap():
+    """February has 29 days in the leap year 2028."""
+    client = TestClient(app)
+    resp = client.get("/calendar/bs/month", params={"year": 2028, "month": 2})
+    assert resp.status_code == 200
+    assert len(resp.json()) == 29
+
+
+def test_calendar_bs_month_invalid_month():
+    """Month 13 is rejected with 422."""
+    client = TestClient(app)
+    resp = client.get("/calendar/bs/month", params={"year": 2026, "month": 13})
+    assert resp.status_code == 422

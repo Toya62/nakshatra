@@ -438,6 +438,16 @@ export async function fetchBikramSambat(
   return res.json();
 }
 
+export async function fetchBsMonth(
+  year: number,
+  month: number
+): Promise<BikramSambatDate[]> {
+  const baseUrl = getApiBaseUrl();
+  const res = await fetch(`${baseUrl}/calendar/bs/month?year=${year}&month=${month}`);
+  if (!res.ok) return [];
+  return res.json();
+}
+
 export async function fetchGregorianDate(
   year: number,
   month: number,

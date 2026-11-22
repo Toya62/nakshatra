@@ -35,6 +35,7 @@ export const en: TranslationSchema = {
     chart: "Kundali (D1/D9)",
     table: "Planets & Houses",
     panchanga: "Daily Panchanga",
+    calendar: "Calendar",
     dasha: "Vimshottari Dasha",
     ashtakavarga: "Ashtakavarga",
     transits: "Gochar Transits",
@@ -221,6 +222,12 @@ export const en: TranslationSchema = {
       krishna: "Krishna Paksha (Waning)",
     },
     tomorrowPreview: "Tomorrow's Panchanga",
+  },
+  calendar: {
+    title: "Calendar",
+    subtitle: "Month grid in AD and Bikram Sambat — tap a day for its panchanga",
+    today: "Today",
+    dayPanchanga: "Panchanga for this day",
   },
   dasha: {
     title: "Vimshottari Dasha",

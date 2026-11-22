@@ -35,6 +35,7 @@ export interface TranslationSchema {
     chart: string;
     table: string;
     panchanga: string;
+    calendar: string;
     dasha: string;
     ashtakavarga: string;
     transits: string;
@@ -182,6 +183,12 @@ export interface TranslationSchema {
       krishna: string;
     };
     tomorrowPreview: string;
+  };
+  calendar: {
+    title: string;
+    subtitle: string;
+    today: string;
+    dayPanchanga: string;
   };
   dasha: {
     title: string;
