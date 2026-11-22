@@ -1771,27 +1771,42 @@ class LLMSynthesizer(BaseSynthesizer):
             question, results, birth_context, language=language, intent=intent
         )
         sys_prompt = get_system_prompt(language, intent=intent)
+        notice_prefix = (
+            "9router"
+            if (self._base_url and "20128" in self._base_url)
+            else (
+                "Ollama"
+                if self.provider == "ollama"
+                else ("OpenAI" if self.provider == "openai" else "Gemini")
+            )
+        )
+        # Task 13 step 4: never append a second (fallback) answer after
+        # partial LLM tokens. Buffer the count: the fallback may only be
+        # yielded when ZERO tokens were produced; otherwise end the stream
+        # with a short interruption notice and no second answer.
+        yielded = 0
         try:
             if self.provider == "google":
-                yield from self._stream_google(prompt, system_prompt=sys_prompt)
+                inner = self._stream_google(prompt, system_prompt=sys_prompt)
             elif self.provider in ("openai", "ollama"):
-                yield from self._stream_openai(prompt, system_prompt=sys_prompt)
+                inner = self._stream_openai(prompt, system_prompt=sys_prompt)
             else:
                 try:
-                    yield self._complete(prompt, system_prompt=sys_prompt)
+                    inner = iter([self._complete(prompt, system_prompt=sys_prompt)])
                 except TypeError:
-                    yield self._complete(prompt)
+                    inner = iter([self._complete(prompt)])
+            for token in inner:
+                yielded += 1
+                yield token
         except Exception as e:
-            fb = FallbackSynthesizer()
-            notice_prefix = (
-                "9router"
-                if (self._base_url and "20128" in self._base_url)
-                else (
-                    "Ollama"
-                    if self.provider == "ollama"
-                    else ("OpenAI" if self.provider == "openai" else "Gemini")
+            if yielded > 0:
+                yield (
+                    "\n\n*[Notice: "
+                    f"{notice_prefix} stream interrupted ({e}) — "
+                    "the answer above is incomplete. Please try again.]*"
                 )
-            )
+                return
+            fb = FallbackSynthesizer()
             yield f"*[Notice: {notice_prefix} service temporarily unavailable ({e}). Retrieved classical scriptural citations:]*\n\n"
             yield from fb.synthesize_stream(question, results, birth_context, language=language)
 
@@ -1829,6 +1844,12 @@ class LLMSynthesizer(BaseSynthesizer):
                     self.model = cand
                     return
             except Exception as e:
+                # Task 13 step 4: if this candidate already yielded tokens,
+                # do NOT try the next candidate — that would stream a second
+                # complete answer after the partial one. Fail instead; the
+                # caller ends the stream with an interruption notice.
+                if had_content:
+                    raise
                 last_err = e
                 continue
         if last_err:
@@ -1866,6 +1887,7 @@ class LLMSynthesizer(BaseSynthesizer):
 
         last_err: Exception | None = None
         full_contents = f"{system_prompt}\n\n{prompt}"
+        yielded_any = False
         for cand in candidates:
             try:
                 stream_response = self._client.models.generate_content_stream(
@@ -1874,11 +1896,18 @@ class LLMSynthesizer(BaseSynthesizer):
                 self.model = cand
                 for chunk in stream_response:
                     if chunk.text:
+                        yielded_any = True
                         yield str(chunk.text)
                 return
             except Exception as e:
                 last_err = e
                 err_str = str(e)
+                # Task 13 step 4: if any tokens were already yielded, do NOT
+                # continue to the next model — that would append a second
+                # complete answer after the partial one. Fail instead; the
+                # caller ends the stream with an interruption notice.
+                if yielded_any:
+                    raise
                 if (
                     "429" in err_str
                     or "RESOURCE_EXHAUSTED" in err_str
